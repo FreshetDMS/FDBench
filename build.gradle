@@ -1,0 +1,24 @@
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.18'
+    compile 'org.slf4j:slf4j-logback:1.7.18'
+//    compile "org.apache.kafka" % "kafka-clients" % "0.9.0.1"
+    compile 'org.apache.hadoop:hadoop-yarn-api:2.7.1'
+    compile 'org.apache.hadoop:hadoop-yarn-common:2.7.1'
+    compile 'org.apache.hadoop:hadoop-yarn-client:2.7.1'
+    compile 'org.apache.hadoop:hadoop-common:2.7.1'
+    compile 'org.yaml:snakeyaml:1.17'
+    compile files('/Users/mpathira/PhD/Code/kafka-bench/conf/hadoop/')
+    testCompile 'junit:junit:4.12'
+}
+
+task testYarn(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.pathirage.kafka.bench.Main'
+    systemProperty 'YARN_CONF_DIR', '/Users/mpathira/PhD/Code/kafka-bench/conf/hadoop'
+}
