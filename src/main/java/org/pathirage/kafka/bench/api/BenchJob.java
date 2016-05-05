@@ -19,9 +19,10 @@ package org.pathirage.kafka.bench.api;
 import org.pathirage.kafka.bench.BenchConf;
 
 public interface BenchJob {
-    /**
-     * Submit this benchmark job ot be run.
-     * @return An instance of this job after it has been submitted.
-     */
-    BenchJob submit();
+  /**
+   * Submit this benchmark job ot be run.
+   *
+   * @return An instance of this job after it has been submitted.
+   */
+  BenchJob submit(BenchConf conf);
 }

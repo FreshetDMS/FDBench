@@ -5,20 +5,41 @@ repositories {
 }
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.18'
-    compile 'org.slf4j:slf4j-logback:1.7.18'
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'ch.qos.logback:logback-classic:1.0.13'
+    compile 'ch.qos.logback:logback-core:1.0.13'
 //    compile "org.apache.kafka" % "kafka-clients" % "0.9.0.1"
     compile 'org.apache.hadoop:hadoop-yarn-api:2.7.1'
     compile 'org.apache.hadoop:hadoop-yarn-common:2.7.1'
     compile 'org.apache.hadoop:hadoop-yarn-client:2.7.1'
     compile 'org.apache.hadoop:hadoop-common:2.7.1'
+    compile 'org.apache.hadoop:hadoop-hdfs:2.7.1'
+    compile 'com.googlecode.objectify:objectify:5.1.12'
     compile 'org.yaml:snakeyaml:1.17'
-    compile files('/Users/mpathira/PhD/Code/kafka-bench/conf/hadoop/')
     testCompile 'junit:junit:4.12'
 }
+task tar(type: Tar) {
+    compression = Compression.GZIP
+    classifier = 'dist'
 
-task testYarn(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    main = 'org.pathirage.kafka.bench.Main'
-    systemProperty 'YARN_CONF_DIR', '/Users/mpathira/PhD/Code/kafka-bench/conf/hadoop'
+    into('bin') {
+        from 'src/main/bash'
+        fileMode = 0755
+    }
+
+    into('lib') {
+        from configurations.runtime
+    }
+
+    into('lib') {
+        from jar
+    }
 }
+
+
+task testYarn(type: JavaExec, dependsOn: [tar]) {
+    classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
+    main = 'org.pathirage.kafka.bench.Main'
+    environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
+}
+

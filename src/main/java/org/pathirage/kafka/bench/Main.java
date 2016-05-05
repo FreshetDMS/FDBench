@@ -18,9 +18,11 @@ package org.pathirage.kafka.bench;
 
 import org.pathirage.kafka.bench.yarn.YarnJob;
 
+import java.io.FileNotFoundException;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         YarnJob yarnJob = new YarnJob();
-        yarnJob.submit();
+        yarnJob.submit(new BenchConf(null));
     }
 }

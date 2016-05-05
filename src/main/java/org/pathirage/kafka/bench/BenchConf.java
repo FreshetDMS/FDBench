@@ -21,11 +21,34 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.nio.file.Path;
+import java.util.Optional;
+
 
 public class BenchConf {
-    private static Yaml yaml = new Yaml();
+  private static Yaml yaml = new Yaml();
 
-    public BenchConf(Path confFile) throws FileNotFoundException {
-        Object config = yaml.load(new FileReader(confFile.toFile()));
-    }
+  private final String jobPackage;
+
+  private final Optional<String> jobName;
+
+  private final int memory;
+
+  public BenchConf(Path confFile) throws FileNotFoundException {
+    //Object config = yaml.load(new FileReader(confFile.toFile()));
+    this.jobPackage = "/Users/mpathira/PhD/Code/kafka-bench/build/distributions/kafka-bench-dist.tgz";
+    this.jobName = Optional.of("kbench-job1");
+    this.memory = 256;
+  }
+
+  public String getJobPackage() {
+    return jobPackage;
+  }
+
+  public Optional<String> getJobName() {
+    return jobName;
+  }
+
+  public int getMemory() {
+    return memory;
+  }
 }
