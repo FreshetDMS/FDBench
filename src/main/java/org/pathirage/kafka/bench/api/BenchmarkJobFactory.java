@@ -16,5 +16,8 @@
 
 package org.pathirage.kafka.bench.api;
 
+import com.typesafe.config.Config;
+
 public interface BenchmarkJobFactory {
+  BenchJob getJob(String name, Config config);
 }

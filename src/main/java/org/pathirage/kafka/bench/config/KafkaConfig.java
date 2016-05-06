@@ -16,5 +16,22 @@
 
 package org.pathirage.kafka.bench.config;
 
-public class KafkaConfig {
+import com.typesafe.config.Config;
+
+public class KafkaConfig extends AbstractConfig {
+
+  private static final String KAFKA_ZK_CONNECT = "kafka.zookeeper.connect";
+  private static final String KAFKA_BROKERS = "kafka.brokers";
+
+  public KafkaConfig(Config config) {
+    super(config);
+  }
+
+  public String getZKConnectionString() {
+    return getString(KAFKA_ZK_CONNECT);
+  }
+
+  public String getBrokers() {
+    return getString(KAFKA_BROKERS);
+  }
 }

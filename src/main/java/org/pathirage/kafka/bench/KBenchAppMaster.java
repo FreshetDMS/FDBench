@@ -16,22 +16,36 @@
 
 package org.pathirage.kafka.bench;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.*;
+import org.apache.hadoop.yarn.client.api.AMRMClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
+import org.apache.hadoop.yarn.client.api.async.NMClientAsync;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Map;
 
-public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler {
+public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler, NMClientAsync.CallbackHandler {
   private static final Logger log = LoggerFactory.getLogger(KBenchAppMaster.class);
 
-  private final String containerId;
+  private final ContainerId containerId;
+  private final ApplicationAttemptId attemptId;
+  private final Configuration conf;
+  private final NMClientAsync nmClient;
 
-  public KBenchAppMaster(String containerId) {
+  public KBenchAppMaster(ContainerId containerId, ApplicationAttemptId attemptId) {
     this.containerId = containerId;
+    this.attemptId = attemptId;
+    this.conf = new YarnConfiguration();
+    this.nmClient = NMClientAsync.createNMClientAsync(this);
   }
 
   @Override
@@ -64,13 +78,65 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler {
 
   }
 
-  public static void main(String[] args) {
+  public void mainLoop() throws Exception {
+    AMRMClientAsync<AMRMClient.ContainerRequest> rmClient = AMRMClientAsync.createAMRMClientAsync(100, this);
+    rmClient.init(conf);
+    rmClient.start();
+
+    // Register with ResourceManager
+    log.info("[KBench-AM] registering application master");
+    rmClient.registerApplicationMaster("", 0, "");
+    log.info("[KBench-AM] application master registered.");
+
+    // Process benchmark containers and request containers
+
+    // Wait for the children to finish
+
+    Thread.sleep(20000);
+
+    // Unregister application master and exit
+    rmClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
+    log.info("[KBench-AM] application master unregistered.");
+  }
+
+  public static void main(String[] args) throws Exception {
     String containerIdStr = System.getenv(ApplicationConstants.Environment.CONTAINER_ID.toString());
     log.info(String.format("Got container id: %s", containerIdStr));
     ContainerId containerId = ConverterUtils.toContainerId(containerIdStr);
     ApplicationAttemptId attemptId = containerId.getApplicationAttemptId();
     log.info(String.format("Got app attempt id: %s", attemptId));
-    String nodeManagerHost = System.getenv(ApplicationConstants.Environment.NM_HOST.toString());
-    log.info(String.format("Got node manager host: %s", nodeManagerHost));
+
+    KBenchAppMaster appMaster = new KBenchAppMaster(containerId, attemptId);
+    appMaster.mainLoop();
+  }
+
+  @Override
+  public void onContainerStarted(ContainerId containerId, Map<String, ByteBuffer> allServiceResponse) {
+
+  }
+
+  @Override
+  public void onContainerStatusReceived(ContainerId containerId, ContainerStatus containerStatus) {
+
+  }
+
+  @Override
+  public void onContainerStopped(ContainerId containerId) {
+
+  }
+
+  @Override
+  public void onStartContainerError(ContainerId containerId, Throwable t) {
+
+  }
+
+  @Override
+  public void onGetContainerStatusError(ContainerId containerId, Throwable t) {
+
+  }
+
+  @Override
+  public void onStopContainerError(ContainerId containerId, Throwable t) {
+
   }
 }

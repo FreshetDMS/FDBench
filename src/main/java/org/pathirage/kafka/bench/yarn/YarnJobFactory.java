@@ -16,5 +16,15 @@
 
 package org.pathirage.kafka.bench.yarn;
 
-public class YarnJobFactory {
+import com.typesafe.config.Config;
+import org.pathirage.kafka.bench.api.BenchJob;
+import org.pathirage.kafka.bench.api.BenchmarkJobFactory;
+import org.pathirage.kafka.bench.yarn.config.YarnConfig;
+
+public class YarnJobFactory implements BenchmarkJobFactory {
+
+  @Override
+  public BenchJob getJob(String name, Config config) {
+    return new YarnJob(name, new YarnConfig(config));
+  }
 }

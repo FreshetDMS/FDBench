@@ -16,5 +16,41 @@
 
 package org.pathirage.kafka.bench.config;
 
-public class AbstractConfig {
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
+
+public abstract class AbstractConfig {
+  final Config config;
+
+  public AbstractConfig(Config config) {
+    this.config = config;
+  }
+
+  public String getString(String path) {
+    return config.getString(path);
+  }
+
+  public String getString(String path, String defaultValue) {
+    try {
+      return getString(path);
+    } catch (ConfigException.Missing e) {
+      return defaultValue;
+    }
+  }
+
+  public int getInt(String path) {
+    return config.getInt(path);
+  }
+
+  public int getInt(String path, int defaultValue) {
+    try{
+      return getInt(path);
+    } catch (ConfigException.Missing e) {
+      return defaultValue;
+    }
+  }
+
+  public Config getRawConfig() {
+    return config;
+  }
 }

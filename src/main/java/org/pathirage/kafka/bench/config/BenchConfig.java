@@ -16,5 +16,41 @@
 
 package org.pathirage.kafka.bench.config;
 
-public class BenchConfig {
+import com.typesafe.config.Config;
+
+public class BenchConfig extends AbstractConfig {
+
+  private static final String BENCHMARK_NAME = "benchmark.name";
+
+  private static final String BENCHMARK_DESC = "benchmark.description";
+
+  private static final String BENCHMARK_JOB_FACTORY_CLASS = "benchmark.job.factory.class";
+
+  private static final String BENCHMARK_FACTORY_CLASS = "benchmark.factory.class";
+
+  private static final String BENCHMARK_PARALLELISM = "benchmark.parallelism";
+
+  public BenchConfig(Config config) {
+    super(config);
+  }
+
+  public String getName() {
+    return getString(BENCHMARK_NAME, null);
+  }
+
+  public String getDescription() {
+    return getString(BENCHMARK_DESC, "KBench job");
+  }
+
+  public String getJobFactoryClass() {
+    return getString(BENCHMARK_JOB_FACTORY_CLASS);
+  }
+
+  public String getBenchmarkFactoryClass() {
+    return getString(BENCHMARK_FACTORY_CLASS);
+  }
+
+  public int getParallelism() {
+    return getInt(BENCHMARK_PARALLELISM, 1);
+  }
 }

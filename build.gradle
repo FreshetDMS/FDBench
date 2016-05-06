@@ -15,7 +15,8 @@ dependencies {
     compile 'org.apache.hadoop:hadoop-common:2.7.1'
     compile 'org.apache.hadoop:hadoop-hdfs:2.7.1'
     compile 'com.googlecode.objectify:objectify:5.1.12'
-    compile 'org.yaml:snakeyaml:1.17'
+    compile 'com.typesafe:config:1.3.0'
+    compile 'commons-cli:commons-cli:1.3.1'
     testCompile 'junit:junit:4.12'
 }
 task tar(type: Tar) {
@@ -36,10 +37,20 @@ task tar(type: Tar) {
     }
 }
 
-
 task testYarn(type: JavaExec, dependsOn: [tar]) {
     classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
     main = 'org.pathirage.kafka.bench.Main'
     environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
+}
+
+task killYarnApp(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    main = 'org.apache.hadoop.yarn.client.cli.ApplicationCLI'
+
+    environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
+
+    if(project.hasProperty('app')) {
+        args(['application', '-kill', project.getProperties().get('app')])
+    }
 }
 

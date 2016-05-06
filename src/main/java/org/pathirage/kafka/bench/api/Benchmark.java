@@ -16,5 +16,5 @@
 
 package org.pathirage.kafka.bench.api;
 
-public class Benchmark {
+public interface Benchmark {
 }

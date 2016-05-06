@@ -16,7 +16,6 @@
 
 package org.pathirage.kafka.bench;
 
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -25,7 +24,6 @@ import java.util.Optional;
 
 
 public class BenchConf {
-  private static Yaml yaml = new Yaml();
 
   private final String jobPackage;
 
@@ -37,7 +35,7 @@ public class BenchConf {
     //Object config = yaml.load(new FileReader(confFile.toFile()));
     this.jobPackage = "/Users/mpathira/PhD/Code/kafka-bench/build/distributions/kafka-bench-dist.tgz";
     this.jobName = Optional.of("kbench-job1");
-    this.memory = 256;
+    this.memory = 1024;
   }
 
   public String getJobPackage() {
