@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.pathirage.kafka.bench;
+package org.pathirage.kafka.bench.api;
 
-import org.pathirage.kafka.bench.yarn.YarnJob;
-
-import java.io.FileNotFoundException;
-
-public class Main {
-    public static void main(String[] args) throws FileNotFoundException {
-        YarnJob yarnJob = new YarnJob();
-        yarnJob.submit(new BenchConf(null));
-    }
+public class BenchmarkFactory {
 }

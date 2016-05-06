@@ -16,20 +16,13 @@
 
 package org.pathirage.kafka.bench;
 
-public class KafkaBenchException extends RuntimeException {
-  public KafkaBenchException() {
-    super();
-  }
+import org.pathirage.kafka.bench.yarn.YarnJob;
 
-  public KafkaBenchException(String message) {
-    super(message);
-  }
+import java.io.FileNotFoundException;
 
-  public KafkaBenchException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public KafkaBenchException(Throwable cause) {
-    super(cause);
-  }
+public class BenchRunner {
+    public static void main(String[] args) throws FileNotFoundException {
+        YarnJob yarnJob = new YarnJob();
+        yarnJob.submit(new BenchConf(null));
+    }
 }
