@@ -39,17 +39,19 @@ task tar(type: Tar) {
 
 task testYarn(type: JavaExec, dependsOn: [tar]) {
     classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
-    main = 'org.pathirage.kafka.bench.Main'
+    main = 'org.pathirage.kafka.bench.BenchRunner'
     environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
+    args(['-c', '/Users/mpathira/PhD/Code/kafka-bench/src/main/resources/example.conf'])
 }
 
 task killYarnApp(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+    classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
     main = 'org.apache.hadoop.yarn.client.cli.ApplicationCLI'
 
     environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
 
     if(project.hasProperty('app')) {
+        println("Killing application: " + project.getProperties().get('app'))
         args(['application', '-kill', project.getProperties().get('app')])
     }
 }

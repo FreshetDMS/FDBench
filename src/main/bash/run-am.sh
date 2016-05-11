@@ -6,4 +6,4 @@
 # Set container name system properties for use in Log4J
 [[ $JAVA_OPTS != *-Dkbench.container.name* ]] && export JAVA_OPTS="$JAVA_OPTS -Dkbench.container.name=kbench-application-master"
 
-exec $(dirname $0)/run-class.sh org.pathirage.kafka.bench.KBenchAppMaster "$@"
+exec $(dirname $0)/run-class.sh org.pathirage.kafka.bench.yarn.KBenchAppMaster "$@"

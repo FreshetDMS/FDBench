@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.pathirage.kafka.bench.api;
+package org.pathirage.kafka.bench.yarn;
 
-import java.nio.file.Path;
-
-public interface BenchJob {
-  /**
-   * Submit this benchmark job ot be run.
-   *
-   * @return An instance of this job after it has been submitted.
-   */
-  BenchJob submit(Path configFile);
+public class Constants {
+  static final String KBENCH_PACKAGE_PATH_ENV = "KBENCH_PACKAGE_PATH";
+  static final String KBENCH_CONF_PATH_ENV = "KBENCH_CONF_PATH";
+  static final String KBENCH_CONTAINER_ID_ENV = "KBENCH_CONTAINER_ID";
 }

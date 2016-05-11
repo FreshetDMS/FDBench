@@ -16,18 +16,14 @@
 
 package org.pathirage.kafka.bench.yarn;
 
-import com.typesafe.config.Config;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.pathirage.kafka.bench.BenchConf;
-import org.pathirage.kafka.bench.KBenchException;
 import org.pathirage.kafka.bench.api.BenchJob;
 import org.pathirage.kafka.bench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 public class YarnJob implements BenchJob {

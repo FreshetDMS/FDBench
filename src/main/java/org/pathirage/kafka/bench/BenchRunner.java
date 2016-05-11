@@ -50,6 +50,12 @@ public class BenchRunner {
 
       BenchJob job = jobFactory.getJob(config.getName(), rawConfig);
       job.submit(configFilePath);
+    } else {
+      String header = "Execute Kafka benchmarks\n\n";
+      String footer = "\nPlease report issues at https://github.iu.edu/mpathira/kafka-bench/issues";
+
+      HelpFormatter helpFormatter = new HelpFormatter();
+      helpFormatter.printHelp("kbench", header, options, footer, true);
     }
   }
 

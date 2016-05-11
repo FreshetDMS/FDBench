@@ -9,4 +9,4 @@
 # Set container name system property for use in Log4J
 [[ $JAVA_OPTS != *-Dkbench.container.name* && ! -z "$KBENCH_CONTAINER_ID" ]] && export JAVA_OPTS="$JAVA_OPTS -Dkbench.container.name=kbench-container-$KBENCH_CONTAINER_ID"
 
-exec $(dirname $0)/run-class.sh org.apache.kbench.container.kbenchContainer "$@"
+exec $(dirname $0)/run-class.sh org.pathirage.kafka.bench.yarn.KBenchContainer "$@"

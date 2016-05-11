@@ -87,13 +87,15 @@ public class YarnClientWrapper {
 
       Map<String, LocalResource> localResources = new HashMap<String, LocalResource>();
 
-      LocalResource jobPkgRsc = localizeAppPackage(conf, getAppPackageSuffix(appName, appId.toString()),
-          config.getPackagePath());
-      LocalResource appConfRsc = localizeJobConfig(conf, getAppConfSuffix(appName, appId.toString()),
-          appConf.toString());
+      // Copy package to HDFS
+      FileStatus pkgFileStatus = copyFileToRemote(conf, getAppPackageSuffix(appName, appId.toString()), config.getPackagePath());
+      LocalResource jobPkgRsc = localizeAppPackage(pkgFileStatus);
+
+      FileStatus confFileStatus =  copyFileToRemote(conf, getAppConfSuffix(appName, appId.toString()), appConf.toString());
+      LocalResource appConfRsc = localizeJobConfig(confFileStatus);
 
       localResources.put("__package", jobPkgRsc);
-      //localResources.put("configuration", appConfRsc);
+      localResources.put("__bench.conf", appConfRsc);
 
 
       List<String> cmdList = new ArrayList<>();
@@ -101,8 +103,12 @@ public class YarnClientWrapper {
           "export KBENCH_LOG_DIR=%s && ln -sfn %s logs && exec ./__package/bin/run-am.sh 1>logs/%s 2>logs/%s",
           "<LOG_DIR>", "<LOG_DIR>", "stdout", "stderr"));
 
+      Map<String, String> appMasterEnv = new HashMap<>();
+      appMasterEnv.put(Constants.KBENCH_PACKAGE_PATH_ENV, pkgFileStatus.getPath().toString());
+      appMasterEnv.put(Constants.KBENCH_CONF_PATH_ENV, confFileStatus.getPath().toString());
+
       ContainerLaunchContext amContainer = ContainerLaunchContext.newInstance(localResources,
-          Collections.emptyMap(), cmdList, null, null, null);
+          appMasterEnv, cmdList, null, null, null);
 
       Resource capability = Resource.newInstance(amMem, amCPUCores);
 
@@ -121,13 +127,7 @@ public class YarnClientWrapper {
     }
   }
 
-  private static LocalResource localizeJobConfig(Configuration hadoopConf, String confSuffix, String appConfPath) {
-    if (appConfPath == null) {
-      throw new KBenchException("App config path is null");
-    }
-
-    FileStatus remoteFileStatus = copyFileToRemote(hadoopConf, confSuffix, appConfPath);
-
+  private static LocalResource localizeJobConfig(FileStatus remoteFileStatus) {
     return LocalResource.newInstance(
         ConverterUtils.getYarnUrlFromPath(remoteFileStatus.getPath()),
         LocalResourceType.FILE, LocalResourceVisibility.APPLICATION,
@@ -135,14 +135,8 @@ public class YarnClientWrapper {
   }
 
 
-  private static LocalResource localizeAppPackage(Configuration hadoopConf, String packageSuffix, String packagePath) {
-    if (packagePath == null) {
-      throw new KBenchException("App package path is null.");
-    }
-
-    FileStatus remoteFileStatus = copyFileToRemote(hadoopConf, packageSuffix, packagePath);
-
-    return LocalResource.newInstance(
+  private static LocalResource localizeAppPackage(FileStatus remoteFileStatus) {
+     return LocalResource.newInstance(
         ConverterUtils.getYarnUrlFromPath(remoteFileStatus.getPath()),
         LocalResourceType.ARCHIVE, LocalResourceVisibility.APPLICATION,
         remoteFileStatus.getLen(), remoteFileStatus.getModificationTime());
@@ -153,7 +147,7 @@ public class YarnClientWrapper {
   }
 
   private static String getAppConfSuffix(String appName, String appId) {
-    return appName + "/" + appId + "/package.tgz";
+    return appName + "/" + appId + "/bench.conf";
   }
 
   private static FileSystem getHadoopFS(Configuration hadoopConf) {
