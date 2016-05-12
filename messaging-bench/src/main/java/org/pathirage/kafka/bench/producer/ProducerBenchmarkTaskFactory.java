@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.kafka.bench.api;
+package org.pathirage.kafka.bench.producer;
 
-public interface BenchmarkFactory {
+import com.typesafe.config.Config;
+import org.pathirage.kafka.bench.api.BenchmarkTask;
+import org.pathirage.kafka.bench.api.BenchmarkTaskFactory;
+
+public class ProducerBenchmarkTaskFactory implements BenchmarkTaskFactory {
+  @Override
+  public BenchmarkTask getBenchmark(String name, String taskId, String containerID, Config config) {
+    return null;
+  }
 }

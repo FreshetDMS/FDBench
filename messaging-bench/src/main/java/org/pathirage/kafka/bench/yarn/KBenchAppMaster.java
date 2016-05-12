@@ -18,6 +18,7 @@ package org.pathirage.kafka.bench.yarn;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -56,6 +57,7 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler {
   private final Config rawBenchConf;
   private int numContainers;
   private AtomicInteger allocatedContainers = new AtomicInteger(0);
+  private String benchmarkName;
 
   public KBenchAppMaster(ContainerId containerId, ApplicationAttemptId attemptId, Config rawBenchConf) {
     this.containerId = containerId;
@@ -80,9 +82,12 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler {
     // Process benchmark containers and request containers
     BenchConfig benchConfig = new BenchConfig(rawBenchConf);
 
-    log.info("[KBench-AM] parallelism: " + benchConfig.getParallelism());
-
+    this.benchmarkName = benchConfig.getName();
     this.numContainers = benchConfig.getParallelism();
+
+    log.info("[KBench-AM] benchmark name: " + benchmarkName);
+    log.info("[KBench-AM] parallelism: " + numContainers);
+
 
     Priority priority = Records.newRecord(Priority.class);
     priority.setPriority(0);
@@ -139,6 +144,7 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler {
 
   @Override
   public void onContainersAllocated(List<Container> containers) {
+    int i = 0;
     for (Container container : containers) {
       try {
         log.info("[KBench-AM] Container " + ConverterUtils.toString(container.getId()) + " allocated at " + container.getNodeId());
@@ -148,7 +154,10 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler {
             "export KBENCH_LOG_DIR=%s && ln -sfn %s logs && exec ./__package/bin/run-container.sh 1>logs/%s 2>logs/%s",
             "<LOG_DIR>", "<LOG_DIR>", "stdout", "stderr")));
 
-        Map<String, String> envMap = Collections.singletonMap(Constants.KBENCH_CONTAINER_ID_ENV, ConverterUtils.toString(container.getId()));
+        Map<String, String> envMap = new HashMap<>();
+        envMap.put(Constants.KBENCH_CONTAINER_ID_ENV, ConverterUtils.toString(container.getId()));
+        envMap.put(Constants.KBENCH_TASK_ID_ENV, String.valueOf(i));
+        envMap.put(Constants.KBENCH_BENCH_NAME_ENV, benchmarkName);
 
         Map<String, LocalResource> localResourceMap = new HashMap<>();
         localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV).trim()));

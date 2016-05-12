@@ -46,7 +46,7 @@ public class BenchRunner {
       Config rawConfig = ConfigFactory.parseFile(configFilePath.toFile());
       BenchConfig config = new BenchConfig(rawConfig);
 
-      BenchmarkJobFactory jobFactory = instantiate(config.getJobFactoryClass(), BenchmarkJobFactory.class);
+      BenchmarkJobFactory jobFactory = Utils.instantiate(config.getJobFactoryClass(), BenchmarkJobFactory.class);
 
       BenchJob job = jobFactory.getJob(config.getName(), rawConfig);
       job.submit(configFilePath);
@@ -57,9 +57,5 @@ public class BenchRunner {
       HelpFormatter helpFormatter = new HelpFormatter();
       helpFormatter.printHelp("kbench", header, options, footer, true);
     }
-  }
-
-  public static  <T> T instantiate(final String className, final Class<T> type) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-    return type.cast(Class.forName(className).newInstance());
   }
 }

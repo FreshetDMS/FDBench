@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.pathirage.kafka.bench.yarn;
+package org.pathirage.kafka.bench.api;
 
-public class Constants {
-  static final String KBENCH_PACKAGE_PATH_ENV = "KBENCH_PACKAGE_PATH";
-  static final String KBENCH_CONF_PATH_ENV = "KBENCH_CONF_PATH";
-  static final String KBENCH_CONTAINER_ID_ENV = "KBENCH_CONTAINER_ID";
+import com.typesafe.config.Config;
+
+public interface BenchmarkTaskFactory {
+  public BenchmarkTask getBenchmark(String name, String taskId, String containerID, Config config);
 }
