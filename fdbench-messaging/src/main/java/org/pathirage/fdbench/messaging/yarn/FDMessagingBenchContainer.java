@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
-public class KBenchContainer {
-  private static final Logger log = LoggerFactory.getLogger(KBenchContainer.class);
+public class FDMessagingBenchContainer {
+  private static final Logger log = LoggerFactory.getLogger(FDMessagingBenchContainer.class);
 
   private final Config rawConfig;
   private final BenchConfig benchConfig;
@@ -39,7 +39,7 @@ public class KBenchContainer {
   private final String taskId;
   private final String benchName;
 
-  public KBenchContainer(String benchName, String taskId, String containerId, Config rawConfig) {
+  public FDMessagingBenchContainer(String benchName, String taskId, String containerId, Config rawConfig) {
     this.benchName = benchName;
     this.taskId = taskId;
     this.containerId = containerId;
@@ -71,7 +71,7 @@ public class KBenchContainer {
     File workingDir = new File(System.getenv(ApplicationConstants.Environment.PWD.toString()));
     File configuration = new File(workingDir, "__bench.conf");
 
-    KBenchContainer container = new KBenchContainer(name, taskId, containerId, ConfigFactory.parseFile(configuration));
+    FDMessagingBenchContainer container = new FDMessagingBenchContainer(name, taskId, containerId, ConfigFactory.parseFile(configuration));
     container.mainLoop();
   }
 }

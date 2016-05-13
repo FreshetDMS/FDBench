@@ -17,12 +17,12 @@
 package org.pathirage.fdbench.messaging.kafka;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskConfigurator;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskConfiguratorFactory;
+import org.pathirage.fdbench.messaging.api.BenchmarkConfigurator;
+import org.pathirage.fdbench.messaging.api.BenchmarkConfiguratorFactory;
 
-public class KafkaBenchmarkTaskConfiguratorFactory implements BenchmarkTaskConfiguratorFactory {
+public class KafkaBenchmarkConfiguratorFactory implements BenchmarkConfiguratorFactory {
   @Override
-  public BenchmarkTaskConfigurator getMaster(int parallelism, Config rawConfig) {
-    return new KafkaBenchmarkTaskConfigurator(parallelism, rawConfig);
+  public BenchmarkConfigurator getConfigurator(int parallelism, Config rawConfig) {
+    return new KafkaBenchmarkConfigurator(parallelism, rawConfig);
   }
 }

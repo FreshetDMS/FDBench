@@ -32,8 +32,8 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.pathirage.fdbench.messaging.FDMessagingBenchException;
 import org.pathirage.fdbench.messaging.Utils;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskConfigurator;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskConfiguratorFactory;
+import org.pathirage.fdbench.messaging.api.BenchmarkConfigurator;
+import org.pathirage.fdbench.messaging.api.BenchmarkConfiguratorFactory;
 import org.pathirage.fdbench.messaging.config.BenchConfig;
 import org.pathirage.fdbench.messaging.yarn.config.YarnConfig;
 import org.slf4j.Logger;
@@ -47,8 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnable {
-  private static final Logger log = LoggerFactory.getLogger(KBenchAppMaster.class);
+public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnable {
+  private static final Logger log = LoggerFactory.getLogger(FDMessagingBenchAppMaster.class);
 
   private final ContainerId containerId;
   private final ApplicationAttemptId attemptId;
@@ -59,10 +59,10 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnabl
   private int numContainers;
   private AtomicInteger allocatedContainers = new AtomicInteger(0);
   private String benchmarkName;
-  private BenchmarkTaskConfigurator benchmarkTaskConfigurator;
+  private BenchmarkConfigurator benchmarkConfigurator;
   private boolean initialized = false;
 
-  public KBenchAppMaster(ContainerId containerId, ApplicationAttemptId attemptId, Config rawBenchConf) {
+  public FDMessagingBenchAppMaster(ContainerId containerId, ApplicationAttemptId attemptId, Config rawBenchConf) {
     this.containerId = containerId;
     this.attemptId = attemptId;
     this.yarnConf = new YarnConfiguration();
@@ -75,10 +75,13 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnabl
   public void init() {
     BenchConfig benchConfig = new BenchConfig(rawBenchConf);
     try {
-      BenchmarkTaskConfiguratorFactory taskConfiguratorFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkTaskConfiguratorFactory.class);
+      BenchmarkConfiguratorFactory benchmarkConfiguratorFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkConfiguratorFactory.class);
+      this.benchmarkConfigurator = benchmarkConfiguratorFactory.getConfigurator(benchConfig.getParallelism(), rawBenchConf);
+      this.benchmarkConfigurator.configureBenchmark();
     } catch (Exception e) {
       throw new FDMessagingBenchException("Cannot load task configurator factory.", e);
     }
+
     initialized = true;
   }
 
@@ -148,7 +151,7 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnabl
     log.info("[KBench-AM] Package path: " + System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV));
     log.info("[KBench-AM] Conf path: " + System.getenv(Constants.KBENCH_CONF_PATH_ENV));
 
-    KBenchAppMaster appMaster = new KBenchAppMaster(containerId, attemptId, ConfigFactory.parseFile(configuration));
+    FDMessagingBenchAppMaster appMaster = new FDMessagingBenchAppMaster(containerId, attemptId, ConfigFactory.parseFile(configuration));
     appMaster.init();
     appMaster.run();
   }
@@ -181,8 +184,8 @@ public class KBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnabl
         envMap.put(Constants.KBENCH_TASK_ID_ENV, String.valueOf(i));
         envMap.put(Constants.KBENCH_BENCH_NAME_ENV, benchmarkName);
 
-        // BenchmarkTaskConfigurator should generate environment variables that can be used in the benchmark task
-        envMap.putAll(benchmarkTaskConfigurator.getEnvironmentVariables(i));
+        // BenchmarkConfigurator should generate environment variables that can be used in the benchmark task
+        envMap.putAll(benchmarkConfigurator.configureTask(i));
 
         Map<String, LocalResource> localResourceMap = new HashMap<>();
         localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV).trim()));

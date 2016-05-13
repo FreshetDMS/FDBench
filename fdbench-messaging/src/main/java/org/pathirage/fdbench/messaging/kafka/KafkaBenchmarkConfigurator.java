@@ -17,21 +17,34 @@
 package org.pathirage.fdbench.messaging.kafka;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskConfigurator;
+import kafka.utils.ZkUtils;
+import org.I0Itec.zkclient.ZkClient;
+import org.pathirage.fdbench.messaging.FDMessagingBenchException;
+import org.pathirage.fdbench.messaging.api.BenchmarkConfigurator;
 
 import java.util.Map;
 
-public class KafkaBenchmarkTaskConfigurator implements BenchmarkTaskConfigurator {
+public class KafkaBenchmarkConfigurator implements BenchmarkConfigurator {
   private final int parallelism;
-  private final Config rawConfig;
+  private final KafkaBenchmarkConfig config;
 
-  public KafkaBenchmarkTaskConfigurator(int parallelism, Config rawConfig) {
+  public KafkaBenchmarkConfigurator(int parallelism, Config rawConfig) {
     this.parallelism = parallelism;
-    this.rawConfig = rawConfig;
+    this.config = new KafkaBenchmarkConfig(rawConfig);
   }
 
   @Override
-  public Map<String, String> getEnvironmentVariables(int taskId) {
+  public void configureBenchmark() {
+    KafkaBenchmarkConfig.BenchType type = config.getBenchType();
+
+    if(type == KafkaBenchmarkConfig.BenchType.PRODUCER) {
+    } else {
+      throw new FDMessagingBenchException("Doesn't support Kafka benchmark type " + type + " yet.");
+    }
+  }
+
+  @Override
+  public Map<String, String> configureTask(int taskId) {
     return null;
   }
 }

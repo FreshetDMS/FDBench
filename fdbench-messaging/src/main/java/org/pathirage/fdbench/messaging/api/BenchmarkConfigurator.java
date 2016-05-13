@@ -16,8 +16,9 @@
 
 package org.pathirage.fdbench.messaging.api;
 
-import com.typesafe.config.Config;
+import java.util.Map;
 
-public interface BenchmarkTaskConfiguratorFactory {
-  BenchmarkTaskConfigurator getMaster(int parallelism, Config rawConfig);
+public interface BenchmarkConfigurator {
+  void configureBenchmark();
+  Map<String, String> configureTask(int taskId);
 }
