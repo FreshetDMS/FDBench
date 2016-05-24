@@ -17,4 +17,5 @@
 package org.pathirage.fdbench.messaging.api;
 
 public interface MetricStore {
+
 }

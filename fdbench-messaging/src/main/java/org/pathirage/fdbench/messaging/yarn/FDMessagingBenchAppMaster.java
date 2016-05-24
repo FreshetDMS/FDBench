@@ -45,35 +45,41 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandler, Runnable {
   private static final Logger log = LoggerFactory.getLogger(FDMessagingBenchAppMaster.class);
 
   private final ContainerId containerId;
-  private final ApplicationAttemptId attemptId;
   private final Configuration yarnConf;
   private final NMClient nmClient;
 
   private final Config rawBenchConf;
-  private int numContainers;
-  private AtomicInteger allocatedContainers = new AtomicInteger(0);
+  private AtomicInteger numContainers;
+  private AtomicInteger numContainersAllocated = new AtomicInteger(0);
   private String benchmarkName;
   private BenchmarkConfigurator benchmarkConfigurator;
   private boolean initialized = false;
+  private Map<ContainerId, NodeId> allocatedContainers = new ConcurrentHashMap<>();
 
-  public FDMessagingBenchAppMaster(ContainerId containerId, ApplicationAttemptId attemptId, Config rawBenchConf) {
+  FDMessagingBenchAppMaster(ContainerId containerId, Config rawBenchConf) {
     this.containerId = containerId;
-    this.attemptId = attemptId;
     this.yarnConf = new YarnConfiguration();
     this.nmClient = NMClient.createNMClient();
-    this.nmClient.init(yarnConf);
-    this.nmClient.start();
     this.rawBenchConf = rawBenchConf;
   }
 
-  public void init() {
+  void init() {
+    log.info("initializing FDMessagingBench AM in container " + containerId);
     BenchConfig benchConfig = new BenchConfig(rawBenchConf);
+
+    this.benchmarkName = benchConfig.getName();
+    this.numContainers = new AtomicInteger(benchConfig.getParallelism());
+
+    log.info("benchmark name: " + benchmarkName);
+    log.info("parallelism: " + numContainers);
+
     try {
       BenchmarkConfiguratorFactory benchmarkConfiguratorFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkConfiguratorFactory.class);
       this.benchmarkConfigurator = benchmarkConfiguratorFactory.getConfigurator(benchConfig.getParallelism(), rawBenchConf);
@@ -82,11 +88,15 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       throw new FDMessagingBenchException("Cannot load task configurator factory.", e);
     }
 
+    log.info("initializing and starting node manager client....");
+    this.nmClient.init(yarnConf);
+    this.nmClient.start();
     initialized = true;
+    log.info("AM initialization completed.");
   }
 
   public void run() {
-    if(!initialized) {
+    if (!initialized) {
       throw new FDMessagingBenchException("Please initialized the application master first.");
     }
 
@@ -96,19 +106,9 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       rmClient.start();
 
       // Register with ResourceManager
-      log.info("[KBench-AM] registering application master");
+      log.info("registering application master");
       rmClient.registerApplicationMaster("", 0, "");
-      log.info("[KBench-AM] application master registered.");
-
-      // Process benchmark containers and request containers
-      BenchConfig benchConfig = new BenchConfig(rawBenchConf);
-
-      this.benchmarkName = benchConfig.getName();
-      this.numContainers = benchConfig.getParallelism();
-
-      log.info("[KBench-AM] benchmark name: " + benchmarkName);
-      log.info("[KBench-AM] parallelism: " + numContainers);
-
+      log.info("application master registered.");
 
       Priority priority = Records.newRecord(Priority.class);
       priority.setPriority(0);
@@ -119,20 +119,19 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       capability.setMemory(benchYarnConfig.getContainerMaxMemory());
       capability.setVirtualCores(benchYarnConfig.getContainerMaxCPUCores());
 
-      for (int i = 0; i < numContainers; i++) {
+      for (int i = 0; i < numContainers.get(); i++) {
         AMRMClient.ContainerRequest containerRequest = new AMRMClient.ContainerRequest(capability, null, null, priority);
-        log.info("[KBench-AM] making resource request " + i);
+        log.info("making resource request " + i);
         rmClient.addContainerRequest(containerRequest);
-        allocatedContainers.incrementAndGet();
       }
       // Wait for the children to finish
-      while (allocatedContainers.get() > 0) {
+      while (numContainers.get() > 0) {
         Thread.sleep(2000);
       }
 
       // Unregister application master and exit
       rmClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
-      log.info("[KBench-AM] application master unregistered.");
+      log.info("application master unregistered.");
     } catch (Exception e) {
       throw new FDMessagingBenchException(e);
     }
@@ -140,18 +139,14 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
 
   public static void main(String[] args) throws Exception {
     String containerIdStr = System.getenv(ApplicationConstants.Environment.CONTAINER_ID.toString());
-    log.info(String.format("[KBench-AM] Got container id: %s", containerIdStr));
     ContainerId containerId = ConverterUtils.toContainerId(containerIdStr);
-    ApplicationAttemptId attemptId = containerId.getApplicationAttemptId();
-    log.info(String.format("[KBench-AM] Got app attempt id: %s", attemptId));
-
     File workingDir = new File(System.getenv(ApplicationConstants.Environment.PWD.toString()));
     File configuration = new File(workingDir, "__bench.conf");
 
-    log.info("[KBench-AM] Package path: " + System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV));
-    log.info("[KBench-AM] Conf path: " + System.getenv(Constants.KBENCH_CONF_PATH_ENV));
+    log.info("Package path: " + System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV));
+    log.info("Conf path: " + System.getenv(Constants.KBENCH_CONF_PATH_ENV));
 
-    FDMessagingBenchAppMaster appMaster = new FDMessagingBenchAppMaster(containerId, attemptId, ConfigFactory.parseFile(configuration));
+    FDMessagingBenchAppMaster appMaster = new FDMessagingBenchAppMaster(containerId, ConfigFactory.parseFile(configuration));
     appMaster.init();
     appMaster.run();
   }
@@ -161,18 +156,17 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
   @Override
   public void onContainersCompleted(List<ContainerStatus> statuses) {
     for (ContainerStatus containerStatus : statuses) {
-      log.info("[KBench-AM] Container " + ConverterUtils.toString(containerStatus.getContainerId()) +
+      log.info("Container " + ConverterUtils.toString(containerStatus.getContainerId()) +
           " completed with exit code " + containerStatus.getExitStatus() + " and status " + containerStatus.getState());
-      allocatedContainers.decrementAndGet();
+      numContainers.decrementAndGet();
     }
   }
 
   @Override
   public void onContainersAllocated(List<Container> containers) {
-    int i = 0;
     for (Container container : containers) {
       try {
-        log.info("[KBench-AM] Container " + ConverterUtils.toString(container.getId()) + " allocated at " + container.getNodeId());
+        log.info("Container " + ConverterUtils.toString(container.getId()) + " allocated at " + container.getNodeId());
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
 
         ctx.setCommands(Collections.singletonList(String.format(
@@ -181,11 +175,11 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
 
         Map<String, String> envMap = new HashMap<>();
         envMap.put(Constants.KBENCH_CONTAINER_ID_ENV, ConverterUtils.toString(container.getId()));
-        envMap.put(Constants.KBENCH_TASK_ID_ENV, String.valueOf(i));
+        envMap.put(Constants.KBENCH_TASK_ID_ENV, String.valueOf(numContainersAllocated.get()));
         envMap.put(Constants.KBENCH_BENCH_NAME_ENV, benchmarkName);
 
         // BenchmarkConfigurator should generate environment variables that can be used in the benchmark task
-        envMap.putAll(benchmarkConfigurator.configureTask(i));
+        envMap.putAll(benchmarkConfigurator.configureTask(numContainersAllocated.get()));
 
         Map<String, LocalResource> localResourceMap = new HashMap<>();
         localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV).trim()));
@@ -195,9 +189,23 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
         ctx.setLocalResources(localResourceMap);
 
         nmClient.startContainer(container, ctx);
+        allocatedContainers.put(container.getId(), container.getNodeId());
+        numContainersAllocated.incrementAndGet();
       } catch (Exception e) {
-        log.error("[KBench-AM] Couldn't launch container " + ConverterUtils.toString(container.getId()), e);
-        allocatedContainers.set(0);
+        log.error("Couldn't launch container " + ConverterUtils.toString(container.getId()), e);
+        cleanupContainers();
+        numContainers.set(0);
+      }
+    }
+  }
+
+  private void cleanupContainers() {
+    log.info("Cleaning up previously allocated containers....");
+    for (Map.Entry<ContainerId, NodeId> e : allocatedContainers.entrySet()) {
+      try {
+        nmClient.stopContainer(e.getKey(), e.getValue());
+      } catch (Exception ex) {
+        log.error("Couldn't cleanup container " + e.getKey() + " in node " + e.getValue(), ex);
       }
     }
   }
@@ -218,7 +226,10 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
 
   @Override
   public void onShutdownRequest() {
-
+    log.info("AM shutdown was requested.");
+    cleanupContainers();
+    numContainers.set(0);
+    nmClient.stop();
   }
 
   @Override
@@ -233,7 +244,9 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
 
   @Override
   public void onError(Throwable e) {
-
+    log.error("Application master received an error.");
+    cleanupContainers();
+    numContainers.set(0);
   }
 
   // End AMRMClientAsync.CallbackHandler interface

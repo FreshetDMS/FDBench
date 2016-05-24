@@ -16,5 +16,8 @@
 
 package org.pathirage.fdbench.messaging.api;
 
+import com.typesafe.config.Config;
+
 public interface MetricStoreFactory {
+  MetricStore getMetricStore(Config config);
 }
