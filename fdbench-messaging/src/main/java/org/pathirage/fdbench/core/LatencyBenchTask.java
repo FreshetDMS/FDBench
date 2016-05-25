@@ -19,8 +19,10 @@ package org.pathirage.fdbench.core;
 import org.HdrHistogram.Histogram;
 
 import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
-public class LatencyBenchTask implements  Runnable {
+public class LatencyBenchTask implements Callable<LatencySummary> {
   private final LatencyBenchmark.RequestGenerator requestGenerator;
   private final int requestRate;
   private final Duration duration;
@@ -32,7 +34,6 @@ public class LatencyBenchTask implements  Runnable {
   private int successTotal = 0;
   private int errorTotal = 0;
   private long elapsedTime = 0;
-  private LatencySummary summary;
 
   public LatencyBenchTask(LatencyBenchmark.RequestGenerator requestGenerator, int requestRate, Duration duration) {
     this.requestGenerator = requestGenerator;
@@ -63,17 +64,6 @@ public class LatencyBenchTask implements  Runnable {
 
   public void shutdown() throws Exception {
     this.requestGenerator.shutdown();
-  }
-
-  public void run() {
-    if (requestRate <= 0) {
-      elapsedTime = runFullThrottle();
-    } else {
-      elapsedTime = runRateLimited();
-    }
-
-    summary = new LatencySummary(requestRate, successTotal, errorTotal, Duration.ofNanos(elapsedTime), successHistogram.copy(),
-        uncorrectedSuccessHistorgram.copy(), errorHistogram.copy(), uncorrectedErrorHistogram.copy());
   }
 
   private long runRateLimited() {
@@ -131,5 +121,17 @@ public class LatencyBenchTask implements  Runnable {
         errorTotal++;
       }
     }
+  }
+
+  @Override
+  public LatencySummary call() throws Exception {
+    if (requestRate <= 0) {
+      elapsedTime = runFullThrottle();
+    } else {
+      elapsedTime = runRateLimited();
+    }
+
+    return new LatencySummary(requestRate, successTotal, errorTotal, Duration.ofNanos(elapsedTime), successHistogram.copy(),
+        uncorrectedSuccessHistorgram.copy(), errorHistogram.copy(), uncorrectedErrorHistogram.copy());
   }
 }

@@ -19,10 +19,9 @@ package org.pathirage.fdbench.core;
 import com.typesafe.config.Config;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.*;
 
 /**
  * Implemented based on  https://github.com/tylertreat/bench.
@@ -47,24 +46,46 @@ public class LatencyBenchmark {
   private final int requestRate;
   private final int parallelism;
   private final Duration duration;
-  private final List<LatencyBenchTask> benchTasks = new ArrayList<>();
+  private final Set<Future<LatencySummary>> results = new HashSet<Future<LatencySummary>>();
+  private final Set<LatencyBenchTask> benchTasks = new HashSet<LatencyBenchTask>();
   private final ExecutorService executorService;
+  private final RequestGeneratorFactory requestGeneratorFactory;
+  private final Config config;
 
   public LatencyBenchmark(Config config, RequestGeneratorFactory requestGeneratorFactory, int requestRate, int parallelism,
                           Duration duration) {
+    this.config = config;
     this.requestRate = requestRate;
     this.parallelism = parallelism;
     this.duration = duration;
-
-    for (int i = 0; i < parallelism; i++) {
-      benchTasks.add(new LatencyBenchTask(requestGeneratorFactory.getRequestGenerator(config, i),
-          requestRate / parallelism, duration));
-    }
-
+    this.requestGeneratorFactory = requestGeneratorFactory;
     this.executorService = Executors.newFixedThreadPool(parallelism);
   }
 
-  public LatencySummary run() {
+  public LatencySummary run() throws Exception {
+    LatencySummary summary = null;
+    for (int i = 0; i < parallelism; i++) {
+      LatencyBenchTask callable =
+          new LatencyBenchTask(requestGeneratorFactory.getRequestGenerator(config, i), requestRate, duration);
+      benchTasks.add(callable);
 
+      callable.setup();
+
+      results.add(executorService.submit(callable));
+    }
+
+    for(Future<LatencySummary> future : results) {
+      if (summary == null) {
+        summary = future.get();
+      } else {
+        summary.merge(future.get());
+      }
+    }
+
+    for(LatencyBenchTask benchTask : benchTasks) {
+      benchTask.shutdown();
+    }
+
+    return summary;
   }
 }
