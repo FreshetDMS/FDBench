@@ -158,13 +158,13 @@ public class LatencySummary {
 
     for (double percentile : percentiles) {
       double value = histogram.getValueAtPercentile(percentile) / 1000000;
-      corrected.add(new LatencyPercentile(value, percentile / 100, 0, 1 / (1 - (percentile / 100))));
+      corrected.add(new LatencyPercentile(value, percentile / 100, histogram.getTotalCount(), 1 / (1 - (percentile / 100))));
     }
 
     if (requestRate > 0) {
       for (double percentile : percentiles) {
         double value = uncorrectedHistogram.getValueAtPercentile(percentile) / 1000000;
-        uncorrected.add(new LatencyPercentile(value, percentile / 100, 0, 1 / (1 - (percentile / 100))));
+        uncorrected.add(new LatencyPercentile(value, percentile / 100, histogram.getTotalCount(), 1 / (1 - (percentile / 100))));
       }
     }
 
@@ -193,19 +193,43 @@ public class LatencySummary {
       this.corrected = corrected;
       this.uncorrected = uncorrected;
     }
+
+    public List<LatencyPercentile> getCorrected() {
+      return corrected;
+    }
+
+    public List<LatencyPercentile> getUncorrected() {
+      return uncorrected;
+    }
   }
 
   public static class LatencyPercentile {
     private final double value;
     private final double percentile;
-    private final int totalCount;
+    private final long totalCount;
     private final double inversePercentile;
 
-    public LatencyPercentile(double value, double percentile, int totalCount, double inversePercentile) {
+    public LatencyPercentile(double value, double percentile, long totalCount, double inversePercentile) {
       this.value = value;
       this.percentile = percentile;
       this.totalCount = totalCount;
       this.inversePercentile = inversePercentile;
+    }
+
+    public double getValue() {
+      return value;
+    }
+
+    public double getPercentile() {
+      return percentile;
+    }
+
+    public long getTotalCount() {
+      return totalCount;
+    }
+
+    public double getInversePercentile() {
+      return inversePercentile;
     }
   }
 }
