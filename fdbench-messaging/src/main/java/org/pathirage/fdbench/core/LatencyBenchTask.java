@@ -20,7 +20,6 @@ import org.HdrHistogram.Histogram;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 
 public class LatencyBenchTask implements Callable<LatencySummary> {
   private final LatencyBenchmark.RequestGenerator requestGenerator;
