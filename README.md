@@ -8,4 +8,4 @@ FDBench is a fast data management benchmark.
 
 > When we talk about fire hoses in big data, we're not measuring volume in the typical gigabytes, terabytes, and petabytes familiar to data warehouses. We're measuring volume in terms of time: the number of megabytes per second, gigabytes per hour, or terabytes per day. We're talking about velocity as well as volume, which gets at the core of the difference between big data and the data warehouse. Big data isn't just big; it's also fast.
 
-**[Fast data: The next step after big data](http://www.infoworld.com/article/2608040/big-data/fast-data--the-next-step-after-big-data.html)**
+*From [Fast data: The next step after big data](http://www.infoworld.com/article/2608040/big-data/fast-data--the-next-step-after-big-data.html)*
