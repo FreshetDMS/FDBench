@@ -1,3 +1,3 @@
-# KafkaBench
+# MessagingBench
 
-A framework for benchmarking Kafka.
+A framework for benchmarking Kafka style message brokers.
