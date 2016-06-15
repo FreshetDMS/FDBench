@@ -1,0 +1,34 @@
+Title           : Kafka Performance Model
+Title Note      : Draft, &date; (version 0.1)
+Author          : [Milinda Pathirage](http://milinda.pathirage.org)
+Affiliation     : School of Informatics and Computing, Indiana University
+Bib             : bibliography
+Cite All        : False
+Colorizer       : kokax.json
+Logo            : False
+Css             : https://fonts.googleapis.com/css?family=Cormorant+Garamond
+Revision        : 0.1
+Package         : tikz
+Package         : rotating
+Package         : float
+Package         : pgfgantt
+
+
+
+@if not tex {
+  .madoko {
+		font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+  }
+}
+
+
+[TITLE]
+
+~Abstract
+Apache Kafka is widely used distributed and decentralized pub-sub system. Most stream processing and data integration deployments use Apache Kafka as the messaging layer. This paper propose a performance model for Apache Kafka that can use to reason about stream processing infrastructure performance as well as resource planning for data integration and stream processing architecture.
+~
+
+# Kafka
+
+ 
