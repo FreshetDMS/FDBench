@@ -29,6 +29,8 @@ Package         : pgfgantt
 Apache Kafka is widely used distributed and decentralized pub-sub system. Most stream processing and data integration deployments use Apache Kafka as the messaging layer. This paper propose a performance model for Apache Kafka that can use to reason about stream processing infrastructure performance as well as resource planning for data integration and stream processing architecture.
 ~
 
-# Kafka
+# Basic Model for Kafka
+
+A Kafka cluster is a set of borkers $B~(b \in B)$ that hosts set of topics $T~(t \in T)$. A topic $t$ is partitioned into $n$ partitions and each partition $p$ is replicated $m$ times for fault tolerance and availability. Each replica $r$ of partition $p$ belonging to topic $t$ get assigned to a broker $b$ at topic creation and replica may get assigned to a different broker in case of a broker failure.
 
  
