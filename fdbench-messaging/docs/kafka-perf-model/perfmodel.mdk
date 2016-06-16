@@ -33,9 +33,81 @@ Apache Kafka is widely used distributed and decentralized pub-sub system. Most s
 
 A Kafka cluster is a set of borkers $B$ that hosts a set of topics $T$. A topic $t~(t \in T)$ is partitioned into $n$ partitions $(P)$ and each partition $p~(p \in P)$ is replicated [@kafkawiki:reptools] $m$ times for fault tolerance and availability. Each replica $r$ of a partition $p$ of topic $t$ get assigned to a broker $b~(b \in B)$ at topic creation and replica may get assigned to a different broker due to broker failures or partition reassignment [@kafkawiki:reptools].
 
+## Replication Sets
+
+We can consider a replication set as a physical view of a partition which is a logical concept of Kafka.
+
 * $R_{tp}$ is a set of replicas for a partition $p$ of topic $t$ and often referred to as *assigned replicas* in Kafka literature. 
 * Each replica set has a leader replica (often this is also the preffered replica) and a set of follower replicas $(R_{tp} = \{r_l\} \cup \{r_{f0},r_{f1},...,r_{fn}\})$. 
 * A topic $t$ is a collection of replica sets (partitions) $(t = \bigcup_{i=1}^{n} R_{ti} )$
+
+## Replica Assignment Problem
+
+Let's define variables first:
+
+~ Equation {#broker-capacity}
+\begin{aligned}
+ y_i =
+  \begin{cases}
+    1       & \quad \text{if broker } i \text{ is at capacity}\\
+    0       & \quad \text{otherwise}\\
+  \end{cases}
+\end{aligned}
+~
+
+~ Equation {#membership}
+\begin{aligned}
+ x_{ki} =
+  \begin{cases}
+    1       & \quad \text{if replica } k \text{ is assigned to broker } i\\
+    0       & \quad \text{otherwise}\\
+  \end{cases}
+\end{aligned}
+~
+
+For better resource utilization, we should try to minimize the number of brokers used to host topics.
+
+~ Equation {#minimization}
+\begin{aligned}
+ min \displaystyle\sum_{i=1}^{a} y_i 
+\end{aligned}
+~
+
+Assuming we have $l$ topics, we should assign $\displaystyle\sum_{i=1}^{l} n_l \times m_l $ number of replicas into a set of brokers while maximizing resource utilization. Here $n_l$ is the number of partitions in topic $l$ and $m_l$ is the replication factor of topic $l$.
+
+Folloing contraints should be considered when assigning replicas to brokers:
+
+* Per broker disk capacity and disk capacity each replica will consume.
+* Per broker network capacity
+* Topic retention policy (The capacity of a replica will depends on retension poilcy directly. Message rate and dstribution of messages accross partitions will effect replica size in case of time based retention.)
+* Also two or more replicas from the same replica set cannot be assigned to same broker.
+
+Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$, and $cn_i$ be the network capacity of broker $i$. Let $\sigma_{ki}$ be the throughput of replica $k$ in broker $i$.
+
+~Equation {#capacity-constraint}
+\begin{aligned}
+\forall i \displaystyle\sum_{k=1}^{n} cr_k x_{ki} \le cb_i y_i 
+\end{aligned}
+~
+
+~Equation {#assignment-constraint}
+\begin{aligned}
+\forall k \displaystyle\sum_{i=1}^{a} x_{ki} = 1 
+\end{aligned}
+~
+
+~Equation {#colocating-constraint}
+\forall r \in R_{tp}: ~  r \in b \iff (R_{tp} \setminus \{r\}) \notin b
+~
+
+~Equation {#network-constraint}
+\begin{aligned}
+\forall i \displaystyle\sum_{k=1}^{n} \sigma_{ki} \le cn_i 
+\end{aligned}
+~
+
+
+
 
 [BIB]
  
