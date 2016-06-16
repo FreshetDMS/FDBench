@@ -6,7 +6,7 @@ Bib             : bibliography
 Cite All        : False
 Colorizer       : kokax.json
 Logo            : False
-Css             : https://fonts.googleapis.com/css?family=Cormorant+Garamond
+Css             : https://fonts.googleapis.com/css?family=Crimson+Text
 Revision        : 0.1
 Package         : tikz
 Package         : rotating
@@ -17,7 +17,7 @@ Package         : pgfgantt
 
 @if not tex {
   .madoko {
-		font-family: 'Cormorant Garamond', serif;
+font-family: 'Crimson Text', serif;
     font-size: 18px;
   }
 }
@@ -31,6 +31,11 @@ Apache Kafka is widely used distributed and decentralized pub-sub system. Most s
 
 # Basic Model for Kafka
 
-A Kafka cluster is a set of borkers $B~(b \in B)$ that hosts set of topics $T~(t \in T)$. A topic $t$ is partitioned into $n$ partitions and each partition $p$ is replicated $m$ times for fault tolerance and availability. Each replica $r$ of partition $p$ belonging to topic $t$ get assigned to a broker $b$ at topic creation and replica may get assigned to a different broker in case of a broker failure.
+A Kafka cluster is a set of borkers $B$ that hosts a set of topics $T$. A topic $t~(t \in T)$ is partitioned into $n$ partitions $(P)$ and each partition $p~(p \in P)$ is replicated [@kafkawiki:reptools] $m$ times for fault tolerance and availability. Each replica $r$ of a partition $p$ of topic $t$ get assigned to a broker $b~(b \in B)$ at topic creation and replica may get assigned to a different broker due to broker failures or partition reassignment [@kafkawiki:reptools].
 
+* $R_{tp}$ is a set of replicas for a partition $p$ of topic $t$ and often referred to as *assigned replicas* in Kafka literature. 
+* Each replica set has a leader replica (often this is also the preffered replica) and a set of follower replicas $(R_{tp} = \{r_l\} \cup \{r_{f0},r_{f1},...,r_{fn}\})$. 
+* A topic $t$ is a collection of replica sets (partitions) $(t = \bigcup_{i=1}^{n} R_{ti} )$
+
+[BIB]
  
