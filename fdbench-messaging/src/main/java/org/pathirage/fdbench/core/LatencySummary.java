@@ -140,6 +140,14 @@ public class LatencySummary {
     this.uncorrectedErrorHistogram = uncorrectedErrorHistogram;
   }
 
+  public StandardDeviations getStandardDeviation() {
+    return new StandardDeviations(successHistogram.getStdDeviation(), uncorrectedSuccessHistogram.getStdDeviation());
+  }
+
+  public StandardDeviations getErrorStandardDeviation() {
+    return new StandardDeviations(errorHistogram.getStdDeviation(), uncorrectedErrorHistogram.getStdDeviation());
+  }
+
   public LatencyDistribution getLatencyDistribution(double[] percentiles) {
     return generateLatencyDistribution(successHistogram, uncorrectedSuccessHistogram, percentiles, requestRate);
   }
@@ -157,14 +165,18 @@ public class LatencySummary {
     List<LatencyPercentile> uncorrected = new ArrayList<>();
 
     for (double percentile : percentiles) {
-      double value = histogram.getValueAtPercentile(percentile) / 1000000;
-      corrected.add(new LatencyPercentile(value, percentile / 100, histogram.getTotalCount(), 1 / (1 - (percentile / 100))));
+      long value = histogram.getValueAtPercentile(percentile);
+      double valueToMilliseconds = (double) value / 1000000;
+      long count = histogram.getCountAtValue(value);
+      corrected.add(new LatencyPercentile(valueToMilliseconds, percentile / 100, count, 1 / (1 - (percentile / 100))));
     }
 
     if (requestRate > 0) {
       for (double percentile : percentiles) {
-        double value = uncorrectedHistogram.getValueAtPercentile(percentile) / 1000000;
-        uncorrected.add(new LatencyPercentile(value, percentile / 100, histogram.getTotalCount(), 1 / (1 - (percentile / 100))));
+        long value = uncorrectedHistogram.getValueAtPercentile(percentile);
+        double valueToMilliseconds = (double) value / 1000000;
+        long count = uncorrectedHistogram.getCountAtValue(value);
+        uncorrected.add(new LatencyPercentile(valueToMilliseconds, percentile / 100, count, 1 / (1 - (percentile / 100))));
       }
     }
 
@@ -200,6 +212,24 @@ public class LatencySummary {
 
     public List<LatencyPercentile> getUncorrected() {
       return uncorrected;
+    }
+  }
+
+  public static class StandardDeviations {
+    private final double std;
+    private final double stdUncorrected;
+
+    public StandardDeviations(double std, double stdUncorrected) {
+      this.std = std;
+      this.stdUncorrected = stdUncorrected;
+    }
+
+    public double getStd() {
+      return std;
+    }
+
+    public double getStdUncorrected() {
+      return stdUncorrected;
     }
   }
 

@@ -33,8 +33,10 @@ public class KafkaLatencyBenchmarkTest {
         new LatencyBenchmark(getSimpleLatencyBenchConfig(), new KafkaRequestGeneratorFactory(), 3000, 1, Duration.ofMinutes(1));
     LatencySummary summary = latencyBenchmark.run();
     LatencySummary.LatencyDistribution latencyDistribution = summary.getLatencyDistribution(null);
+    LatencySummary.StandardDeviations success = summary.getStandardDeviation();
+    System.out.println(String.format("STD corrected: %f, uncorrected: %f", success.getStd(), success.getStdUncorrected()));
     for(LatencySummary.LatencyPercentile p : latencyDistribution.getCorrected()) {
-      System.out.println(String.format("percentike %f \t value %f \t count %d", p.getPercentile(), p.getValue(), p.getTotalCount()));
+      System.out.println(String.format("percentile %f \t value %f \t count %d", p.getPercentile(), p.getValue(), p.getTotalCount()));
     }
 
   }

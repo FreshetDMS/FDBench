@@ -63,7 +63,7 @@ public class KafkaRequestGenerator implements LatencyBenchmark.RequestGenerator 
 
     ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
     if(records.isEmpty()) {
-      throw new FDMessagingBenchException("Didn't receive any topics");
+      throw new FDMessagingBenchException("Didn't receive any messages");
     }
   }
 

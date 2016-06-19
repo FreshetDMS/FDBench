@@ -27,7 +27,7 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
   private final Duration duration;
   private final Duration expectedInterval;
   private final Histogram successHistogram;
-  private final Histogram uncorrectedSuccessHistorgram;
+  private final Histogram uncorrectedSuccessHistogram;
   private final Histogram errorHistogram;
   private final Histogram uncorrectedErrorHistogram;
   private int successTotal = 0;
@@ -46,14 +46,14 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
     }
 
     this.successHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
-    this.uncorrectedSuccessHistorgram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
+    this.uncorrectedSuccessHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
     this.errorHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
     this.uncorrectedErrorHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
   }
 
   public void setup() throws Exception {
     this.successHistogram.reset();
-    this.uncorrectedSuccessHistorgram.reset();
+    this.uncorrectedSuccessHistogram.reset();
     this.errorHistogram.reset();
     this.uncorrectedErrorHistogram.reset();
     this.successTotal = 0;
@@ -80,7 +80,7 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
         requestGenerator.request();
         latency = System.nanoTime() - before;
         successHistogram.recordValueWithExpectedInterval(latency, expectedInterval.toNanos());
-        uncorrectedSuccessHistorgram.recordValue(latency);
+        uncorrectedSuccessHistogram.recordValue(latency);
         successTotal++;
       } catch (Exception e) {
         latency = System.nanoTime() - before;
@@ -131,6 +131,6 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
     }
 
     return new LatencySummary(requestRate, successTotal, errorTotal, Duration.ofNanos(elapsedTime), successHistogram.copy(),
-        uncorrectedSuccessHistorgram.copy(), errorHistogram.copy(), uncorrectedErrorHistogram.copy());
+        uncorrectedSuccessHistogram.copy(), errorHistogram.copy(), uncorrectedErrorHistogram.copy());
   }
 }
