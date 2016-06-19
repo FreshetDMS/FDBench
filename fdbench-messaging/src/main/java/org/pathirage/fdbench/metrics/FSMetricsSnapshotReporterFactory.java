@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.messaging.api.metrics;
+package org.pathirage.fdbench.metrics;
 
-import java.util.Map;
+import org.apache.samza.metrics.MetricsReporter;
+import org.pathirage.fdbench.messaging.api.MetricsReporterFactory;
 
-public abstract class Metric {
-  private final long timestamp;
+public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory {
 
-  private final Map<String, String> attributes;
-
-  public Metric(long timestamp, Map<String, String> attributes) {
-    this.timestamp = timestamp;
-    this.attributes = attributes;
-  }
-
-  public long getTimestamp() {
-    return timestamp;
-  }
-
-  public String getAttributeValue(String attribute) {
-    return attributes.get(attribute);
+  @Override
+  public MetricsReporter getMetricsReporter(String name, String containerName, com.typesafe.config.Config config) {
+    return null;
   }
 }

@@ -19,6 +19,7 @@ package org.pathirage.fdbench.messaging.yarn;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
+import org.apache.samza.metrics.MetricsRegistryMap;
 import org.pathirage.fdbench.messaging.FDMessagingBenchException;
 import org.pathirage.fdbench.messaging.Utils;
 import org.pathirage.fdbench.messaging.api.BenchmarkTask;
@@ -38,6 +39,7 @@ public class FDMessagingBenchContainer {
   private final String containerId;
   private final String taskId;
   private final String benchName;
+  private final MetricsRegistryMap metricRegistry = new MetricsRegistryMap();
 
   public FDMessagingBenchContainer(String benchName, String taskId, String containerId, Config rawConfig) {
     this.benchName = benchName;

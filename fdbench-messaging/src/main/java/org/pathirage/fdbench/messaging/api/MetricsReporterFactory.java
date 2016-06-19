@@ -16,6 +16,9 @@
 
 package org.pathirage.fdbench.messaging.api;
 
-public interface MetricStore {
+import com.typesafe.config.Config;
+import org.apache.samza.metrics.MetricsReporter;
 
+public interface MetricsReporterFactory {
+  MetricsReporter getMetricsReporter(String name, String containerName, Config config);
 }
