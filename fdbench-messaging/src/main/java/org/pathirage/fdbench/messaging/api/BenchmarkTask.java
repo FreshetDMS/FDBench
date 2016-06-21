@@ -16,8 +16,15 @@
 
 package org.pathirage.fdbench.messaging.api;
 
+import org.pathirage.fdbench.metrics.api.MetricsReporter;
+
+import java.util.Collection;
+import java.util.Set;
+
 public interface BenchmarkTask extends Runnable {
   String getTaskId();
   String getBenchmarkName();
   String getContainerId();
+  void registerMetrics(Collection<MetricsReporter> reporters);
+  void stop();
 }

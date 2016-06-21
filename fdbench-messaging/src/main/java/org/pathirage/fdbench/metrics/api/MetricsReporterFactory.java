@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.messaging.config;
+package org.pathirage.fdbench.metrics.api;
 
 import com.typesafe.config.Config;
 
-public class MetricStoreConfig extends AbstractConfig {
-  private static final String METRICS_STORE_CONFIG_PREFIX = "metrics.store";
-
-  private static final String METRICS_STORE_FACTORY_CLASS_SUFFIX = "metrics.store.factory.class";
-
-  public MetricStoreConfig(Config config) {
-    super(config);
-  }
-
-  public String getMetricsStoreFactoryClass() {
-    return getString(METRICS_STORE_FACTORY_CLASS_SUFFIX);
-  }
-
-  public Config getMetricStoreProperties() {
-    return config.getConfig(METRICS_STORE_CONFIG_PREFIX);
-  }
+public interface MetricsReporterFactory {
+  MetricsReporter getMetricsReporter(String name, String containerName, Config config);
 }

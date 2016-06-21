@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.messaging.api;
+package org.pathirage.fdbench.metrics.api;
 
-import com.typesafe.config.Config;
-import org.apache.samza.metrics.MetricsReporter;
+public interface MetricsReporter {
+  void start();
 
-public interface MetricsReporterFactory {
-  MetricsReporter getMetricsReporter(String name, String containerName, Config config);
+  void register(String source, MetricsRegistry registry);
+
+  void stop();
 }
