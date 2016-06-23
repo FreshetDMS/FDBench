@@ -1,4 +1,4 @@
-Title           : Kafka Performance Model
+Title           : Performance Model for Kafka Backed Stream Processing 
 Title Note      : Draft, &date; (version 0.1)
 Author          : [Milinda Pathirage](http://milinda.pathirage.org)
 Affiliation     : School of Informatics and Computing, Indiana University
@@ -29,6 +29,8 @@ font-family: 'Crimson Text', serif;
 Apache Kafka is widely used distributed and decentralized pub-sub system. Most stream processing and data integration deployments use Apache Kafka as the messaging layer. This paper propose a performance model for Apache Kafka that can use to reason about stream processing infrastructure performance as well as resource planning for data integration and stream processing architecture.
 ~
 
+# Basics of Analytical Modeling
+
 # Notes
 
 * What performance aspects of Kafka we need to cover?
@@ -44,6 +46,43 @@ Apache Kafka is widely used distributed and decentralized pub-sub system. Most s
 * A basic framework (analytical model) to reason about Kafka's performance behaviour based on above metrics
 * Benchmarking framework
 * Workloads should be related to Kafka backed data management system (Database)
+
+# Kafka in Cloud
+
+From [Kafka Inside Keystone Pipeline](http://techblog.netflix.com/2016/04/kafka-inside-keystone-pipeline.html)
+
+* Unpredictable instance life-cycles and termination due to hardware failures
+* Transient network issues
+
+> These are not problems for stateless services but pose a big challenge for a stateful service requiring ZooKeeper and a single controller for coordination. 
+
+* Outlier brokers: uneven workload, hardware problems, or specific environment problems such as noisy neighbours due to multi-tenancy.
+* Outlier brokers have intermittent slow responses or frequent TCP timeouts and retransmissions
+* Producers who produce to outlier broker may exhaust its local buffers while waiting for responses
+* Kafka 0.8.2 doesn't support timeout for messages waiting in producer buffer
+* Kafka replication leads to inter-dependencies among brokers and outlier brokers can cause cascading effect.
+* If an outlier slows down replication, replication lag may build up and eventually cause partition leaders to read from disk to serve the application requests. This slows down the effected brokers and may cause message drops at producers due to buffer exhaust.
+
+## Deployment strategies for cloud 
+
+* Multiple smaller cluster instead of one giant cluster. Reduces operational complexity. (Largest with 200 brokers) 
+* Limit the number of partitions in each cluster. Less than 10,000. Improves availability and reduces the latency for requests/responses that are bound to the number partitions.
+* Even distribution of replicas for each topic. Make it easy to perform capacity planning and detection of outliers.
+* Dedicated Zookeeper cluster for each Kafka cluster.
+
+## Important metrics
+
+* Brokers ability to receive and deliver messages using heartbeat messages and latency
+* Samza checkpointed offset and broker's log offset to measure Samza lag
+
+## Future
+
+* Tiered SLAs for topics
+* Topics that can accept minor loss configured to 1 replica. Absence of replication saves bandwidth and minimize state changes that have to depend on the controller
+
+# Basic Model for Samza
+
+A Samza job is a set of stream tasks $ST$ that process messages from one or more topic partitions belonging to one or more topics.
 
 # Basic Model for Kafka
 
@@ -127,8 +166,13 @@ Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$,
 * Multiple replicas are assigned to same broker. Some of these may be from same topic.
 * Can preffered replicas get assigned to same broker.
 * Multiple replicas may be competing for broker resources
+* How replication effect throughput
 
 ## Latency Model
+
+* How replication effect latency
+
+## Consumer Lag Model
 
 
 [BIB]
