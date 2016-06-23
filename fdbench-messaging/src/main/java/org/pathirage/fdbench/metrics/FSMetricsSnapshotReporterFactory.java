@@ -16,13 +16,21 @@
 
 package org.pathirage.fdbench.metrics;
 
-import org.apache.samza.metrics.MetricsReporter;
-import org.pathirage.fdbench.messaging.api.MetricsReporterFactory;
+import com.typesafe.config.Config;
+import org.apache.samza.util.Util;
+import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
+import org.pathirage.fdbench.messaging.config.BenchConfig;
 
 public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory {
 
   @Override
-  public MetricsReporter getMetricsReporter(String name, String containerName, com.typesafe.config.Config config) {
-    return null;
+  public MetricsReporter getMetricsReporter(String name, String containerName, Config config) {
+    BenchConfig benchConfig = new BenchConfig(config);
+
+    String jobName = benchConfig.getName();
+    String benchFactory = benchConfig.getBenchmarkFactoryClass();
+
+    return new FSMetricsSnapshotReporter(name, jobName, containerName, benchFactory, Util.getLocalHost().getHostName());
   }
 }
