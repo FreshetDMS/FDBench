@@ -106,7 +106,13 @@ Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$,
 \end{aligned}
 ~
 
+## Throughput Model
 
+* Multiple replicas are assigned to same broker. Some of these may be from same topic.
+* Can preffered replicas get assigned to same broker.
+* Multiple replicas may be competing for broker resources
+
+## Latency Model
 
 
 [BIB]
