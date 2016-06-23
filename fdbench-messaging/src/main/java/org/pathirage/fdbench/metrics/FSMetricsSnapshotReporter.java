@@ -17,7 +17,6 @@
 package org.pathirage.fdbench.metrics;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonWriter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;

@@ -29,6 +29,22 @@ font-family: 'Crimson Text', serif;
 Apache Kafka is widely used distributed and decentralized pub-sub system. Most stream processing and data integration deployments use Apache Kafka as the messaging layer. This paper propose a performance model for Apache Kafka that can use to reason about stream processing infrastructure performance as well as resource planning for data integration and stream processing architecture.
 ~
 
+# Notes
+
+* What performance aspects of Kafka we need to cover?
+  - Reliability
+  - Speed
+  - Economicity
+* What metrics we should measure?
+  - Latency: At producer, at consumer, end-to-end latency
+  - Throughput: From the perspective of producer as well as consumer
+  - CPU, Memory and Disk usage: At broker
+* What kind of workloads to consider?
+  - This is an open question
+* A basic framework (analytical model) to reason about Kafka's performance behaviour based on above metrics
+* Benchmarking framework
+* Workloads should be related to Kafka backed data management system (Database)
+
 # Basic Model for Kafka
 
 A Kafka cluster is a set of borkers $B$ that hosts a set of topics $T$. A topic $t~(t \in T)$ is partitioned into $n$ partitions $(P)$ and each partition $p~(p \in P)$ is replicated [@kafkawiki:reptools] $m$ times for fault tolerance and availability. Each replica $r$ of a partition $p$ of topic $t$ get assigned to a broker $b~(b \in B)$ at topic creation and replica may get assigned to a different broker due to broker failures or partition reassignment [@kafkawiki:reptools].
