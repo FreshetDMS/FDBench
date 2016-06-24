@@ -31,6 +31,46 @@ Apache Kafka is widely used distributed and decentralized pub-sub system. Most s
 
 # Basics of Analytical Modeling
 
+## Single-Server Network
+
+Simplest queueing network is **single-server network** shown below in Figure [#fig-singleserver]. Here $\lambda$ is the average arrival rate while
+$\mu$ is average service rate. $\lambda < \mu$ is required to maintain the system stability, queue length will go to infinity if $\lambda \geq \mu$.
+
+~ Figure { #fig-singleserver; caption: "Single-Server Network" }
+~~ Snippet
+\begin{tikzpicture}[>=latex]
+% the rectangle with vertical rules
+\draw (0,0) -- ++(2cm,0) -- ++(0,-1.5cm) -- ++(-2cm,0);
+\foreach \i in {1,...,4}
+  \draw (2cm-\i*10pt,0) -- +(0,-1.5cm);
+
+% the circle
+\draw (2.75,-0.75cm) circle [radius=0.75cm];
+
+% the arrows and labels
+\draw[->] (3.5,-0.75) -- +(20pt,0);
+\draw[<-] (0,-0.75) -- +(-20pt,0) node[left] {$\lambda$};
+\node at (2.75,-0.75cm) {$\mu$};
+\node[align=center] at (1cm,-2cm) {Waiting \\ Area};
+\node[align=center] at (3cm,-2cm) {Service \\ Node};
+\end{tikzpicture}
+~~
+~
+
+**Device utilizaiton** ($\rho$) is the *fraction of time the device is busy*. When $\lambda < \mu$,
+
+~ Math
+\rho = \frac{\lambda}{\mu}
+~
+
+**Device throughput** ($X$) is the *rate of completions at the device*. When $\lambda < \mu$,
+
+~ Math
+X = \rho \cdot \mu = \frac{\lambda}{\mu} \cdot \mu = \lambda
+~ 
+
+$\mu$ is the maximum possible throughput $X$.
+
 # Notes
 
 * What performance aspects of Kafka we need to cover?
