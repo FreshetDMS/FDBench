@@ -1,4 +1,4 @@
-Title           : Performance Model for Kafka Backed Stream Processing 
+Title           : Performance Analysis of Kafka Backed Stream Processing 
 Title Note      : Draft, &date; (version 0.1)
 Author          : [Milinda Pathirage](http://milinda.pathirage.org)
 Affiliation     : School of Informatics and Computing, Indiana University
@@ -12,6 +12,17 @@ Package         : tikz
 Package         : rotating
 Package         : float
 Package         : pgfgantt
+Package         : enumitem
+Package         : amssymb
+Package         : bm
+Package         : pifont
+Tex Header      : \newlist{todolist}{itemize}{2}
+                  \setlist[todolist]{label=$\square$}
+                  \newcommand{\cmark}{\ding{51}}%
+                  \newcommand{\xmark}{\ding{55}}%
+                  \newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
+                  \hspace{-2.5pt}}
+                  \newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
 
 
 
@@ -70,6 +81,38 @@ X = \rho \cdot \mu = \frac{\lambda}{\mu} \cdot \mu = \lambda
 ~ 
 
 $\mu$ is the maximum possible throughput $X$.
+
+## Ergodic System
+
+A system that is positive recurrent, aperiodic, and irreducible.
+
+* **Irreducibility:** Process should be able to get from any state to any other state. This is important for ensuring that the choice of initial state does not matter.
+* **Positive Recurrent:** Important for understanding the equivalence of the time average and the ensemble average. *Given an irreducible system, in whihc we can get to any state, the system is positive recurrent if for any state $i$, the state us revisited infinitely often, and the mean time between visits of state $i$ is finite. Furthermore, every time that we visit state $i$ the system will probabilistically restart itself. (Example number of jobs in the system becomes zero)
+* **Aperiodic:** Refers to the fact that the system state should not be tied in some particular way to the time step; for example, it should not be the case that the system is always in state 0 for even time steps and state 1 for odd time steps.
+
+## Little's Law for Open Systems
+
+For any ergodic open system we have that
+
+~ Math
+\mathbf{E}[N] = \lambda \mathbf{E}[T]
+~
+
+where $\mathbf{E}[N]$ is the expected number of jobs in the system, $\lambda$ is the average arrival rate into the system, and $\mathbf{E}[T]$ is the mean time jobs spend in the system.
+
+> Little's Law makes no assumptions about the arrival process, the service time distribution at the servers, the network topology, the service order, or anything!
+
+### Intutions and Corollaries
+
+## Forced Flow Law
+
+Relates system throughput to the throupghput of an individual device as follows:
+
+~ Math
+X_i = \mathbf{E}[V_i] \cdot X
+~ 
+
+where $X$ denotes the system throughput, $X_i$ denotes the throughput at device $i$, and $V_i$ denotes the number of visits to device $i$ per job.
 
 # Notes
 
@@ -213,6 +256,40 @@ Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$,
 * How replication effect latency
 
 ## Consumer Lag Model
+
+
+# Basic Performance Tests
+
+* Impact of the number of producers
+* Impact of the number of servers
+* Impact of the message size
+* Impact of the number topics
+* Impact of the number of partitions
+* Impact of replication
+* Impact of replaying
+
+# TODO
+
+~ Comment
+  \begin{todolist}
+  \item[\done] Workload generator task for FDBench
+  \item Write solution
+  \item[\wontfix] profit
+  \end{todolist}
+~
+
+~ Snippet
+\begin{itemize}
+  \item Immediate plan of action.
+  \begin{todolist}
+  \item Workload generator task for FDBench
+  \item Understand relationship between Kafka partition count and read throughput
+  \item Throughput measuring tasks for FDBench
+  \end{todolist}
+\end{itemize}
+~
+
+
 
 
 [BIB]
