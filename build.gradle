@@ -1,11 +1,40 @@
-apply plugin: 'java'
 
-repositories {
-  jcenter()
+buildscript {
+  repositories {
+      jcenter()
+    mavenCentral()
+    mavenLocal()
+  }
+  apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
-dependencies {
-  compile 'org.slf4j:slf4j-api:1.7.21'
+allprojects {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+      url 'https://repository.apache.org/content/repositories/snapshots/'
+    }
+  }
+}
+
+//apply from: file('gradle/convention.gradle')
+//apply from: file('gradle/maven.gradle')
+apply from: file('gradle/check.gradle')
+//apply from: file('gradle/license.gradle')
+//apply from: file('gradle/release.gradle')
+apply from: file("gradle/dependency-versions.gradle")
+
+
+subprojects { project ->
+  apply plugin: "java"
+  sourceCompatibility = 1.8
+  status = rootProject.status
+}
+
+project(':fdbench-kafka') {
+  dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.21'
   compile 'ch.qos.logback:logback-classic:1.0.13'
   compile 'ch.qos.logback:logback-core:1.0.13'
   compile 'org.apache.kafka:kafka-clients:0.9.0.1'
@@ -27,8 +56,9 @@ dependencies {
   compile 'org.apache.samza:samza-api.10:0.10.0'
   compile 'org.apache.samza:samza-core_2.10:0.10.0'
   testCompile 'junit:junit:4.12'
-}
-task tar(type: Tar) {
+  }
+
+  task tar(type: Tar) {
   compression = Compression.GZIP
   classifier = 'dist'
 
@@ -64,4 +94,16 @@ task killYarnApp(type: JavaExec) {
     args(['application', '-kill', project.getProperties().get('app')])
   }
 }
+}
 
+project(':fdbench-core') {
+  dependencies {
+    compile "com.google.guava:guava:$guavaVersion"
+  }
+}
+
+project(':fdbench-yarn') {
+  dependencies {
+    compile "com.google.guava:guava:$guavaVersion"
+  }
+}
