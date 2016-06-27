@@ -165,6 +165,8 @@ From [Kafka Inside Keystone Pipeline](http://techblog.netflix.com/2016/04/kafka-
 
 ## How to choose the number of topics/partitions in a Kafka cluster?
 
+From [http://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/](http://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-in-a-kafka-cluster/)
+
 * Topic partition is the unit of parallelism in Kafka
 * General intuition is that more partitions will lead to more throughput
 * Need $max(t/p, t/c)$ partitions if single partition production throughput is $p$, single partition consumption throughput is $c$, and projected targeted throughput is $t$.
