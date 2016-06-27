@@ -18,7 +18,7 @@ package org.pathirage.fdbench.kafka.producer;
 
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.api.BenchmarkTask;
-import org.pathirage.fdbench.metrics.MetricsReporter;
+import org.pathirage.fdbench.metrics.api.MetricsReporter;
 
 import java.util.Collection;
 

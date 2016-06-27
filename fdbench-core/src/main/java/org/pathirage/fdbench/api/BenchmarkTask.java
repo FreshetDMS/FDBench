@@ -16,10 +16,9 @@
 
 package org.pathirage.fdbench.api;
 
-import org.pathirage.fdbench.metrics.MetricsReporter;
+import org.pathirage.fdbench.metrics.api.MetricsReporter;
 
 import java.util.Collection;
-import java.util.Set;
 
 public interface BenchmarkTask extends Runnable {
   String getTaskId();

@@ -19,6 +19,8 @@ package org.pathirage.fdbench.metrics;
 import com.typesafe.config.Config;
 import org.apache.samza.util.Util;
 import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
 
 import java.nio.file.Paths;
 

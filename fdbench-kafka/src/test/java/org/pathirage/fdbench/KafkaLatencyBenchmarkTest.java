@@ -20,8 +20,8 @@ package org.pathirage.fdbench;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
-import org.pathirage.fdbench.core.LatencyBenchmark;
-import org.pathirage.fdbench.core.LatencySummary;
+import org.pathirage.fdbench.kafka.LatencyBenchmark;
+import org.pathirage.fdbench.kafka.LatencySummary;
 import org.pathirage.fdbench.kafka.KafkaRequestGeneratorFactory;
 
 import java.time.Duration;

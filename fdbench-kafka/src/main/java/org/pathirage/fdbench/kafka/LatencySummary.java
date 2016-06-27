@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.core;
+package org.pathirage.fdbench.kafka;
 
 import org.HdrHistogram.Histogram;
 

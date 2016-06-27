@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.metrics;
+package org.pathirage.fdbench.metrics.api;
 
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
 import org.apache.samza.metrics.Metric;
 import org.apache.samza.metrics.Timer;
-import org.pathirage.fdbench.metrics.Histogram;
 
 import java.util.Map;
 import java.util.Set;

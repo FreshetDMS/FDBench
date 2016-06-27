@@ -22,6 +22,10 @@ import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
 import org.apache.samza.metrics.Metric;
 import org.apache.samza.metrics.Timer;
+import org.pathirage.fdbench.metrics.api.ExtendedMetricsVisitor;
+import org.pathirage.fdbench.metrics.api.Histogram;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
+import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

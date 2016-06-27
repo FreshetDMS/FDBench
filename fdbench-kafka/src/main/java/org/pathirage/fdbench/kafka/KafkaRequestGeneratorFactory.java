@@ -17,7 +17,6 @@
 package org.pathirage.fdbench.kafka;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.core.LatencyBenchmark;
 
 public class KafkaRequestGeneratorFactory implements LatencyBenchmark.RequestGeneratorFactory {
   @Override

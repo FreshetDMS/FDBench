@@ -23,7 +23,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.pathirage.fdbench.core.LatencyBenchmark;
 import org.pathirage.fdbench.FDBenchException;
 
 import java.util.Collections;

@@ -14,31 +14,34 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.metrics;
+package org.pathirage.fdbench.metrics.api;
 
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Timer;
 
-public class MetricsGroup {
-  protected final MetricsRegistry registry;
-  protected final String groupName;
-  protected final String prefix;
+public abstract class MetricsHelper {
+  private final String group = this.getClass().getName();
+  private final MetricsRegistry registry;
+  private final MetricsGroup metricsGroup;
 
-  public MetricsGroup(MetricsRegistry registry, String groupName, String prefix) {
+  public MetricsHelper(MetricsRegistry registry) {
     this.registry = registry;
-    this.groupName = groupName;
-    this.prefix = prefix;
+    this.metricsGroup = new MetricsGroup(registry, group, getPrefix());
   }
 
   public Counter newCounter(String name) {
-    return registry.newCounter(groupName, (prefix + name).toLowerCase());
-  }
-
-  public Timer newTimer(String name) {
-    return registry.newTimer(groupName, (prefix + name).toLowerCase());
+    return metricsGroup.newCounter(name);
   }
 
   public Histogram newHistogram(String name) {
-    return registry.newHistogram(groupName, (prefix + name).toLowerCase());
+    return metricsGroup.newHistogram(name);
+  }
+
+  public Timer newTimer(String name) {
+    return metricsGroup.newTimer(name);
+  }
+
+  public String getPrefix() {
+    return "";
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.metrics;
+package org.pathirage.fdbench.metrics.api;
 
 import org.HdrHistogram.AbstractHistogram;
 import org.apache.samza.metrics.Metric;
