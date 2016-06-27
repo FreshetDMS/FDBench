@@ -84,3 +84,9 @@ gradle-app.setting
 
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
+.idea/
+docs/performance-analysis/1.patch
+docs/performance-analysis/out/
+docs/performance-analysis/perfmodel.mdk.orig
+fdbench-kafka/conf/
+fdbench-kafka/tools/
