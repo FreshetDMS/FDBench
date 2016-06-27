@@ -17,8 +17,8 @@
 package org.pathirage.fdbench.kafka;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.api.BenchmarkConfigurator;
-import org.pathirage.fdbench.messaging.api.BenchmarkConfiguratorFactory;
+import org.pathirage.fdbench.api.BenchmarkConfigurator;
+import org.pathirage.fdbench.api.BenchmarkConfiguratorFactory;
 
 public class KafkaBenchmarkConfiguratorFactory implements BenchmarkConfiguratorFactory {
   @Override

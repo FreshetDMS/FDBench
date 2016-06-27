@@ -16,7 +16,7 @@
 
 package org.pathirage.fdbench.api;
 
-import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import org.pathirage.fdbench.metrics.MetricsReporter;
 
 import java.util.Collection;
 import java.util.Set;

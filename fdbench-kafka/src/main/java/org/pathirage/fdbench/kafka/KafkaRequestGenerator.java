@@ -24,7 +24,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.pathirage.fdbench.core.LatencyBenchmark;
-import org.pathirage.fdbench.messaging.FDMessagingBenchException;
+import org.pathirage.fdbench.FDBenchException;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -63,7 +63,7 @@ public class KafkaRequestGenerator implements LatencyBenchmark.RequestGenerator 
 
     ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
     if(records.isEmpty()) {
-      throw new FDMessagingBenchException("Didn't receive any messages");
+      throw new FDBenchException("Didn't receive any messages");
     }
   }
 

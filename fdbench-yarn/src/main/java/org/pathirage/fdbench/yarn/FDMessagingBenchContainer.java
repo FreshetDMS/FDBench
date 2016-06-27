@@ -19,14 +19,14 @@ package org.pathirage.fdbench.yarn;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
-import org.pathirage.fdbench.messaging.FDMessagingBenchException;
-import org.pathirage.fdbench.messaging.Utils;
-import org.pathirage.fdbench.messaging.api.BenchmarkTask;
-import org.pathirage.fdbench.metrics.api.MetricsReporter;
-import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
-import org.pathirage.fdbench.messaging.config.BenchConfig;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskFactory;
-import org.pathirage.fdbench.messaging.config.MetricsReporterConfig;
+import org.pathirage.fdbench.FDBenchException;
+import org.pathirage.fdbench.Utils;
+import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.metrics.MetricsReporter;
+import org.pathirage.fdbench.metrics.MetricsReporterFactory;
+import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +68,7 @@ public class FDMessagingBenchContainer {
             Utils.instantiate(reporterConfig.getMetricsReporterFactoryClass(reporter), MetricsReporterFactory.class);
         metricsReporters.put(reporter, factory.getMetricsReporter(reporter, containerId, rawConfig));
       } catch (Exception e) {
-        throw new FDMessagingBenchException(String.format("[%s] Couldn't setup metrics reporter %s", containerId, reporter));
+        throw new FDBenchException(String.format("[%s] Couldn't setup metrics reporter %s", containerId, reporter));
       }
     }
   }
@@ -87,7 +87,7 @@ public class FDMessagingBenchContainer {
       log.info(String.format("[%s] Creating benchmark instance.", containerId));
       this.benchmark = benchmarkFactory.getBenchmark(benchName, taskId, containerId, rawConfig);
     } catch (Exception e) {
-      throw new FDMessagingBenchException(String.format("[%s] Couldn't load benchmark factory.", containerId), e);
+      throw new FDBenchException(String.format("[%s] Couldn't load benchmark factory.", containerId), e);
     }
   }
 
@@ -106,7 +106,7 @@ public class FDMessagingBenchContainer {
     try {
       benchmark.run();
     } catch (Exception e) {
-      throw new FDMessagingBenchException("Error occurred in benchmark loop.", e);
+      throw new FDBenchException("Error occurred in benchmark loop.", e);
     } finally {
       log.info("Shutting down...");
       shutdownBenchmark();

@@ -6,4 +6,4 @@
 # Set container name system properties for use in Log4J
 [[ $JAVA_OPTS != *-Dkbench.container.name* ]] && export JAVA_OPTS="$JAVA_OPTS -Dkbench.container.name=kbench-application-master"
 
-exec $(dirname $0)/run-class.sh org.pathirage.fdbench.messaging.yarn.FDMessagingBenchAppMaster "$@"
+exec $(dirname $0)/run-class.sh org.pathirage.fdbench.yarn.FDMessagingBenchAppMaster "$@"

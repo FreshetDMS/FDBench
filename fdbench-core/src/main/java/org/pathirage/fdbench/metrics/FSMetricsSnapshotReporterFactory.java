@@ -18,7 +18,9 @@ package org.pathirage.fdbench.metrics;
 
 import com.typesafe.config.Config;
 import org.apache.samza.util.Util;
-import org.pathirage.fdbench.messaging.config.BenchConfig;
+import org.pathirage.fdbench.config.BenchConfig;
+
+import java.nio.file.Paths;
 
 public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory {
 
@@ -29,6 +31,7 @@ public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory 
     String jobName = benchConfig.getName();
     String benchFactory = benchConfig.getBenchmarkFactoryClass();
 
-    return new FSMetricsSnapshotReporter(name, jobName, containerName, benchFactory, Util.getLocalHost().getHostName());
+    // TODO: Fix snapshot directory
+    return new FSMetricsSnapshotReporter(name, jobName, containerName, benchFactory, Util.getLocalHost().getHostName(), Paths.get("."));
   }
 }

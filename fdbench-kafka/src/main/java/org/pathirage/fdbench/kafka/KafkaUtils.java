@@ -19,7 +19,7 @@ package org.pathirage.fdbench.kafka;
 import kafka.utils.ZkUtils;
 import kafka.admin.AdminUtils;
 import org.I0Itec.zkclient.ZkClient;
-import org.pathirage.fdbench.messaging.FDMessagingBenchException;
+import org.pathirage.fdbench.FDBenchException;
 import scala.collection.Map;
 import scala.collection.Seq;
 
@@ -54,6 +54,6 @@ public class KafkaUtils {
       return topicToPartitionMap.get(topic).get().size();
     }
 
-    throw new FDMessagingBenchException("Cannot get partition count for topic " + topic);
+    throw new FDBenchException("Cannot get partition count for topic " + topic);
   }
 }

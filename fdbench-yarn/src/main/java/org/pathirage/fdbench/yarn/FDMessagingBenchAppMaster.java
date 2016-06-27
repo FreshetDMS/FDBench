@@ -30,11 +30,11 @@ import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
-import org.pathirage.fdbench.messaging.FDMessagingBenchException;
-import org.pathirage.fdbench.messaging.Utils;
-import org.pathirage.fdbench.messaging.api.BenchmarkConfigurator;
-import org.pathirage.fdbench.messaging.api.BenchmarkConfiguratorFactory;
-import org.pathirage.fdbench.messaging.config.BenchConfig;
+import org.pathirage.fdbench.FDBenchException;
+import org.pathirage.fdbench.Utils;
+import org.pathirage.fdbench.api.BenchmarkConfigurator;
+import org.pathirage.fdbench.api.BenchmarkConfiguratorFactory;
+import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +85,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       this.benchmarkConfigurator = benchmarkConfiguratorFactory.getConfigurator(benchConfig.getParallelism(), rawBenchConf);
       this.benchmarkConfigurator.configureBenchmark();
     } catch (Exception e) {
-      throw new FDMessagingBenchException("Cannot load task configurator factory.", e);
+      throw new FDBenchException("Cannot load task configurator factory.", e);
     }
 
     log.info("initializing and starting node manager client....");
@@ -97,7 +97,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
 
   public void run() {
     if (!initialized) {
-      throw new FDMessagingBenchException("Please initialized the application master first.");
+      throw new FDBenchException("Please initialized the application master first.");
     }
 
     try {
@@ -133,7 +133,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       rmClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
       log.info("application master unregistered.");
     } catch (Exception e) {
-      throw new FDMessagingBenchException(e);
+      throw new FDBenchException(e);
     }
   }
 

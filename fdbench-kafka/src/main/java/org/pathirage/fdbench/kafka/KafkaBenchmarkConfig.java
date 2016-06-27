@@ -17,7 +17,7 @@
 package org.pathirage.fdbench.kafka;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.config.AbstractConfig;
+import org.pathirage.fdbench.config.AbstractConfig;
 
 public class KafkaBenchmarkConfig extends AbstractConfig {
 

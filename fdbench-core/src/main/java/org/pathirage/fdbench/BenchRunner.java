@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.messaging;
+package org.pathirage.fdbench;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.*;
-import org.pathirage.fdbench.messaging.api.BenchJob;
-import org.pathirage.fdbench.messaging.config.BenchConfig;
-import org.pathirage.fdbench.messaging.api.BenchmarkJobFactory;
+import org.pathirage.fdbench.FDBenchException;
+import org.pathirage.fdbench.Utils;
+import org.pathirage.fdbench.api.BenchJob;
+import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.api.BenchmarkJobFactory;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
@@ -39,7 +41,7 @@ public class BenchRunner {
       Path configFilePath = Paths.get(cmd.getOptionValue("c"));
 
       if(Files.notExists(configFilePath)) {
-        throw new FDMessagingBenchException("Config file " + configFilePath.toString() + " does not exist.");
+        throw new FDBenchException("Config file " + configFilePath.toString() + " does not exist.");
       }
 
       Config rawConfig = ConfigFactory.parseFile(configFilePath.toFile());

@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.messaging;
+package org.pathirage.fdbench;
 
-public class FDMessagingBenchException extends RuntimeException {
-  public FDMessagingBenchException() {
-    super();
-  }
-
-  public FDMessagingBenchException(String message) {
-    super(message);
-  }
-
-  public FDMessagingBenchException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public FDMessagingBenchException(Throwable cause) {
-    super(cause);
+public class Utils {
+  public static  <T> T instantiate(final String className, final Class<T> type) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+    return type.cast(Class.forName(className).newInstance());
   }
 }

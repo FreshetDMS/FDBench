@@ -17,8 +17,8 @@
 package org.pathirage.fdbench.kafka.producer;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.api.BenchmarkTask;
-import org.pathirage.fdbench.messaging.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 
 public class ProducerBenchmarkTaskFactory implements BenchmarkTaskFactory {
   @Override

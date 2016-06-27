@@ -25,7 +25,7 @@ import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
-import org.pathirage.fdbench.messaging.FDMessagingBenchException;
+import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,19 +62,19 @@ public class YarnClientWrapper {
       int amCPUCores  = config.getAMContainerMaxCPUCores();
 
       if (amMem > newAppResp.getMaximumResourceCapability().getMemory()) {
-        throw new FDMessagingBenchException(String.format("You're asking for more memory (%s) than is allowed by YARN: %s",
+        throw new FDBenchException(String.format("You're asking for more memory (%s) than is allowed by YARN: %s",
             config.getAMContainerMaxMemory(), newAppResp.getMaximumResourceCapability().getMemory()));
       }
 
       if (amCPUCores > newAppResp.getMaximumResourceCapability().getVirtualCores()) {
-        throw new FDMessagingBenchException(String.format("You're asking for more CPU (%s) than is allowed by YARN: %s",
+        throw new FDBenchException(String.format("You're asking for more CPU (%s) than is allowed by YARN: %s",
             config.getAMContainerMaxCPUCores(), newAppResp.getMaximumResourceCapability().getVirtualCores()));
       }
 
       appId = newAppResp.getApplicationId();
 
       if(appId == null) {
-        throw new FDMessagingBenchException("YARN didn't return an applicaiton id.");
+        throw new FDBenchException("YARN didn't return an applicaiton id.");
       }
 
       log.info(String.format("Preparing to request resources for app id %s", appId));
@@ -123,7 +123,7 @@ public class YarnClientWrapper {
 
       return appId;
     } catch (Exception e) {
-      throw new FDMessagingBenchException(e);
+      throw new FDBenchException(e);
     }
   }
 
@@ -154,7 +154,7 @@ public class YarnClientWrapper {
     try {
       return FileSystem.get(hadoopConf);
     } catch (IOException e) {
-      throw new FDMessagingBenchException("Couldn't create Hadoop file system.", e);
+      throw new FDBenchException("Couldn't create Hadoop file system.", e);
     }
   }
 
@@ -168,7 +168,7 @@ public class YarnClientWrapper {
       fs.copyFromLocalFile(new org.apache.hadoop.fs.Path(srcFilePath), dst);
       return fs.getFileStatus(dst);
     } catch (Exception e) {
-      throw new FDMessagingBenchException("Cannot copy " + srcFilePath + " to remote file system.", e);
+      throw new FDBenchException("Cannot copy " + srcFilePath + " to remote file system.", e);
     }
   }
 

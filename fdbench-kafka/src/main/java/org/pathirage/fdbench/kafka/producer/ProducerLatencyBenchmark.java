@@ -17,7 +17,10 @@
 package org.pathirage.fdbench.kafka.producer;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.api.BenchmarkTask;
+import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.metrics.MetricsReporter;
+
+import java.util.Collection;
 
 public class ProducerLatencyBenchmark implements BenchmarkTask {
 
@@ -46,6 +49,16 @@ public class ProducerLatencyBenchmark implements BenchmarkTask {
   @Override
   public String getContainerId() {
     return containerId;
+  }
+
+  @Override
+  public void registerMetrics(Collection<MetricsReporter> reporters) {
+
+  }
+
+  @Override
+  public void stop() {
+
   }
 
   @Override

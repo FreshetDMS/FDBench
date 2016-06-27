@@ -17,9 +17,9 @@
 package org.pathirage.fdbench.kafka;
 
 import com.typesafe.config.Config;
-import org.apache.commons.lang.StringUtils;
-import org.pathirage.fdbench.messaging.FDMessagingBenchException;
-import org.pathirage.fdbench.messaging.api.BenchmarkConfigurator;
+import org.apache.commons.lang3.StringUtils;
+import org.pathirage.fdbench.FDBenchException;
+import org.pathirage.fdbench.api.BenchmarkConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class KafkaBenchmarkConfigurator implements BenchmarkConfigurator {
       mapPartitionsToContainer();
 
     } else {
-      throw new FDMessagingBenchException("Doesn't support Kafka benchmark type " + type + " yet.");
+      throw new FDBenchException("Doesn't support Kafka benchmark type " + type + " yet.");
     }
   }
 

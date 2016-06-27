@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.messaging;
+package org.pathirage.fdbench;
 
-public class Utils {
-  public static  <T> T instantiate(final String className, final Class<T> type) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-    return type.cast(Class.forName(className).newInstance());
+public class FDBenchException extends RuntimeException {
+  public FDBenchException() {
+    super();
+  }
+
+  public FDBenchException(String message) {
+    super(message);
+  }
+
+  public FDBenchException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public FDBenchException(Throwable cause) {
+    super(cause);
   }
 }

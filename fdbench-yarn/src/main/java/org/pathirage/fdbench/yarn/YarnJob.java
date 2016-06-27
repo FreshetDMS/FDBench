@@ -18,7 +18,7 @@ package org.pathirage.fdbench.yarn;
 
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.pathirage.fdbench.messaging.api.BenchJob;
+import org.pathirage.fdbench.api.BenchJob;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

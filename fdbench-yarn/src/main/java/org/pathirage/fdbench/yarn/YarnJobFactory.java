@@ -17,8 +17,8 @@
 package org.pathirage.fdbench.yarn;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.messaging.api.BenchJob;
-import org.pathirage.fdbench.messaging.api.BenchmarkJobFactory;
+import org.pathirage.fdbench.api.BenchJob;
+import org.pathirage.fdbench.api.BenchmarkJobFactory;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 
 public class YarnJobFactory implements BenchmarkJobFactory {
