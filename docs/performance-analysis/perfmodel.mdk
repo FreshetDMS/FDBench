@@ -130,7 +130,7 @@ where $X$ denotes the system throughput, $X_i$ denotes the throughput at device 
 * Benchmarking framework
 * Workloads should be related to Kafka backed data management system (Database)
 
-# Kafka in Cloud
+## Kafka in Cloud
 
 From [Kafka Inside Keystone Pipeline](http://techblog.netflix.com/2016/04/kafka-inside-keystone-pipeline.html)
 
@@ -146,22 +146,34 @@ From [Kafka Inside Keystone Pipeline](http://techblog.netflix.com/2016/04/kafka-
 * Kafka replication leads to inter-dependencies among brokers and outlier brokers can cause cascading effect.
 * If an outlier slows down replication, replication lag may build up and eventually cause partition leaders to read from disk to serve the application requests. This slows down the effected brokers and may cause message drops at producers due to buffer exhaust.
 
-## Deployment strategies for cloud 
+### Deployment strategies for cloud
 
 * Multiple smaller cluster instead of one giant cluster. Reduces operational complexity. (Largest with 200 brokers) 
 * Limit the number of partitions in each cluster. Less than 10,000. Improves availability and reduces the latency for requests/responses that are bound to the number partitions.
 * Even distribution of replicas for each topic. Make it easy to perform capacity planning and detection of outliers.
 * Dedicated Zookeeper cluster for each Kafka cluster.
 
-## Important metrics
+### Important metrics
 
 * Brokers ability to receive and deliver messages using heartbeat messages and latency
 * Samza checkpointed offset and broker's log offset to measure Samza lag
 
-## Future
+### Future
 
 * Tiered SLAs for topics
 * Topics that can accept minor loss configured to 1 replica. Absence of replication saves bandwidth and minimize state changes that have to depend on the controller
+
+## How to choose the number of topics/partitions in a Kafka cluster?
+
+* Topic partition is the unit of parallelism in Kafka
+* General intuition is that more partitions will lead to more throughput
+* Need $max(t/p, t/c)$ partitions if single partition production throughput is $p$, single partition consumption throughput is $c$, and projected targeted throughput is $t$.
+* Over provision the number of partitions. Start with a small cluster and add brokers later.
+* More partitions may increase unavailability due to partition leader election delays due to failures or controller selection due to controller failure.
+* More partitions may increase end-to-end latency due to Kafka's use of single thread to replicate data from another broker.
+* Limit the per broker partition count to $100 \times b \times r$, where $b$ is broker count and $r$ is replication factor.
+* More partitions means more memory requirements at producer and consumer clients
+
 
 # Basic Model for Samza
 
