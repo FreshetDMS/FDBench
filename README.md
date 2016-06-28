@@ -10,6 +10,13 @@ FDBench is a fast data management benchmark.
 
 *From [Fast data: The next step after big data](http://www.infoworld.com/article/2608040/big-data/fast-data--the-next-step-after-big-data.html)*
 
+# Architecture
+
+FDBench's architecture is similar to Apache Samza's architecture. Each benchmark is a collection of tasks that perform same or different tasks based on the benchmark. For example, *Kafka producer throughput benchmark's* tasks do the same thing -- publishing messages to different partitions in a Kafka topic where as benchmark which measures the Kafka's behavior in a real environment will be a collection of producer tasks and consumer tasks.
+
+Current implementation uses Apache YARN to implement the benchmark job abstraction.
+
+
 # Benchmarks
 
 ## Messaging Bench
