@@ -40,7 +40,11 @@ public class MetricsGroup {
     return registry.newTimer(groupName, (prefix + name).toLowerCase());
   }
 
-  public Histogram newHistogram(String name) {
-    return registry.newHistogram(groupName, (prefix + name).toLowerCase());
+  public Histogram newHistogram(String name, int numberOfSignificantValueDigits) {
+    return registry.newHistogram(groupName, (prefix + name).toLowerCase(), numberOfSignificantValueDigits);
+  }
+
+  public Histogram newHistogram(String name, long highestTrackableValue, int numberOfSignificantValueDigits) {
+    return registry.newHistogram(groupName, (prefix + name).toLowerCase(), highestTrackableValue, numberOfSignificantValueDigits);
   }
 }

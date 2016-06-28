@@ -49,6 +49,7 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
   private final String hostName;
   private final String benchFactory;
   private final Path snapshotsDirectory;
+  private final int interval;
   private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
     @Override
     public Thread newThread(Runnable r) {
@@ -61,19 +62,20 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
   private final List<Pair<String, MetricsRegistry>> registeries = new ArrayList<>();
 
   public FSMetricsSnapshotReporter(String name, String jobName, String containerName, String benchFactory,
-                                   String hostName, Path snapshotsDirectory) {
+                                   String hostName, Path snapshotsDirectory, int interval) {
     this.name = name;
     this.jobName = jobName;
     this.containerName = containerName;
     this.hostName = hostName;
     this.benchFactory = benchFactory;
     this.snapshotsDirectory = snapshotsDirectory;
+    this.interval = interval;
   }
 
   @Override
   public void start() {
     log.info("Starting reporter timer.");
-    executor.scheduleWithFixedDelay(this, 0, 60, TimeUnit.SECONDS);
+    executor.scheduleWithFixedDelay(this, 0, interval, TimeUnit.SECONDS);
   }
 
   @Override
@@ -85,7 +87,7 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
   public void stop() {
     executor.shutdown();
     try {
-      executor.awaitTermination(60, TimeUnit.SECONDS);
+      executor.awaitTermination(interval, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       log.error("Executor awaitTermination interrupted.");
     } finally {
@@ -152,7 +154,7 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
       metricsSnapshot.put("body", metricsEvent);
 
       Gson gson = new Gson();
-      try (FileWriter fw = new FileWriter(snapshotsDirectory.relativize(Paths.get(registry.getKey() + "-" + recordingTime + ".json")).toFile())) {
+      try (FileWriter fw = new FileWriter(Paths.get(snapshotsDirectory.toString(), registry.getKey() + "-" + recordingTime + ".json").toFile())) {
         fw.write(gson.toJson(metricsSnapshot));
       } catch (Exception e) {
         log.error("Couldn't publish metrics.", e);

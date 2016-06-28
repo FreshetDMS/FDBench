@@ -18,7 +18,9 @@ package org.pathirage.fdbench.metrics;
 
 import com.typesafe.config.Config;
 import org.apache.samza.util.Util;
+import org.pathirage.fdbench.config.AbstractConfig;
 import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
 
@@ -32,8 +34,28 @@ public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory 
 
     String jobName = benchConfig.getName();
     String benchFactory = benchConfig.getBenchmarkFactoryClass();
+    FSMetricsSnapshotReporterConfig reporterConfig = new FSMetricsSnapshotReporterConfig(new MetricsReporterConfig(config).getReporterConfig(name));
 
-    // TODO: Fix snapshot directory
-    return new FSMetricsSnapshotReporter(name, jobName, containerName, benchFactory, Util.getLocalHost().getHostName(), Paths.get("."));
+    return new FSMetricsSnapshotReporter(name, jobName, containerName, benchFactory,
+        Util.getLocalHost().getHostName(),
+        Paths.get(reporterConfig.getSnapshotsDirectory()),
+        reporterConfig.getReportingInterval());
   }
-}
+
+  private static class FSMetricsSnapshotReporterConfig extends AbstractConfig {
+    private static final String SNAPSHOTS_DIR = "snapshots.directory";
+    private static final String REPORTING_INTERVAL = "reporting.interval";
+
+    private FSMetricsSnapshotReporterConfig(Config config) {
+      super(config);
+    }
+
+    private String getSnapshotsDirectory() {
+      return getString(SNAPSHOTS_DIR);
+    }
+
+    private int getReportingInterval() {
+      return getInt(REPORTING_INTERVAL, 60);
+    }
+  }
+ }

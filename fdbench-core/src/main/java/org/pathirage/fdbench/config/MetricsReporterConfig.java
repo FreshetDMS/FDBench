@@ -25,8 +25,8 @@ import java.util.List;
 public class MetricsReporterConfig extends AbstractConfig {
 
   private static final String METRICS_REPORTERS = "metrics.reporters";
-  private static final String METRICS_REPORTER_CONFIG_PREFIX = "metrics.reporter.%s.";
-  private static final String METRICS_REPORTER_FACTORY_CLASS = METRICS_REPORTER_CONFIG_PREFIX + "factory.class";
+  private static final String METRICS_REPORTER_CONFIG_PREFIX = "metrics.reporter.%s";
+  private static final String METRICS_REPORTER_FACTORY_CLASS = METRICS_REPORTER_CONFIG_PREFIX + ".factory.class";
 
   public MetricsReporterConfig(Config config) {
     super(config);
@@ -48,5 +48,9 @@ public class MetricsReporterConfig extends AbstractConfig {
     }
 
     return Collections.emptyList();
+  }
+
+  public Config getReporterConfig(String name) {
+    return config.getConfig(String.format(METRICS_REPORTER_CONFIG_PREFIX, name));
   }
 }

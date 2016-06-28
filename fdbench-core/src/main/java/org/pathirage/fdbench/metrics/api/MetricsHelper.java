@@ -33,8 +33,12 @@ public abstract class MetricsHelper {
     return metricsGroup.newCounter(name);
   }
 
-  public Histogram newHistogram(String name) {
-    return metricsGroup.newHistogram(name);
+  public Histogram newHistogram(String name, int numberOfSignificantValueDigits) {
+    return metricsGroup.newHistogram(name, numberOfSignificantValueDigits);
+  }
+
+  public Histogram newHistogram(String name, long highestTrackableValue, int numberOfSignificantValueDigits) {
+    return metricsGroup.newHistogram(name, highestTrackableValue, numberOfSignificantValueDigits);
   }
 
   public Timer newTimer(String name) {

@@ -89,7 +89,16 @@ public interface MetricsRegistry {
    * @param name  Name of to-be-created histogram
    * @return New Histogram instance
    */
-  Histogram newHistogram(String group, String name);
+  Histogram newHistogram(String group, String name,  int numberOfSignificantValueDigits);
+
+  /**
+   * Create and register a new {@link Histogram}
+   *
+   * @param group Group of this histogram
+   * @param name  Name of to-be-created histogram
+   * @return New Histogram instance
+   */
+  Histogram newHistogram(String group, String name,  long highestTrackableValue, int numberOfSignificantValueDigits);
 
   /**
    * Register existing {@link Histogram} with this registry

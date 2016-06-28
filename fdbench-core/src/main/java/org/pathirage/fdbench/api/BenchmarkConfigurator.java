@@ -19,6 +19,12 @@ package org.pathirage.fdbench.api;
 import java.util.Map;
 
 public interface BenchmarkConfigurator {
-  void configureBenchmark();
-  Map<String, String> configureTask(int taskId);
+  /**
+   * Generate set of properties that defines how a task should behave. For example, what Kafka partitions are assigned
+   * to a particular task.
+   * @param numTasks Number of parallel tasks in current job
+   * @param taskId Identifier of the task to configure
+   * @return Task configuration as a set of key/value pairs
+   */
+  Map<String, String> configureTask(int numTasks, int taskId);
 }

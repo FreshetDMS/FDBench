@@ -82,8 +82,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
 
     try {
       BenchmarkConfiguratorFactory benchmarkConfiguratorFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkConfiguratorFactory.class);
-      this.benchmarkConfigurator = benchmarkConfiguratorFactory.getConfigurator(benchConfig.getParallelism(), rawBenchConf);
-      this.benchmarkConfigurator.configureBenchmark();
+      this.benchmarkConfigurator = benchmarkConfiguratorFactory.getConfigurator(rawBenchConf);
     } catch (Exception e) {
       throw new FDBenchException("Cannot load task configurator factory.", e);
     }
@@ -179,7 +178,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
         envMap.put(Constants.KBENCH_BENCH_NAME_ENV, benchmarkName);
 
         // BenchmarkConfigurator should generate environment variables that can be used in the benchmark task
-        envMap.putAll(benchmarkConfigurator.configureTask(numContainersAllocated.get()));
+        envMap.putAll(benchmarkConfigurator.configureTask(new BenchConfig(rawBenchConf).getParallelism(), numContainersAllocated.get()));
 
         Map<String, LocalResource> localResourceMap = new HashMap<>();
         localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV).trim()));
