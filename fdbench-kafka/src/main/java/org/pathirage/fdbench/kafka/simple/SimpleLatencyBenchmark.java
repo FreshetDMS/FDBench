@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.kafka.simple;
 
 import com.typesafe.config.Config;
 
@@ -26,7 +26,7 @@ import java.util.concurrent.*;
 /**
  * Implemented based on  https://github.com/tylertreat/bench.
  */
-public class LatencyBenchmark {
+public class SimpleLatencyBenchmark {
 
   protected static final long maxRecordableLatencyNS = 300000000000L;
   protected static final int sigFigs = 5;
@@ -46,14 +46,14 @@ public class LatencyBenchmark {
   private final int requestRate;
   private final int parallelism;
   private final Duration duration;
-  private final Set<Future<LatencySummary>> results = new HashSet<Future<LatencySummary>>();
-  private final Set<LatencyBenchTask> benchTasks = new HashSet<LatencyBenchTask>();
+  private final Set<Future<SimpleLatencySummary>> results = new HashSet<Future<SimpleLatencySummary>>();
+  private final Set<SimpleLatencyBenchTask> benchTasks = new HashSet<SimpleLatencyBenchTask>();
   private final ExecutorService executorService;
   private final RequestGeneratorFactory requestGeneratorFactory;
   private final Config config;
 
-  public LatencyBenchmark(Config config, RequestGeneratorFactory requestGeneratorFactory, int requestRate, int parallelism,
-                          Duration duration) {
+  public SimpleLatencyBenchmark(Config config, RequestGeneratorFactory requestGeneratorFactory, int requestRate, int parallelism,
+                                Duration duration) {
     this.config = config;
     this.requestRate = requestRate;
     this.parallelism = parallelism;
@@ -62,11 +62,11 @@ public class LatencyBenchmark {
     this.executorService = Executors.newFixedThreadPool(parallelism);
   }
 
-  public LatencySummary run() throws Exception {
-    LatencySummary summary = null;
+  public SimpleLatencySummary run() throws Exception {
+    SimpleLatencySummary summary = null;
     for (int i = 0; i < parallelism; i++) {
-      LatencyBenchTask callable =
-          new LatencyBenchTask(requestGeneratorFactory.getRequestGenerator(config, i), requestRate, duration);
+      SimpleLatencyBenchTask callable =
+          new SimpleLatencyBenchTask(requestGeneratorFactory.getRequestGenerator(config, i), requestRate, duration);
       benchTasks.add(callable);
 
       callable.setup();
@@ -74,7 +74,7 @@ public class LatencyBenchmark {
       results.add(executorService.submit(callable));
     }
 
-    for(Future<LatencySummary> future : results) {
+    for(Future<SimpleLatencySummary> future : results) {
       if (summary == null) {
         summary = future.get();
       } else {
@@ -82,7 +82,7 @@ public class LatencyBenchmark {
       }
     }
 
-    for(LatencyBenchTask benchTask : benchTasks) {
+    for(SimpleLatencyBenchTask benchTask : benchTasks) {
       benchTask.shutdown();
     }
 

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.producer;
+package org.pathirage.fdbench.api;
 
-import com.typesafe.config.Config;
-import org.pathirage.fdbench.api.BenchmarkTask;
-import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import java.nio.file.Path;
 
-public class ProducerBenchmarkTaskFactory implements BenchmarkTaskFactory {
-  @Override
-  public BenchmarkTask getBenchmark(String name, String taskId, String containerID, Config config) {
-    return null;
-  }
+public interface BenchmarkJob {
+  /**
+   * Submit this benchmark job ot be run.
+   *
+   * @return An instance of this job after it has been submitted.
+   */
+  BenchmarkJob submit(Path configFile);
 }

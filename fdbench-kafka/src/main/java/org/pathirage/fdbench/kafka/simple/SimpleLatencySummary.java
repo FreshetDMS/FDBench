@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.kafka.simple;
 
 import org.HdrHistogram.Histogram;
 
@@ -22,7 +22,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LatencySummary {
+public class SimpleLatencySummary {
   private static final double[] LOGARITHMIC_PERCENTILES = {
       0.0f,
       10.0f,
@@ -127,9 +127,9 @@ public class LatencySummary {
   private final Histogram errorHistogram;
   private final Histogram uncorrectedErrorHistogram;
 
-  public LatencySummary( int requestRate, int successTotal, int errorTotal, Duration elapsedTime,
-                        Histogram successHistogram, Histogram uncorrectedSuccessHistogram, Histogram errorHistogram,
-                        Histogram uncorrectedErrorHistogram) {
+  public SimpleLatencySummary(int requestRate, int successTotal, int errorTotal, Duration elapsedTime,
+                              Histogram successHistogram, Histogram uncorrectedSuccessHistogram, Histogram errorHistogram,
+                              Histogram uncorrectedErrorHistogram) {
     this.requestRate = requestRate;
     this.successTotal = successTotal;
     this.errorTotal = errorTotal;
@@ -183,7 +183,7 @@ public class LatencySummary {
     return new LatencyDistribution(corrected, uncorrected);
   }
 
-  public void merge(LatencySummary summary) {
+  public void merge(SimpleLatencySummary summary) {
     if (summary.elapsedTime.compareTo(elapsedTime) > 0) {
       elapsedTime = summary.elapsedTime;
     }

@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.api;
+package org.pathirage.fdbench.kafka.e2elatency;
 
-import java.util.Map;
+import com.typesafe.config.Config;
+import org.pathirage.fdbench.api.Benchmark;
+import org.pathirage.fdbench.api.BenchmarkFactory;
 
-public interface BenchmarkConfigurator {
-  /**
-   * Generate set of properties that defines how a task should behave. For example, what Kafka partitions are assigned
-   * to a particular task.
-   * @param numTasks Number of parallel tasks in current job
-   * @param taskId Identifier of the task to configure
-   * @return Task configuration as a set of key/value pairs
-   */
-  Map<String, String> configureTask(int numTasks, int taskId);
+public class E2ELatencyBenchmarkFactory implements BenchmarkFactory {
+  @Override
+  public Benchmark getBenchmark(Config rawConfig) {
+    return new E2ELatencyBenchmark(rawConfig);
+  }
 }

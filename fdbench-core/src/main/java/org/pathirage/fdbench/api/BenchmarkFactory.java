@@ -18,6 +18,6 @@ package org.pathirage.fdbench.api;
 
 import com.typesafe.config.Config;
 
-public interface BenchmarkConfiguratorFactory {
-  BenchmarkConfigurator getConfigurator(Config rawConfig);
+public interface BenchmarkFactory {
+  Benchmark getBenchmark(Config rawConfig);
 }

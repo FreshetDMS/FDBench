@@ -20,22 +20,22 @@ package org.pathirage.fdbench;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Test;
-import org.pathirage.fdbench.kafka.LatencyBenchmark;
-import org.pathirage.fdbench.kafka.LatencySummary;
-import org.pathirage.fdbench.kafka.KafkaRequestGeneratorFactory;
+import org.pathirage.fdbench.kafka.simple.SimpleLatencyBenchmark;
+import org.pathirage.fdbench.kafka.simple.SimpleLatencySummary;
+import org.pathirage.fdbench.kafka.simple.KafkaRequestGeneratorFactory;
 
 import java.time.Duration;
 
-public class KafkaLatencyBenchmarkTest {
+public class KafkaSimpleLatencyBenchmarkTest {
   @Test
   public void testSimpleLatencyBench() throws Exception {
-    LatencyBenchmark latencyBenchmark =
-        new LatencyBenchmark(getSimpleLatencyBenchConfig(), new KafkaRequestGeneratorFactory(), 3000, 1, Duration.ofMinutes(1));
-    LatencySummary summary = latencyBenchmark.run();
-    LatencySummary.LatencyDistribution latencyDistribution = summary.getLatencyDistribution(null);
-    LatencySummary.StandardDeviations success = summary.getStandardDeviation();
+    SimpleLatencyBenchmark simpleLatencyBenchmark =
+        new SimpleLatencyBenchmark(getSimpleLatencyBenchConfig(), new KafkaRequestGeneratorFactory(), 3000, 1, Duration.ofMinutes(1));
+    SimpleLatencySummary summary = simpleLatencyBenchmark.run();
+    SimpleLatencySummary.LatencyDistribution latencyDistribution = summary.getLatencyDistribution(null);
+    SimpleLatencySummary.StandardDeviations success = summary.getStandardDeviation();
     System.out.println(String.format("STD corrected: %f, uncorrected: %f", success.getStd(), success.getStdUncorrected()));
-    for(LatencySummary.LatencyPercentile p : latencyDistribution.getCorrected()) {
+    for(SimpleLatencySummary.LatencyPercentile p : latencyDistribution.getCorrected()) {
       System.out.println(String.format("percentile %f \t value %f \t count %d", p.getPercentile(), p.getValue(), p.getTotalCount()));
     }
 

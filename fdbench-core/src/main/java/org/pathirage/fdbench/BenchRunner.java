@@ -19,9 +19,7 @@ package org.pathirage.fdbench;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.*;
-import org.pathirage.fdbench.FDBenchException;
-import org.pathirage.fdbench.Utils;
-import org.pathirage.fdbench.api.BenchJob;
+import org.pathirage.fdbench.api.BenchmarkJob;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.api.BenchmarkJobFactory;
 
@@ -49,7 +47,7 @@ public class BenchRunner {
 
       BenchmarkJobFactory jobFactory = Utils.instantiate(config.getJobFactoryClass(), BenchmarkJobFactory.class);
 
-      BenchJob job = jobFactory.getJob(config.getName(), rawConfig);
+      BenchmarkJob job = jobFactory.getJob(config.getName(), rawConfig);
       job.submit(configFilePath);
     } else {
       String header = "Execute Kafka benchmarks\n\n";

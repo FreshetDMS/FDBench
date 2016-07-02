@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.kafka.simple;
 
 import org.HdrHistogram.Histogram;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
 
-public class LatencyBenchTask implements Callable<LatencySummary> {
-  private final LatencyBenchmark.RequestGenerator requestGenerator;
+public class SimpleLatencyBenchTask implements Callable<SimpleLatencySummary> {
+  private final SimpleLatencyBenchmark.RequestGenerator requestGenerator;
   private final int requestRate;
   private final Duration duration;
   private final Duration expectedInterval;
@@ -34,7 +34,7 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
   private int errorTotal = 0;
   private long elapsedTime = 0;
 
-  public LatencyBenchTask(LatencyBenchmark.RequestGenerator requestGenerator, int requestRate, Duration duration) {
+  public SimpleLatencyBenchTask(SimpleLatencyBenchmark.RequestGenerator requestGenerator, int requestRate, Duration duration) {
     this.requestGenerator = requestGenerator;
     this.requestRate = requestRate;
     this.duration = duration;
@@ -45,10 +45,10 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
       this.expectedInterval = Duration.ZERO;
     }
 
-    this.successHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
-    this.uncorrectedSuccessHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
-    this.errorHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
-    this.uncorrectedErrorHistogram = new Histogram(1, LatencyBenchmark.maxRecordableLatencyNS, LatencyBenchmark.sigFigs);
+    this.successHistogram = new Histogram(1, SimpleLatencyBenchmark.maxRecordableLatencyNS, SimpleLatencyBenchmark.sigFigs);
+    this.uncorrectedSuccessHistogram = new Histogram(1, SimpleLatencyBenchmark.maxRecordableLatencyNS, SimpleLatencyBenchmark.sigFigs);
+    this.errorHistogram = new Histogram(1, SimpleLatencyBenchmark.maxRecordableLatencyNS, SimpleLatencyBenchmark.sigFigs);
+    this.uncorrectedErrorHistogram = new Histogram(1, SimpleLatencyBenchmark.maxRecordableLatencyNS, SimpleLatencyBenchmark.sigFigs);
   }
 
   public void setup() throws Exception {
@@ -123,14 +123,14 @@ public class LatencyBenchTask implements Callable<LatencySummary> {
   }
 
   @Override
-  public LatencySummary call() throws Exception {
+  public SimpleLatencySummary call() throws Exception {
     if (requestRate <= 0) {
       elapsedTime = runFullThrottle();
     } else {
       elapsedTime = runRateLimited();
     }
 
-    return new LatencySummary(requestRate, successTotal, errorTotal, Duration.ofNanos(elapsedTime), successHistogram.copy(),
+    return new SimpleLatencySummary(requestRate, successTotal, errorTotal, Duration.ofNanos(elapsedTime), successHistogram.copy(),
         uncorrectedSuccessHistogram.copy(), errorHistogram.copy(), uncorrectedErrorHistogram.copy());
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.kafka.simple;
 
 import com.typesafe.config.Config;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -32,7 +32,7 @@ import java.util.Random;
 /**
  *
  */
-public class KafkaRequestGenerator implements LatencyBenchmark.RequestGenerator {
+public class KafkaRequestGenerator implements SimpleLatencyBenchmark.RequestGenerator {
   private final KafkaProducerConfig config;
   private final int taskId;
   private KafkaProducer<byte[], byte[]> producer;

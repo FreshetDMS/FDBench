@@ -14,27 +14,14 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.producer;
+package org.pathirage.fdbench.kafka.e2elatency;
 
-import com.typesafe.config.Config;
 import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 
 import java.util.Collection;
 
-public class ProducerThroughputBenchmark implements BenchmarkTask {
-  private final String taskId;
-  private final String name;
-  private final String containerId;
-  private final Config rawConfig;
-
-  public ProducerThroughputBenchmark(String taskId, String name, String containerId, Config rawConfig) {
-    this.taskId = taskId;
-    this.name = name;
-    this.containerId = containerId;
-    this.rawConfig = rawConfig;
-  }
-
+public class E2ELatencyBenchTask implements BenchmarkTask {
   @Override
   public String getTaskId() {
     return null;

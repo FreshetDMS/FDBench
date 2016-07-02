@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.kafka.simple;
 
 import com.typesafe.config.Config;
 
-public class KafkaRequestGeneratorFactory implements LatencyBenchmark.RequestGeneratorFactory {
+public class KafkaRequestGeneratorFactory implements SimpleLatencyBenchmark.RequestGeneratorFactory {
   @Override
-  public LatencyBenchmark.RequestGenerator getRequestGenerator(Config config, int taskId) {
+  public SimpleLatencyBenchmark.RequestGenerator getRequestGenerator(Config config, int taskId) {
     return new KafkaRequestGenerator(config, taskId);
   }
 }
