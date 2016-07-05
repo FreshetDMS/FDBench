@@ -17,7 +17,9 @@
 package org.pathirage.fdbench.api;
 
 import com.typesafe.config.Config;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 
 public interface BenchmarkTaskFactory {
-  public BenchmarkTask getBenchmark(String name, String taskId, String containerID, Config config);
+  public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config,
+                               MetricsRegistry metricsRegistry);
 }

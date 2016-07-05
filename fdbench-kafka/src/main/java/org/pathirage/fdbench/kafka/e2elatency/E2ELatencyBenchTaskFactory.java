@@ -19,10 +19,12 @@ package org.pathirage.fdbench.kafka.e2elatency;
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 
 public class E2ELatencyBenchTaskFactory implements BenchmarkTaskFactory {
   @Override
-  public BenchmarkTask getBenchmark(String name, String taskId, String containerID, Config config) {
-    return null;
+  public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config,
+                               MetricsRegistry metricsRegistry) {
+    return new E2ELatencyBenchTask(taskId, benchmarkName, containerID, config);
   }
 }

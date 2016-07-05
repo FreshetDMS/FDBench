@@ -25,6 +25,8 @@ import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.config.MetricsReporterConfig;
+import org.pathirage.fdbench.metrics.InMemoryMetricsRegistry;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
 import org.slf4j.Logger;
@@ -46,6 +48,7 @@ public class FDMessagingBenchContainer {
   private final String benchName;
   private final String taskFactoryClass;
   private Map<String, MetricsReporter> metricsReporters = new HashMap<>();
+  private final MetricsRegistry metricsRegistry = new InMemoryMetricsRegistry();
 
   public FDMessagingBenchContainer(String benchName, String taskId, String containerId, String taskFactoryClass, Config rawConfig) {
     this.benchName = benchName;
@@ -86,7 +89,7 @@ public class FDMessagingBenchContainer {
       log.info(String.format("[%s] Loading benchTask factory %s.", containerId, benchConfig.getBenchmarkFactoryClass()));
       BenchmarkTaskFactory benchTaskFactory = Utils.instantiate(taskFactoryClass, BenchmarkTaskFactory.class);
       log.info(String.format("[%s] Creating benchTask instance.", containerId));
-      this.benchTask = benchTaskFactory.getBenchmark(benchName, taskId, containerId, rawConfig);
+      this.benchTask = benchTaskFactory.getTask(benchName, taskId, containerId, rawConfig, metricsRegistry);
     } catch (Exception e) {
       throw new FDBenchException(String.format("[%s] Couldn't load benchTask factory.", containerId), e);
     }

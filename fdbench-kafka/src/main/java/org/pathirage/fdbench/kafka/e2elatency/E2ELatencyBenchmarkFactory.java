@@ -22,7 +22,7 @@ import org.pathirage.fdbench.api.BenchmarkFactory;
 
 public class E2ELatencyBenchmarkFactory implements BenchmarkFactory {
   @Override
-  public Benchmark getBenchmark(Config rawConfig) {
-    return new E2ELatencyBenchmark(rawConfig);
+  public Benchmark getBenchmark(int parallelism, Config rawConfig) {
+    return new E2ELatencyBenchmark(parallelism, rawConfig);
   }
 }

@@ -19,5 +19,5 @@ package org.pathirage.fdbench.api;
 import com.typesafe.config.Config;
 
 public interface BenchmarkFactory {
-  Benchmark getBenchmark(Config rawConfig);
+  Benchmark getBenchmark(int parallelism, Config rawConfig);
 }
