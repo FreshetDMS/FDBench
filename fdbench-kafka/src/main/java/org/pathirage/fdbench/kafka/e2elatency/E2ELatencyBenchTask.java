@@ -17,9 +17,11 @@
 package org.pathirage.fdbench.kafka.e2elatency;
 
 import com.typesafe.config.Config;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.samza.metrics.Counter;
 import org.pathirage.fdbench.api.BenchmarkTask;
@@ -212,12 +214,28 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
     }
   }
 
-  // TODO: Get the configurations from the benchmark config.
   private Properties getProducerProperties() {
-    return new Properties();
+    Properties producerProps = new Properties();
+
+    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBrokers());
+    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, config.getKeySerializerClass());
+    producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, config.getValueSerializerClass());
+    producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, "e2e-latency-bench-" + taskId);
+
+    return producerProps;
   }
 
   private Properties getConsumerProperties() {
-    return new Properties();
+    Properties consumerProps = new Properties();
+
+    consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBrokers());
+    consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "e2e-latency-bench");
+    consumerProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+    consumerProps.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+    consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
+    consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, config.getKeyDeserializerClass());
+    consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, config.getValueDeserializerClass());
+
+    return consumerProps;
   }
 }
