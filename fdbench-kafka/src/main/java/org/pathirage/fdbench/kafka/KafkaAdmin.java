@@ -28,10 +28,10 @@ import java.util.Properties;
 
 import static scala.collection.JavaConversions.*;
 
-public class KafkaUtils {
+public class KafkaAdmin {
   private ZkUtils kafkaZKUtils;
 
-  public KafkaUtils(String brokers, String zkConnect) {
+  public KafkaAdmin(String brokers, String zkConnect) {
     this.kafkaZKUtils = ZkUtils.apply(new ZkClient(zkConnect), false);
   }
 

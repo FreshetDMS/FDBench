@@ -104,8 +104,8 @@ public class YarnClientWrapper {
           "<LOG_DIR>", "<LOG_DIR>", "stdout", "stderr"));
 
       Map<String, String> appMasterEnv = new HashMap<>();
-      appMasterEnv.put(Constants.KBENCH_PACKAGE_PATH_ENV, pkgFileStatus.getPath().toString());
-      appMasterEnv.put(Constants.KBENCH_CONF_PATH_ENV, confFileStatus.getPath().toString());
+      appMasterEnv.put(Constants.FDBENCH_PACKAGE_PATH_ENV, pkgFileStatus.getPath().toString());
+      appMasterEnv.put(Constants.FDBENCH_CONF_PATH_ENV, confFileStatus.getPath().toString());
 
       ContainerLaunchContext amContainer = ContainerLaunchContext.newInstance(localResources,
           appMasterEnv, cmdList, null, null, null);

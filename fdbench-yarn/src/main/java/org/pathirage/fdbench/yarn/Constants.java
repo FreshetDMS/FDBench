@@ -17,9 +17,10 @@
 package org.pathirage.fdbench.yarn;
 
 public class Constants {
-  static final String KBENCH_PACKAGE_PATH_ENV = "KBENCH_PACKAGE_PATH";
-  static final String KBENCH_CONF_PATH_ENV = "KBENCH_CONF_PATH";
-  static final String KBENCH_CONTAINER_ID_ENV = "KBENCH_CONTAINER_ID";
-  static final String KBENCH_TASK_ID_ENV = "KBENCH_TASK_ID";
-  static final String KBENCH_BENCH_NAME_ENV = "KBENCH_BENCH_NAME";
+  static final String FDBENCH_PACKAGE_PATH_ENV = "FDBENCH_PACKAGE_PATH";
+  static final String FDBENCH_CONF_PATH_ENV = "FDBENCH_CONF_PATH";
+  static final String FDBENCH_CONTAINER_ID_ENV = "FDBENCH_CONTAINER_ID";
+  static final String FDBENCH_TASK_ID_ENV = "FDBENCH_TASK_ID";
+  static final String FDBENCH_BENCH_NAME_ENV = "FDBENCH_BENCH_NAME";
+  static final String FDBENCH_TASK_FACTORY_CLASS = "FDBENCH_TASK_FACTORY_CLASS";
 }

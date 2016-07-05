@@ -18,13 +18,32 @@ package org.pathirage.fdbench.api;
 
 import java.util.Map;
 
-public interface BenchmarkConfigurator {
+/**
+ * Defines the benchmark setup process, teardown process and how individual tasks in the benchmark is configured.
+ */
+public interface Benchmark {
+  /**
+   * Setup the environment required for benchmark related to this bootstrapper. For example, boostrapper for a Kafka
+   * benchmark may create
+   */
+  void setup();
+
+  /**
+   * Perform cleanup tasks upon completion of the benchmark.
+   */
+  void teardown();
+
+  /**
+   * Class implementing the individual tasks of the benchmark.
+   * @return BenchmarkTask implementation
+   */
+  Class<? extends BenchmarkTaskFactory> getTaskFactoryClass();
+
   /**
    * Generate set of properties that defines how a task should behave. For example, what Kafka partitions are assigned
    * to a particular task.
-   * @param numTasks Number of parallel tasks in current job
    * @param taskId Identifier of the task to configure
    * @return Task configuration as a set of key/value pairs
    */
-  Map<String, String> configureTask(int numTasks, int taskId);
+  Map<String, String> configureTask(int taskId);
 }

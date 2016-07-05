@@ -32,8 +32,8 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.Utils;
-import org.pathirage.fdbench.api.BenchmarkConfigurator;
-import org.pathirage.fdbench.api.BenchmarkConfiguratorFactory;
+import org.pathirage.fdbench.api.Benchmark;
+import org.pathirage.fdbench.api.BenchmarkFactory;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
   private AtomicInteger numContainers;
   private AtomicInteger numContainersAllocated = new AtomicInteger(0);
   private String benchmarkName;
-  private BenchmarkConfigurator benchmarkConfigurator;
+  private Benchmark benchmark;
   private boolean initialized = false;
   private Map<ContainerId, NodeId> allocatedContainers = new ConcurrentHashMap<>();
 
@@ -81,8 +81,8 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
     log.info("parallelism: " + numContainers);
 
     try {
-      BenchmarkConfiguratorFactory benchmarkConfiguratorFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkConfiguratorFactory.class);
-      this.benchmarkConfigurator = benchmarkConfiguratorFactory.getConfigurator(rawBenchConf);
+      BenchmarkFactory benchmarkFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkFactory.class);
+      this.benchmark = benchmarkFactory.getBenchmark(benchConfig.getParallelism(), rawBenchConf);
     } catch (Exception e) {
       throw new FDBenchException("Cannot load task configurator factory.", e);
     }
@@ -142,8 +142,8 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
     File workingDir = new File(System.getenv(ApplicationConstants.Environment.PWD.toString()));
     File configuration = new File(workingDir, "__bench.conf");
 
-    log.info("Package path: " + System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV));
-    log.info("Conf path: " + System.getenv(Constants.KBENCH_CONF_PATH_ENV));
+    log.info("Package path: " + System.getenv(Constants.FDBENCH_PACKAGE_PATH_ENV));
+    log.info("Conf path: " + System.getenv(Constants.FDBENCH_CONF_PATH_ENV));
 
     FDMessagingBenchAppMaster appMaster = new FDMessagingBenchAppMaster(containerId, ConfigFactory.parseFile(configuration));
     appMaster.init();
@@ -173,16 +173,17 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
             "<LOG_DIR>", "<LOG_DIR>", "stdout", "stderr")));
 
         Map<String, String> envMap = new HashMap<>();
-        envMap.put(Constants.KBENCH_CONTAINER_ID_ENV, ConverterUtils.toString(container.getId()));
-        envMap.put(Constants.KBENCH_TASK_ID_ENV, String.valueOf(numContainersAllocated.get()));
-        envMap.put(Constants.KBENCH_BENCH_NAME_ENV, benchmarkName);
+        envMap.put(Constants.FDBENCH_CONTAINER_ID_ENV, ConverterUtils.toString(container.getId()));
+        envMap.put(Constants.FDBENCH_TASK_ID_ENV, String.valueOf(numContainersAllocated.get()));
+        envMap.put(Constants.FDBENCH_BENCH_NAME_ENV, benchmarkName);
+        envMap.put(Constants.FDBENCH_TASK_FACTORY_CLASS, benchmark.getTaskFactoryClass().getName());
 
-        // BenchmarkConfigurator should generate environment variables that can be used in the benchmark task
-        envMap.putAll(benchmarkConfigurator.configureTask(new BenchConfig(rawBenchConf).getParallelism(), numContainersAllocated.get()));
+        // Benchmark should generate environment variables that can be used in the benchmark task
+        envMap.putAll(benchmark.configureTask(numContainersAllocated.get()));
 
         Map<String, LocalResource> localResourceMap = new HashMap<>();
-        localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.KBENCH_PACKAGE_PATH_ENV).trim()));
-        localResourceMap.put("__bench.conf", localizeAppConf(System.getenv(Constants.KBENCH_CONF_PATH_ENV).trim()));
+        localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.FDBENCH_PACKAGE_PATH_ENV).trim()));
+        localResourceMap.put("__bench.conf", localizeAppConf(System.getenv(Constants.FDBENCH_CONF_PATH_ENV).trim()));
 
         ctx.setEnvironment(envMap);
         ctx.setLocalResources(localResourceMap);

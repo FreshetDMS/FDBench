@@ -17,14 +17,14 @@
 package org.pathirage.fdbench.yarn;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.api.BenchJob;
+import org.pathirage.fdbench.api.BenchmarkJob;
 import org.pathirage.fdbench.api.BenchmarkJobFactory;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 
 public class YarnJobFactory implements BenchmarkJobFactory {
 
   @Override
-  public BenchJob getJob(String name, Config config) {
+  public BenchmarkJob getJob(String name, Config config) {
     return new YarnJob(name, new YarnConfig(config));
   }
 }

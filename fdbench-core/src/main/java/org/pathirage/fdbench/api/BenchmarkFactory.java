@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.producer;
+package org.pathirage.fdbench.api;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.api.BenchmarkTask;
-import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 
-public class ProducerBenchmarkTaskFactory implements BenchmarkTaskFactory {
-  @Override
-  public BenchmarkTask getBenchmark(String name, String taskId, String containerID, Config config) {
-    return null;
-  }
+public interface BenchmarkFactory {
+  Benchmark getBenchmark(int parallelism, Config rawConfig);
 }

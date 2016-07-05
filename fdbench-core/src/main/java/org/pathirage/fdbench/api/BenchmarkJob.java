@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.api;
 
-import com.typesafe.config.Config;
-import org.pathirage.fdbench.api.BenchmarkConfigurator;
-import org.pathirage.fdbench.api.BenchmarkConfiguratorFactory;
+import java.nio.file.Path;
 
-public class KafkaBenchmarkConfiguratorFactory implements BenchmarkConfiguratorFactory {
-  @Override
-  public BenchmarkConfigurator getConfigurator(int parallelism, Config rawConfig) {
-    return new KafkaBenchmarkConfigurator(parallelism, rawConfig);
-  }
+public interface BenchmarkJob {
+  /**
+   * Submit this benchmark job ot be run.
+   *
+   * @return An instance of this job after it has been submitted.
+   */
+  BenchmarkJob submit(Path configFile);
 }

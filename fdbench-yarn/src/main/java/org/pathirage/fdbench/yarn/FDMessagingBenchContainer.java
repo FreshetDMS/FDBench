@@ -22,15 +22,18 @@ import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.Utils;
 import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.config.MetricsReporterConfig;
+import org.pathirage.fdbench.metrics.InMemoryMetricsRegistry;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
-import org.pathirage.fdbench.config.BenchConfig;
-import org.pathirage.fdbench.api.BenchmarkTaskFactory;
-import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,18 +42,21 @@ public class FDMessagingBenchContainer {
 
   private final Config rawConfig;
   private final BenchConfig benchConfig;
-  private BenchmarkTask benchmark;
+  private BenchmarkTask benchTask;
   private final String containerId;
   private final String taskId;
   private final String benchName;
+  private final String taskFactoryClass;
   private Map<String, MetricsReporter> metricsReporters = new HashMap<>();
+  private final MetricsRegistry metricsRegistry = new InMemoryMetricsRegistry();
 
-  public FDMessagingBenchContainer(String benchName, String taskId, String containerId, Config rawConfig) {
+  public FDMessagingBenchContainer(String benchName, String taskId, String containerId, String taskFactoryClass, Config rawConfig) {
     this.benchName = benchName;
     this.taskId = taskId;
     this.containerId = containerId;
     this.rawConfig = rawConfig;
     this.benchConfig = new BenchConfig(rawConfig);
+    this.taskFactoryClass = taskFactoryClass;
     init();
   }
 
@@ -63,7 +69,7 @@ public class FDMessagingBenchContainer {
     MetricsReporterConfig reporterConfig = new MetricsReporterConfig(rawConfig);
 
     for (String reporter : reporterConfig.getMetricsReporters()) {
-      try{
+      try {
         MetricsReporterFactory factory =
             Utils.instantiate(reporterConfig.getMetricsReporterFactoryClass(reporter), MetricsReporterFactory.class);
         metricsReporters.put(reporter, factory.getMetricsReporter(reporter, containerId, rawConfig));
@@ -74,39 +80,35 @@ public class FDMessagingBenchContainer {
   }
 
   private void startMetricsReporters() {
-    this.benchmark.registerMetrics(metricsReporters.values());
-    for(MetricsReporter reporter : metricsReporters.values()) {
-      reporter.start();
-    }
+    this.benchTask.registerMetrics(metricsReporters.values());
+    metricsReporters.values().forEach(MetricsReporter::start);
   }
 
   private void setupBenchmark() {
     try {
-      log.info(String.format("[%s] Loading benchmark factory %s.", containerId, benchConfig.getBenchmarkFactoryClass()));
-      BenchmarkTaskFactory benchmarkFactory = Utils.instantiate(benchConfig.getBenchmarkFactoryClass(), BenchmarkTaskFactory.class);
-      log.info(String.format("[%s] Creating benchmark instance.", containerId));
-      this.benchmark = benchmarkFactory.getBenchmark(benchName, taskId, containerId, rawConfig);
+      log.info(String.format("[%s] Loading benchTask factory %s.", containerId, benchConfig.getBenchmarkFactoryClass()));
+      BenchmarkTaskFactory benchTaskFactory = Utils.instantiate(taskFactoryClass, BenchmarkTaskFactory.class);
+      log.info(String.format("[%s] Creating benchTask instance.", containerId));
+      this.benchTask = benchTaskFactory.getTask(benchName, taskId, containerId, rawConfig, metricsRegistry);
     } catch (Exception e) {
-      throw new FDBenchException(String.format("[%s] Couldn't load benchmark factory.", containerId), e);
+      throw new FDBenchException(String.format("[%s] Couldn't load benchTask factory.", containerId), e);
     }
   }
 
   private void shutdownBenchmark() {
-    benchmark.stop();
+    benchTask.stop();
   }
 
   private void shutdownMetrics() {
-    for(MetricsReporter reporter : metricsReporters.values()) {
-      reporter.stop();
-    }
+    metricsReporters.values().forEach(MetricsReporter::stop);
   }
 
   public void mainLoop() {
-    log.info(String.format("[%s] Executing benchmark ", containerId));
+    log.info(String.format("[%s] Executing benchTask ", containerId));
     try {
-      benchmark.run();
+      benchTask.run();
     } catch (Exception e) {
-      throw new FDBenchException("Error occurred in benchmark loop.", e);
+      throw new FDBenchException("Error occurred in benchTask loop.", e);
     } finally {
       log.info("Shutting down...");
       shutdownBenchmark();
@@ -116,12 +118,15 @@ public class FDMessagingBenchContainer {
 
   public static void main(String[] args) throws IOException {
     String containerId = System.getenv(ApplicationConstants.Environment.CONTAINER_ID.toString());
-    String taskId = System.getenv(Constants.KBENCH_TASK_ID_ENV);
-    String name = System.getenv(Constants.KBENCH_BENCH_NAME_ENV);
+    String taskId = System.getenv(Constants.FDBENCH_TASK_ID_ENV);
+    String name = System.getenv(Constants.FDBENCH_BENCH_NAME_ENV);
+    String taskFactoryClass = System.getenv(Constants.FDBENCH_TASK_FACTORY_CLASS);
+
     File workingDir = new File(System.getenv(ApplicationConstants.Environment.PWD.toString()));
     File configuration = new File(workingDir, "__bench.conf");
 
-    FDMessagingBenchContainer container = new FDMessagingBenchContainer(name, taskId, containerId, ConfigFactory.parseFile(configuration));
+    FDMessagingBenchContainer container = new FDMessagingBenchContainer(name, taskId, containerId, taskFactoryClass,
+        ConfigFactory.parseFile(configuration));
     container.mainLoop();
   }
 }

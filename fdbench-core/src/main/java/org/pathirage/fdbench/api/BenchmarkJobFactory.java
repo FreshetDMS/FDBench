@@ -19,5 +19,5 @@ package org.pathirage.fdbench.api;
 import com.typesafe.config.Config;
 
 public interface BenchmarkJobFactory {
-  BenchJob getJob(String name, Config config);
+  BenchmarkJob getJob(String name, Config config);
 }

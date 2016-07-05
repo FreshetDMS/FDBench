@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.api;
+package org.pathirage.fdbench.kafka.e2elatency;
 
 import com.typesafe.config.Config;
+import org.pathirage.fdbench.api.Benchmark;
+import org.pathirage.fdbench.api.BenchmarkFactory;
 
-public interface BenchmarkConfiguratorFactory {
-  BenchmarkConfigurator getConfigurator(Config rawConfig);
+public class E2ELatencyBenchmarkFactory implements BenchmarkFactory {
+  @Override
+  public Benchmark getBenchmark(int parallelism, Config rawConfig) {
+    return new E2ELatencyBenchmark(parallelism, rawConfig);
+  }
 }

@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.kafka.e2elatency;
 
 import com.typesafe.config.Config;
+import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 
-public class KafkaRequestGeneratorFactory implements LatencyBenchmark.RequestGeneratorFactory {
+public class E2ELatencyBenchTaskFactory implements BenchmarkTaskFactory {
   @Override
-  public LatencyBenchmark.RequestGenerator getRequestGenerator(Config config, int taskId) {
-    return new KafkaRequestGenerator(config, taskId);
+  public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config,
+                               MetricsRegistry metricsRegistry) {
+    return new E2ELatencyBenchTask(taskId, benchmarkName, containerID, config);
   }
 }

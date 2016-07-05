@@ -18,7 +18,7 @@ package org.pathirage.fdbench.yarn;
 
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.pathirage.fdbench.api.BenchJob;
+import org.pathirage.fdbench.api.BenchmarkJob;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Path;
 import java.util.Optional;
 
-public class YarnJob implements BenchJob {
+public class YarnJob implements BenchmarkJob {
   private static final Logger log = LoggerFactory.getLogger(YarnJob.class);
 
   private static final YarnConfiguration configuration = new YarnConfiguration();
@@ -42,7 +42,7 @@ public class YarnJob implements BenchJob {
   }
 
   @Override
-  public BenchJob submit(Path configFile) {
+  public BenchmarkJob submit(Path configFile) {
     this.appId = clientWrapper.submitApp(Optional.of(name), configFile, yarnConfig);
     return this;
   }
