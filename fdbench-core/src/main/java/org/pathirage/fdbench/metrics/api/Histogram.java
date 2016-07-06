@@ -145,6 +145,6 @@ public class Histogram extends org.HdrHistogram.Histogram implements Metric {
 
   @Override
   public void visit(MetricsVisitor visitor) {
-    throw new UnsupportedOperationException("Not implemented yet.");
+    visitor.visit(this);
   }
 }

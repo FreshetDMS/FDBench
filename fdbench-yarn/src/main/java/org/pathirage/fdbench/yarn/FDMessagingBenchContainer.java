@@ -104,6 +104,8 @@ public class FDMessagingBenchContainer {
   }
 
   public void mainLoop() {
+    log.info("Starting metrics reporters");
+    startMetricsReporters();
     log.info(String.format("[%s] Executing benchTask ", containerId));
     try {
       benchTask.run();

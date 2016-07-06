@@ -48,7 +48,7 @@ public class E2ELatencyBenchmarkConfig extends KafkaConfig {
   }
 
   public int getMessageRate() {
-    return getInt(KAFKA_E2EBENCH_MESSAGE_RATE, 1000);
+    return getInt(KAFKA_E2EBENCH_MESSAGE_RATE, -1);
   }
 
   public int getDurationSeconds() {

@@ -57,8 +57,8 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
   private final MetricsRegistry metricsRegistry;
   private final Histogram successHistogram;
   private final Histogram uncorrectedSuccessHistogram;
-  private final Histogram errorHistorgram;
-  private final Histogram uncorrectedErrorHistorgram;
+  private final Histogram errorHistogram;
+  private final Histogram uncorrectedErrorHistogram;
   private final Counter successTotal;
   private final Counter errorTotal;
   private long elapsedTime = 0;
@@ -77,10 +77,10 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
     this.containerId = containerId;
     this.config = new E2ELatencyBenchmarkConfig(rawConfig);
     this.metricsRegistry = metricsRegistry;
-    this.successHistogram = metricsRegistry.newHistogram(E2EBENCH, "sucess", maxRecordableLatencyNS, sigFigs);
-    this.uncorrectedSuccessHistogram = metricsRegistry.newHistogram(E2EBENCH, "uncorrected-sucess", maxRecordableLatencyNS, sigFigs);
-    this.errorHistorgram = metricsRegistry.newHistogram(E2EBENCH, "error", maxRecordableLatencyNS, sigFigs);
-    this.uncorrectedErrorHistorgram = metricsRegistry.newHistogram(E2EBENCH, "uncorrected-error", maxRecordableLatencyNS, sigFigs);
+    this.successHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-success", maxRecordableLatencyNS, sigFigs);
+    this.uncorrectedSuccessHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-uncorrected-success", maxRecordableLatencyNS, sigFigs);
+    this.errorHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-error", maxRecordableLatencyNS, sigFigs);
+    this.uncorrectedErrorHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-uncorrected-error", maxRecordableLatencyNS, sigFigs);
     this.successTotal = metricsRegistry.newCounter(E2EBENCH, "success-count");
     this.errorTotal = metricsRegistry.newCounter(E2EBENCH, "error-count");
     this.producer = new KafkaProducer<byte[], byte[]>(getProducerProperties());
@@ -143,7 +143,9 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
         producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(ENV_TOPIC), genMessage())).get();
         ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
         if (records.isEmpty()) {
-          throw new Exception("Didn't receive a response.");
+          String errMsg = "Didn't receive a response";
+          log.error(errMsg);
+          throw new Exception(errMsg);
         }
         latency = System.nanoTime() - before;
         successHistogram.recordValue(latency);
@@ -151,7 +153,7 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
       } catch (Exception e) {
         log.error("Error occurred.", e);
         latency = System.nanoTime() - before;
-        errorHistorgram.recordValue(latency);
+        errorHistogram.recordValue(latency);
         errorTotal.inc();
       }
     }
@@ -172,7 +174,9 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
         producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(ENV_TOPIC), genMessage())).get();
         ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
         if (records.isEmpty()) {
-          throw new Exception("Didn't receive a response.");
+          String errMsg = "Didn't receive a response";
+          log.error(errMsg);
+          throw new Exception(errMsg);
         }
         latency = System.nanoTime() - before;
         successHistogram.recordValueWithExpectedInterval(latency, expectedInterval.toNanos());
@@ -181,8 +185,8 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
       } catch (Exception e) {
         log.error("Error occurred.", e);
         latency = System.nanoTime() - before;
-        errorHistorgram.recordValueWithExpectedInterval(latency, expectedInterval.toNanos());
-        uncorrectedErrorHistorgram.recordValue(latency);
+        errorHistogram.recordValueWithExpectedInterval(latency, expectedInterval.toNanos());
+        uncorrectedErrorHistogram.recordValue(latency);
         errorTotal.inc();
       }
 

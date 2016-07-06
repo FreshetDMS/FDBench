@@ -74,7 +74,7 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
 
   @Override
   public void start() {
-    log.info("Starting reporter timer.");
+    log.info("Starting FSMetricsSnapshotReporter");
     executor.scheduleWithFixedDelay(this, 0, interval, TimeUnit.SECONDS);
   }
 
@@ -106,24 +106,41 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
 
       HashMap<String, Map<String, Object>> metricsEvent = new HashMap<>();
       for (String group : registry.getValue().getGroups()) {
+        if(log.isDebugEnabled()) {
+          log.debug("Retrieving metrics for group: " + group);
+        }
+
         HashMap<String, Object> metricsGroupEvent = new HashMap<>();
         for (Map.Entry<String, Metric> metricEntry : registry.getValue().getGroup(group).entrySet()) {
           String name = metricEntry.getKey();
+
           metricEntry.getValue().visit(new ExtendedMetricsVisitor() {
             @Override
             public void histogram(Histogram histogram) {
+
+              if(log.isDebugEnabled()) {
+                log.debug("Processing histogram " + name);
+              }
+
               HashMap<String, Object> histogramEvent = new HashMap<String, Object>();
               for (double percentile : Histogram.LOGARITHMIC_PERCENTILES) {
                 long value = histogram.getValueAtPercentile(percentile);
                 double valueToMilliseconds = (double) value / 1000000;
-                long count = histogram.getCountAtValue(value);
-                metricsGroupEvent.put(Double.toString(percentile), valueToMilliseconds);
+                histogramEvent.put(Double.toString(percentile), valueToMilliseconds);
+              }
+
+              if(log.isDebugEnabled()) {
+                log.debug("Histogram " + name + " content \n" + histogramEvent);
               }
               metricsGroupEvent.put(name, histogramEvent);
             }
 
             @Override
             public void counter(Counter counter) {
+              if(log.isDebugEnabled()) {
+                log.debug("Processing counter " + name + " with value " + counter.getCount());
+              }
+
               metricsGroupEvent.put(name, counter.getCount());
             }
 
@@ -155,7 +172,11 @@ public class FSMetricsSnapshotReporter implements MetricsReporter, Runnable {
 
       Gson gson = new Gson();
       try (FileWriter fw = new FileWriter(Paths.get(snapshotsDirectory.toString(), registry.getKey() + "-" + recordingTime + ".json").toFile())) {
-        fw.write(gson.toJson(metricsSnapshot));
+        String snapshot = gson.toJson(metricsSnapshot);
+        if(log.isDebugEnabled()) {
+          log.debug("Metrics snapshot: \n" + snapshot);
+        }
+        fw.write(snapshot);
       } catch (Exception e) {
         log.error("Couldn't publish metrics.", e);
       }
