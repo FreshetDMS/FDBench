@@ -20,7 +20,7 @@ import com.typesafe.config.Config;
 import org.pathirage.fdbench.kafka.KafkaConfig;
 
 public class E2ELatencyBenchmarkConfig extends KafkaConfig {
-  private static final String KAFKA_E2EBENCH_TOPIC = "kafka.e2ebench.topic";
+  private static final String KAFKA_E2EBENCH_TOPIC = "kafka.e2ebench.topic.name";
   private static final String KAFKA_E2EBENCH_TOPIC_PARTITIONS = "kafka.e2ebench.topic.partitions";
   private static final String KAFKA_E2EBENCH_TOPIC_REPLICATION_FACTOR = "kafka.e2ebench.topic.replication.factor";
   private static final String KAFKA_E2EBENCH_MESSAGE_SIZE = "kafka.e2ebench.message.size";
@@ -52,6 +52,6 @@ public class E2ELatencyBenchmarkConfig extends KafkaConfig {
   }
 
   public int getDurationSeconds() {
-    return getInt(KAFKA_E2EBENCH_DURATION, 60);
+    return getInt(KAFKA_E2EBENCH_DURATION, 120);
   }
 }
