@@ -25,6 +25,6 @@ public class E2ELatencyBenchTaskFactory implements BenchmarkTaskFactory {
   @Override
   public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config,
                                MetricsRegistry metricsRegistry) {
-    return new E2ELatencyBenchTask(taskId, benchmarkName, containerID, config);
+    return new E2ELatencyBenchTask(taskId, benchmarkName, containerID, config, metricsRegistry);
   }
 }

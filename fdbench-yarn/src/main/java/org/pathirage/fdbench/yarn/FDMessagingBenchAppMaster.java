@@ -81,7 +81,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
     log.info("parallelism: " + numContainers);
 
     try {
-      BenchmarkFactory benchmarkFactory = Utils.instantiate(benchConfig.getBenchmarkTaskConfiguratorFactoryClass(), BenchmarkFactory.class);
+      BenchmarkFactory benchmarkFactory = Utils.instantiate(benchConfig.getBenchmarkFactoryClass(), BenchmarkFactory.class);
       this.benchmark = benchmarkFactory.getBenchmark(benchConfig.getParallelism(), rawBenchConf);
     } catch (Exception e) {
       throw new FDBenchException("Cannot load task configurator factory.", e);

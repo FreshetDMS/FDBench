@@ -68,6 +68,22 @@ project(':fdbench-kafka') {
     testCompile 'junit:junit:4.12'
   }
 
+
+
+}
+
+project(':fdbench-yarn') {
+  dependencies {
+    compile project(':fdbench-core')
+    compile project(':fdbench-kafka')
+    compile "com.google.guava:guava:$guavaVersion"
+    compile 'org.apache.hadoop:hadoop-yarn-api:2.7.1'
+    compile 'org.apache.hadoop:hadoop-yarn-common:2.7.1'
+    compile 'org.apache.hadoop:hadoop-yarn-client:2.7.1'
+    compile 'org.apache.hadoop:hadoop-common:2.7.1'
+    compile 'org.apache.hadoop:hadoop-hdfs:2.7.1'
+  }
+
   task tar(type: Tar) {
     compression = Compression.GZIP
     classifier = 'dist'
@@ -88,9 +104,9 @@ project(':fdbench-kafka') {
 
   task testYarn(type: JavaExec, dependsOn: [tar]) {
     classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
-    main = 'org.pathirage.kafka.bench.BenchRunner'
+    main = 'org.pathirage.fdbench.BenchRunner'
     environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
-    args(['-c', '/Users/mpathira/PhD/Code/kafka-bench/src/main/resources/example.conf'])
+    args(['-c', '/Users/mpathira/PhD/Code/FDBench/fdbench-yarn/src/main/resources/e2e-latency-test.conf'])
   }
 
   task killYarnApp(type: JavaExec) {
@@ -103,17 +119,5 @@ project(':fdbench-kafka') {
       println("Killing application: " + project.getProperties().get('app'))
       args(['application', '-kill', project.getProperties().get('app')])
     }
-  }
-}
-
-project(':fdbench-yarn') {
-  dependencies {
-    compile project(':fdbench-core')
-    compile "com.google.guava:guava:$guavaVersion"
-    compile 'org.apache.hadoop:hadoop-yarn-api:2.7.1'
-    compile 'org.apache.hadoop:hadoop-yarn-common:2.7.1'
-    compile 'org.apache.hadoop:hadoop-yarn-client:2.7.1'
-    compile 'org.apache.hadoop:hadoop-common:2.7.1'
-    compile 'org.apache.hadoop:hadoop-hdfs:2.7.1'
   }
 }

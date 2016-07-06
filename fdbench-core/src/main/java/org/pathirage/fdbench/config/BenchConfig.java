@@ -28,8 +28,6 @@ public class BenchConfig extends AbstractConfig {
 
   private static final String BENCHMARK_FACTORY_CLASS = "benchmark.factory.class";
 
-  private static final String BENCHMARK_TASK_CONFIGURATOR_FACTORY_CLASS = "benchmark.task.configurator.factory.class";
-
   private static final String BENCHMARK_PARALLELISM = "benchmark.parallelism";
 
   public BenchConfig(Config config) {
@@ -54,9 +52,5 @@ public class BenchConfig extends AbstractConfig {
 
   public int getParallelism() {
     return getInt(BENCHMARK_PARALLELISM, 1);
-  }
-
-  public String getBenchmarkTaskConfiguratorFactoryClass() {
-    return getString(BENCHMARK_TASK_CONFIGURATOR_FACTORY_CLASS);
   }
 }
