@@ -74,7 +74,7 @@ public class FDMessagingBenchContainer {
             Utils.instantiate(reporterConfig.getMetricsReporterFactoryClass(reporter), MetricsReporterFactory.class);
         metricsReporters.put(reporter, factory.getMetricsReporter(reporter, containerId, rawConfig));
       } catch (Exception e) {
-        throw new FDBenchException(String.format("[%s] Couldn't setup metrics reporter %s", containerId, reporter));
+        throw new FDBenchException(String.format("[%s] Couldn't setup metrics reporter %s", containerId, reporter), e);
       }
     }
   }

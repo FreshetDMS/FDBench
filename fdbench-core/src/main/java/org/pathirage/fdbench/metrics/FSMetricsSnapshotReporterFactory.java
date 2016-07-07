@@ -30,13 +30,9 @@ public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory 
 
   @Override
   public MetricsReporter getMetricsReporter(String name, String containerName, Config config) {
-    BenchConfig benchConfig = new BenchConfig(config);
-
-    String jobName = benchConfig.getName();
-    String benchFactory = benchConfig.getBenchmarkFactoryClass();
     FSMetricsSnapshotReporterConfig reporterConfig = new FSMetricsSnapshotReporterConfig(new MetricsReporterConfig(config).getReporterConfig(name));
 
-    return new FSMetricsSnapshotReporter(name, jobName, containerName, benchFactory,
+    return new FSMetricsSnapshotReporter(name, new BenchConfig(config).getName(), containerName,
         Util.getLocalHost().getHostName(),
         Paths.get(reporterConfig.getSnapshotsDirectory()),
         reporterConfig.getReportingInterval());
@@ -58,4 +54,4 @@ public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory 
       return getInt(REPORTING_INTERVAL, 60);
     }
   }
- }
+}

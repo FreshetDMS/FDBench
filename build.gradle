@@ -4,6 +4,10 @@ buildscript {
     mavenCentral()
     mavenLocal()
   }
+  dependencies {
+    classpath "io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE"
+  }
+
   apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
@@ -27,11 +31,19 @@ apply from: file("gradle/dependency-versions.gradle")
 
 subprojects { project ->
   apply plugin: "java"
+  apply plugin: "io.spring.dependency-management"
   sourceCompatibility = 1.8
   status = rootProject.status
+  dependencyManagement {
+    imports {
+      mavenBom 'com.amazonaws:aws-java-sdk-bom:1.10.47'
+    }
+  }
 }
 
 project(':fdbench-core') {
+
+
   dependencies {
     compile "com.google.guava:guava:$guavaVersion"
     compile 'com.googlecode.objectify:objectify:5.1.12'
@@ -44,6 +56,7 @@ project(':fdbench-core') {
     compile 'org.apache.samza:samza-api:0.10.0'
     compile 'org.apache.samza:samza-core_2.10:0.10.0'
     compile 'ch.qos.logback:logback-classic:1.0.13'
+    compile 'com.amazonaws:aws-java-sdk-dynamodb'
     testCompile 'junit:junit:4.12'
   }
 }
@@ -67,9 +80,6 @@ project(':fdbench-kafka') {
     compile 'org.apache.samza:samza-core_2.10:0.10.0'
     testCompile 'junit:junit:4.12'
   }
-
-
-
 }
 
 project(':fdbench-yarn') {
