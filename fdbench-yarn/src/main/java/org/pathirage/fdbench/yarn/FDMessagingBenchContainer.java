@@ -103,6 +103,11 @@ public class FDMessagingBenchContainer {
     metricsReporters.values().forEach(MetricsReporter::stop);
   }
 
+  private void tearDownContainer() {
+    shutdownBenchmark();
+    shutdownMetrics();
+  }
+
   public void mainLoop() {
     log.info("Starting metrics reporters");
     startMetricsReporters();
@@ -113,8 +118,7 @@ public class FDMessagingBenchContainer {
       throw new FDBenchException("Error occurred in benchTask loop.", e);
     } finally {
       log.info("Shutting down...");
-      shutdownBenchmark();
-      shutdownMetrics();
+      tearDownContainer();
     }
   }
 

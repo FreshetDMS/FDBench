@@ -17,6 +17,8 @@
 package org.pathirage.fdbench.kafka.throughput;
 
 import com.typesafe.config.Config;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.samza.metrics.Counter;
@@ -36,6 +38,7 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
   private static final String CONSUMER_THROUGHPUT_BENCH = "kafka-producer-throughput";
   private final Gauge<Long> elapsedNs;
   private final Counter messagesConsumed;
+  private final Counter bytesRead;
   private final Histogram consumeLatency;
   private final KafkaConsumer<byte[], byte[]> consumer;
   private final List<String> partitionAssignment;
@@ -45,6 +48,7 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
     this.consumer = new KafkaConsumer<byte[], byte[]>(getConsumerProperties());
     this.elapsedNs = metricsRegistry.newGauge(CONSUMER_THROUGHPUT_BENCH, "elapsed-time", 0L);
     this.messagesConsumed = metricsRegistry.newCounter(CONSUMER_THROUGHPUT_BENCH, "messages-consumed");
+    this.bytesRead = metricsRegistry.newCounter(CONSUMER_THROUGHPUT_BENCH, "bytes-read");
     this.consumeLatency = metricsRegistry.newHistogram(CONSUMER_THROUGHPUT_BENCH, "consume-latency",
         Constants.MAX_RECORDABLE_LATENCY,
         Constants.SIGNIFICANT_VALUE_DIGITS);
@@ -71,7 +75,7 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
     // Assign topic partitions
     List<TopicPartition> assignedPartitions = new ArrayList<>();
 
-    for(String partition: partitionAssignment) {
+    for (String partition : partitionAssignment) {
       assignedPartitions.add(new TopicPartition(getTopic(), Integer.valueOf(partition)));
     }
 
@@ -82,15 +86,25 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
 
     long startNs = System.nanoTime();
     long lastConsumerNs = System.nanoTime();
-    while(messagesConsumed.getCount() < getRecordLimit() && System.nanoTime() - lastConsumerNs <= getConsumerTimeoutNanos() ) {
-
+    while (messagesConsumed.getCount() < getRecordLimit() && System.nanoTime() - lastConsumerNs <= getConsumerTimeoutNanos()) {
+      ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
+      if (records.count() > 0) {
+        lastConsumerNs = System.nanoTime();
+      }
+      for (ConsumerRecord<byte[], byte[]> record : records) {
+        messagesConsumed.inc();
+        if (record.key() != null) {
+          bytesRead.inc(record.key().length);
+        }
+        if (record.value() != null) {
+          bytesRead.inc(record.value().length);
+        }
+        elapsedNs.set(System.nanoTime() - startNs);
+      }
     }
-    // Consume in a while loop using poll
-
-    // stop consumer
   }
 
   private long getConsumerTimeoutNanos() {
-    return ((ThroughputBenchmarkConfig)getConfig()).getConsumerTimeoutInSeconds() * 1000000000L;
+    return ((ThroughputBenchmarkConfig) getConfig()).getConsumerTimeoutInSeconds() * 1000000000L;
   }
 }
