@@ -23,6 +23,6 @@ import org.pathirage.fdbench.api.BenchmarkFactory;
 public class ConsumerThroughputBenchmarkFactory implements BenchmarkFactory {
   @Override
   public Benchmark getBenchmark(int parallelism, Config rawConfig) {
-    return null;
+    return new ConsumerThroughputBenchmark(parallelism, rawConfig);
   }
 }

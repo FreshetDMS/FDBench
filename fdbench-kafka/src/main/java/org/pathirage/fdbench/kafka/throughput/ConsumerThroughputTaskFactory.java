@@ -24,6 +24,6 @@ import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 public class ConsumerThroughputTaskFactory implements BenchmarkTaskFactory{
   @Override
   public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config, MetricsRegistry metricsRegistry) {
-    return null;
+    return new ConsumerThroughputTask(taskId, benchmarkName, containerID, metricsRegistry, config);
   }
 }

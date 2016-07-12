@@ -16,13 +16,13 @@
 
 package org.pathirage.fdbench.kafka.throughput;
 
+import com.typesafe.config.Config;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.kafka.KafkaBenchmark;
-import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 
 public class ConsumerThroughputBenchmark extends KafkaBenchmark {
-  public ConsumerThroughputBenchmark(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
-    super(benchmarkConfig, parallelism);
+  public ConsumerThroughputBenchmark(int parallelism, Config rawConfig) {
+    super(new ThroughputBenchmarkConfig(rawConfig), parallelism);
   }
 
   @Override
