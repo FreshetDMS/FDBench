@@ -117,7 +117,7 @@ project(':fdbench-yarn') {
     classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
     main = 'org.pathirage.fdbench.BenchRunner'
     environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
-    args(['-c', '/Users/mpathira/PhD/Code/FDBench/fdbench-yarn/src/main/resources/e2e-latency-test.conf'])
+    args(['-c', '/Users/mpathira/PhD/Code/FDBench/fdbench-yarn/src/main/resources/producer-throughput.conf'])
   }
 
   task killYarnApp(type: JavaExec) {

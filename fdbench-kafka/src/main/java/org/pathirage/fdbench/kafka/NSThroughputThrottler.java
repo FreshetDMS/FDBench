@@ -16,10 +16,14 @@
 
 package org.pathirage.fdbench.kafka;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This is a customization of {@link org.apache.kafka.tools.ThroughputThrottler} to work with nanosecond precision.
  */
 public class NSThroughputThrottler {
+  private static Logger log = LoggerFactory.getLogger(NSThroughputThrottler.class);
 
   private static final long NS_PER_MS = 1000000L;
   private static final long NS_PER_SEC = 1000 * NS_PER_MS;
@@ -63,6 +67,9 @@ public class NSThroughputThrottler {
    * Note that if targetThroughput is 0, this will block extremely aggressively.
    */
   public void throttle() {
+    if(log.isDebugEnabled()) {
+      log.debug("Throttling producer..");
+    }
     if (targetThroughput == 0) {
       try {
         synchronized (this) {

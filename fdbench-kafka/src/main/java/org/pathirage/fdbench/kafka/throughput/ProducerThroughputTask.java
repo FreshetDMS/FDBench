@@ -17,6 +17,7 @@
 package org.pathirage.fdbench.kafka.throughput;
 
 import com.typesafe.config.Config;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -66,6 +67,7 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
 
   @Override
   public void run() {
+    log.info("Starting producer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() + " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS));
     ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTopic(), generateRandomMessage());
     ThroughputBenchmarkConfig c = (ThroughputBenchmarkConfig) getConfig();
 
