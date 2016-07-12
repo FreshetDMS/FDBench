@@ -132,3 +132,52 @@ project(':fdbench-yarn') {
     }
   }
 }
+
+class FDBenchRunner extends JavaExec {
+  String configFile
+  String topic
+  int partitions
+  int replicationFactor
+  int parallelism
+
+
+  FDBenchRunner(){
+    classpath = sourceSets.main.runtimeClasspath + files(System.getenv('HADOOP_CONF_DIR'))
+    main = 'org.pathirage.fdbench.BenchRunner'
+  }
+
+  @Override
+  void exec() {
+    verifyAWSCredentials()
+    // Make deploy or run directory
+    // Copy config file while replacing configs with environment, task variables
+    // Set proper arguments
+    super.exec()
+  }
+
+  String getAWSAccessKey() {
+    return System.getenv('AWS_ACCESS_KEY_ID') == null || System.getenv('AWS_ACCESS_KEY_ID').empty ?
+        System.getenv('AWS_ACCESS_KEY') : System.getenv('AWS_ACCESS_KEY_ID')
+  }
+
+  String getAWSSecretAccessKey() {
+    return System.getenv('AWS_SECRET_ACCESS_KEY') == null || System.getenv('AWS_SECRET_ACCESS_KEY').empty ?
+        System.getenv('AWS_SECRET_KEY') : System.getenv('AWS_SECRET_ACCESS_KEY')
+  }
+
+  void verifyAWSCredentials() {
+    if(!(isENVVarExists('AWS_ACCESS_KEY_ID') && isENVVarExists('AWS_SECRET_ACCESS_KEY') ||
+    isENVVarExists('AWS_ACCESS_KEY') && isENVVarExists('AWS_SECRET_KEY'))) {
+      throw new IllegalArgumentException('Cannot find AWS credentials in environment.')
+    }
+  }
+
+  boolean isENVVarExists(String varName) {
+    String varValue = System.getenv(varName)
+    if (varValue != null && !varValue.empty) {
+      return true
+    }
+
+    return false
+  }
+}
