@@ -62,6 +62,18 @@ public abstract class AbstractConfig {
     }
   }
 
+  public long getLong(String path) {
+    return config.getInt(path);
+  }
+
+  public long getLong(String path, long defaultValue) {
+    try {
+      return getLong(path);
+    } catch (ConfigException.Missing e) {
+      return defaultValue;
+    }
+  }
+
   public Config getRawConfig() {
     return config;
   }

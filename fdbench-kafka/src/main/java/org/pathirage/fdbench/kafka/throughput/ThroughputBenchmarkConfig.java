@@ -21,6 +21,7 @@ import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 
 public class ThroughputBenchmarkConfig extends KafkaBenchmarkConfig {
   private static final String REUSE_MESSAGE = "kafka.throughput.bench.reuse.message";
+  private static final String CONSUMER_TIMEOUT = "kafka.throughput.bench.consumer.timeout";
 
   public ThroughputBenchmarkConfig(Config rawConfig) {
     super(rawConfig);
@@ -28,5 +29,9 @@ public class ThroughputBenchmarkConfig extends KafkaBenchmarkConfig {
 
   public boolean isReuseMessage() {
     return getBool(REUSE_MESSAGE, false);
+  }
+
+  public int getConsumerTimeoutInSeconds() {
+    return getInt(CONSUMER_TIMEOUT, 60);
   }
 }

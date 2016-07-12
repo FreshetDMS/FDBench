@@ -16,23 +16,81 @@
 
 package org.pathirage.fdbench.kafka.throughput;
 
-import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
+import com.typesafe.config.Config;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.samza.metrics.Counter;
+import org.apache.samza.metrics.Gauge;
+import org.pathirage.fdbench.FDBenchException;
+import org.pathirage.fdbench.kafka.Constants;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
+import org.pathirage.fdbench.metrics.api.Histogram;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ConsumerThroughputTask extends KafkaBenchmarkTask {
 
-  public ConsumerThroughputTask(String taskId, String taskType, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, KafkaBenchmarkConfig config) {
-    super(taskId, taskType, benchmarkName, containerId, metricsRegistry, config);
+  private static final String CONSUMER_THROUGHPUT_BENCH = "kafka-producer-throughput";
+  private final Gauge<Long> elapsedNs;
+  private final Counter messagesConsumed;
+  private final Histogram consumeLatency;
+  private final KafkaConsumer<byte[], byte[]> consumer;
+  private final List<String> partitionAssignment;
+
+  public ConsumerThroughputTask(String taskId, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, Config rawConfig) {
+    super(taskId, CONSUMER_THROUGHPUT_BENCH, benchmarkName, containerId, metricsRegistry, new ThroughputBenchmarkConfig(rawConfig));
+    this.consumer = new KafkaConsumer<byte[], byte[]>(getConsumerProperties());
+    this.elapsedNs = metricsRegistry.newGauge(CONSUMER_THROUGHPUT_BENCH, "elapsed-time", 0L);
+    this.messagesConsumed = metricsRegistry.newCounter(CONSUMER_THROUGHPUT_BENCH, "messages-consumed");
+    this.consumeLatency = metricsRegistry.newHistogram(CONSUMER_THROUGHPUT_BENCH, "consume-latency",
+        Constants.MAX_RECORDABLE_LATENCY,
+        Constants.SIGNIFICANT_VALUE_DIGITS);
+    this.partitionAssignment = getPartitionAssignment();
+  }
+
+  private List<String> getPartitionAssignment() {
+    String assignedPartitions = System.getenv(Constants.ENV_PARTITIONS);
+    if (assignedPartitions == null || assignedPartitions.isEmpty()) {
+      throw new FDBenchException("Cannot find partition assignment.");
+    }
+    return Arrays.asList(assignedPartitions.split(","));
   }
 
   @Override
   public void stop() {
-
+    if (consumer != null) {
+      consumer.close();
+    }
   }
 
   @Override
   public void run() {
+    // Assign topic partitions
+    List<TopicPartition> assignedPartitions = new ArrayList<>();
 
+    for(String partition: partitionAssignment) {
+      assignedPartitions.add(new TopicPartition(getTopic(), Integer.valueOf(partition)));
+    }
+
+    consumer.assign(assignedPartitions);
+
+    // Seek to begining
+    consumer.seekToBeginning(assignedPartitions.toArray(new TopicPartition[assignedPartitions.size()]));
+
+    long startNs = System.nanoTime();
+    long lastConsumerNs = System.nanoTime();
+    while(messagesConsumed.getCount() < getRecordLimit() && System.nanoTime() - lastConsumerNs <= getConsumerTimeoutNanos() ) {
+
+    }
+    // Consume in a while loop using poll
+
+    // stop consumer
+  }
+
+  private long getConsumerTimeoutNanos() {
+    return ((ThroughputBenchmarkConfig)getConfig()).getConsumerTimeoutInSeconds() * 1000000000L;
   }
 }
