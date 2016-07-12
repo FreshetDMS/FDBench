@@ -24,44 +24,30 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.samza.metrics.Counter;
-import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.kafka.Constants;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.metrics.api.Histogram;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
-import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Properties;
-import java.util.Random;
 
-public class E2ELatencyBenchTask implements BenchmarkTask {
+public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
   private static final Logger log = LoggerFactory.getLogger(E2ELatencyBenchTask.class);
 
   private static final String E2EBENCH = "e2e-latency";
-  static final String ENV_PARTITIONS = "E2EBENCH_PARTITIONS";
-  static final String ENV_TOPIC = "E2EBENCH_TOPIC";
-  static final String ENV_BROKERS = "E2EBENCH_BROKERS";
-  static final String ENV_ZK = "E2EBENCH_ZK";
   private static final long maxRecordableLatencyNS = 300000000000L;
   private static final int sigFigs = 5;
 
-  private Random random = new Random(System.currentTimeMillis());
-
-  private final String taskId;
-  private final String benchmarkName;
-  private final String containerId;
-  private final E2ELatencyBenchmarkConfig config;
-  private final MetricsRegistry metricsRegistry;
   private final Histogram successHistogram;
   private final Histogram uncorrectedSuccessHistogram;
   private final Histogram errorHistogram;
   private final Histogram uncorrectedErrorHistogram;
   private final Counter successTotal;
   private final Counter errorTotal;
-  private long elapsedTime = 0;
   private final Duration taskDuration;
   private final int requestRate;
   private final Duration expectedInterval;
@@ -72,11 +58,7 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
 
   public E2ELatencyBenchTask(String taskId, String benchmarkName, String containerId, Config rawConfig,
                              MetricsRegistry metricsRegistry) {
-    this.taskId = taskId;
-    this.benchmarkName = benchmarkName;
-    this.containerId = containerId;
-    this.config = new E2ELatencyBenchmarkConfig(rawConfig);
-    this.metricsRegistry = metricsRegistry;
+    super(taskId, "e2elatencybench", benchmarkName, containerId, metricsRegistry, new E2ELatencyBenchmarkConfig(rawConfig));
     this.successHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-success", maxRecordableLatencyNS, sigFigs);
     this.uncorrectedSuccessHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-uncorrected-success", maxRecordableLatencyNS, sigFigs);
     this.errorHistogram = metricsRegistry.newHistogram(E2EBENCH, "hist-error", maxRecordableLatencyNS, sigFigs);
@@ -85,8 +67,8 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
     this.errorTotal = metricsRegistry.newCounter(E2EBENCH, "error-count");
     this.producer = new KafkaProducer<byte[], byte[]>(getProducerProperties());
     this.consumer = new KafkaConsumer<byte[], byte[]>(getConsumerProperties());
-    this.taskDuration = Duration.ofSeconds(config.getDurationSeconds());
-    this.requestRate = config.getMessageRate();
+    this.taskDuration = Duration.ofSeconds(getBenchmarkDuration());
+    this.requestRate = getMessageRate();
 
     if (this.requestRate > 0) {
       this.expectedInterval = Duration.ofNanos(1000000000 / requestRate);
@@ -95,27 +77,6 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
     }
   }
 
-  @Override
-  public String getTaskId() {
-    return taskId;
-  }
-
-  @Override
-  public String getBenchmarkName() {
-    return benchmarkName;
-  }
-
-  @Override
-  public String getContainerId() {
-    return containerId;
-  }
-
-  @Override
-  public void registerMetrics(Collection<MetricsReporter> reporters) {
-    for (MetricsReporter reporter : reporters) {
-      reporter.register(String.format("E2ELatencyBenchTask-%s-%s", containerId, taskId), metricsRegistry);
-    }
-  }
 
   @Override
   public void stop() {
@@ -140,7 +101,7 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
       before = System.nanoTime();
 
       try {
-        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(ENV_TOPIC), genMessage())).get();
+        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(Constants.ENV_TOPIC), generateRandomMessage())).get();
         ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
         if (records.isEmpty()) {
           String errMsg = "Didn't receive a response";
@@ -171,7 +132,7 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
       before = System.nanoTime();
 
       try {
-        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(ENV_TOPIC), genMessage())).get();
+        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(Constants.ENV_TOPIC), generateRandomMessage())).get();
         ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
         if (records.isEmpty()) {
           String errMsg = "Didn't receive a response";
@@ -196,20 +157,11 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
     }
   }
 
-  private byte[] genMessage() {
-    byte[] payload = new byte[config.getMessageSize()];
-
-    for (int i = 0; i < payload.length; i++) {
-      payload[i] = (byte) (random.nextInt(26) + 65);
-    }
-
-    return payload;
-  }
 
   @Override
   public void run() {
-    log.info("Subscribing to topic " + System.getenv(ENV_TOPIC));
-    consumer.subscribe(Collections.singletonList(System.getenv(ENV_TOPIC)));
+    log.info("Subscribing to topic " + System.getenv(Constants.ENV_TOPIC));
+    consumer.subscribe(Collections.singletonList(System.getenv(Constants.ENV_TOPIC)));
 
     if (requestRate <= 0) {
       runFullThrottle();
@@ -218,28 +170,5 @@ public class E2ELatencyBenchTask implements BenchmarkTask {
     }
   }
 
-  private Properties getProducerProperties() {
-    Properties producerProps = new Properties();
 
-    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBrokers());
-    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, config.getKeySerializerClass());
-    producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, config.getValueSerializerClass());
-    producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, "e2e-latency-bench-" + taskId);
-
-    return producerProps;
-  }
-
-  private Properties getConsumerProperties() {
-    Properties consumerProps = new Properties();
-
-    consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBrokers());
-    consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "e2e-latency-bench");
-    consumerProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-    consumerProps.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
-    consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
-    consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, config.getKeyDeserializerClass());
-    consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, config.getValueDeserializerClass());
-
-    return consumerProps;
-  }
 }

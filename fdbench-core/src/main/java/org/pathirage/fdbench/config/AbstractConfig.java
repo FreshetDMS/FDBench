@@ -43,8 +43,20 @@ public abstract class AbstractConfig {
   }
 
   public int getInt(String path, int defaultValue) {
-    try{
+    try {
       return getInt(path);
+    } catch (ConfigException.Missing e) {
+      return defaultValue;
+    }
+  }
+
+  public boolean getBool(String path) {
+    return config.getBoolean(path);
+  }
+
+  public boolean getBool(String path, boolean defaultValue) {
+    try {
+      return getBool(path);
     } catch (ConfigException.Missing e) {
       return defaultValue;
     }

@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.e2elatency;
+package org.pathirage.fdbench.kafka.throughput;
 
-import com.typesafe.config.Config;
+import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.kafka.KafkaBenchmark;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
-import org.pathirage.fdbench.kafka.KafkaConfig;
 
-public class E2ELatencyBenchmarkConfig extends KafkaBenchmarkConfig {
+public class ConsumerThroughputBenchmark extends KafkaBenchmark {
+  public ConsumerThroughputBenchmark(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
+    super(benchmarkConfig, parallelism);
+  }
 
-  public E2ELatencyBenchmarkConfig(Config rawConfig) {
-    super(rawConfig);
+  @Override
+  public Class<? extends BenchmarkTaskFactory> getTaskFactoryClass() {
+    return ConsumerThroughputTaskFactory.class;
   }
 }

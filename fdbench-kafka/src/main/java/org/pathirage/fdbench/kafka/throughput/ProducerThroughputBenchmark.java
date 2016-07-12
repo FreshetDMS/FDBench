@@ -14,38 +14,21 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.e2elatency;
+package org.pathirage.fdbench.kafka.throughput;
 
-import com.google.common.base.Joiner;
 import com.typesafe.config.Config;
-import org.apache.commons.lang3.ArrayUtils;
-import org.pathirage.fdbench.FDBenchException;
-import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
-import org.pathirage.fdbench.kafka.KafkaAdmin;
 import org.pathirage.fdbench.kafka.KafkaBenchmark;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.IntStream;
+public class ProducerThroughputBenchmark extends KafkaBenchmark {
 
-/**
- * This benchmark measure the end-to-end latency of Kafka.
- */
-public class E2ELatencyBenchmark extends KafkaBenchmark {
-  private static final Logger log = LoggerFactory.getLogger(E2ELatencyBenchmark.class);
-
-  public E2ELatencyBenchmark(int parallelism, Config rawConfig) {
-    super(new E2ELatencyBenchmarkConfig(rawConfig), parallelism);
+  public ProducerThroughputBenchmark(int parallelism, Config rawConfig) {
+    super(new ThroughputBenchmarkConfig(rawConfig), parallelism);
   }
-
 
   @Override
   public Class<? extends BenchmarkTaskFactory> getTaskFactoryClass() {
-    return E2ELatencyBenchTaskFactory.class;
+    return ProducerThroughputTaskFactory.class;
   }
 
 }

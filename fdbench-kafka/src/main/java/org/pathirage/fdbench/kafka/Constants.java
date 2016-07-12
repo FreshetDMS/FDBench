@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.e2elatency;
+package org.pathirage.fdbench.kafka;
 
-import com.typesafe.config.Config;
-import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
-import org.pathirage.fdbench.kafka.KafkaConfig;
+public class Constants {
+  public static final String ENV_PARTITIONS = "E2EBENCH_PARTITIONS";
+  public static final String ENV_TOPIC = "E2EBENCH_TOPIC";
+  public static final String ENV_BROKERS = "E2EBENCH_BROKERS";
+  public static final String ENV_ZK = "E2EBENCH_ZK";
 
-public class E2ELatencyBenchmarkConfig extends KafkaBenchmarkConfig {
-
-  public E2ELatencyBenchmarkConfig(Config rawConfig) {
-    super(rawConfig);
-  }
+  public static final long MAX_RECORDABLE_LATENCY = 300000000000L;
+  public static final int SIGNIFICANT_VALUE_DIGITS = 5;
 }

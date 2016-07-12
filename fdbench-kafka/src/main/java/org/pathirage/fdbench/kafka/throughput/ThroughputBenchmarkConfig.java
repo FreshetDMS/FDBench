@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.e2elatency;
+package org.pathirage.fdbench.kafka.throughput;
 
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
-import org.pathirage.fdbench.kafka.KafkaConfig;
 
-public class E2ELatencyBenchmarkConfig extends KafkaBenchmarkConfig {
+public class ThroughputBenchmarkConfig extends KafkaBenchmarkConfig {
+  private static final String REUSE_MESSAGE = "kafka.throughput.bench.reuse.message";
 
-  public E2ELatencyBenchmarkConfig(Config rawConfig) {
+  public ThroughputBenchmarkConfig(Config rawConfig) {
     super(rawConfig);
+  }
+
+  public boolean isReuseMessage() {
+    return getBool(REUSE_MESSAGE, false);
   }
 }
