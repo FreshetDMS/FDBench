@@ -113,11 +113,10 @@ project(':fdbench-yarn') {
     }
   }
 
-  task testYarn(type: JavaExec, dependsOn: [tar]) {
-    classpath = sourceSets.main.runtimeClasspath + files('/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop')
-    main = 'org.pathirage.fdbench.BenchRunner'
-    environment 'HADOOP_CONF_DIR', '/Users/mpathira/PhD/Code/vagrant-hadoop/resources/hadoop'
-    args(['-c', '/Users/mpathira/PhD/Code/FDBench/fdbench-yarn/src/main/resources/producer-throughput.conf'])
+  task testYarn(type: FDBenchRunnerTask, dependsOn: [tar]) {
+    benchmark "fdbench-producer-throughput"
+    benchmarkDesc "Measuring producer throughput"
+    configFile "producer-throughput.conf"
   }
 
   task killYarnApp(type: JavaExec) {
@@ -133,27 +132,68 @@ project(':fdbench-yarn') {
   }
 }
 
-class FDBenchRunner extends JavaExec {
+class FDBenchRunnerTask extends JavaExec {
+  String benchmark
+  String benchmarkDesc
   String configFile
-  String topic
-  int partitions
-  int replicationFactor
-  int parallelism
+  String topic = "fdbench-topic"
+  int partitions = 1
+  int replicationFactor = 1
+  int parallelism = 1
+  int maxRecords = 500000
+  int maxThroughput = 10000
+  String metricsTable = 'fdbench-metrics'
+  File deployDir = new File(project.buildDir.absolutePath + '/deploy')
+  File configDir = new File(project.projectDir.absolutePath + '/src/main/resources')
 
-
-  FDBenchRunner(){
-    classpath = sourceSets.main.runtimeClasspath + files(System.getenv('HADOOP_CONF_DIR'))
+  FDBenchRunnerTask() {
+    classpath = project.sourceSets.main.runtimeClasspath + project.files(System.getenv('HADOOP_CONF_DIR'))
     main = 'org.pathirage.fdbench.BenchRunner'
   }
 
   @Override
   void exec() {
     verifyAWSCredentials()
-    // Make deploy or run directory
-    // Copy config file while replacing configs with environment, task variables
-    // Set proper arguments
+    verifyKafkaConfig()
+    if (!deployDir.exists()) {
+      if (!deployDir.mkdirs()) {
+        throw new RuntimeException("Couldn't create configuration directory " + deployDir.getAbsolutePath())
+      }
+    }
+    project.copy {
+      from configDir
+      include configFile
+      into deployDir
+      expand([
+          benchmark: benchmark,
+          benchmarkDescription: benchmarkDesc,
+          parallelism: parallelism,
+          zkConnect: System.getenv('ZK_CONNECTION_STR'),
+          kafkaBrokers: System.getenv('KAFKA_BROKERS'),
+          topic: topic,
+          partitions: partitions,
+          replicationFactor: replicationFactor,
+          maxRecords: maxRecords,
+          maxThroughput: maxThroughput,
+          awsAccessKey: getAWSAccessKey(),
+          awsSecretAccessKey: getAWSSecretAccessKey(),
+          metricsTable: metricsTable,
+          projectDir: project.projectDir
+      ])
+    }
+    this.setArgs(['-c', deployDir.absolutePath + '/' + configFile])
     super.exec()
   }
+
+  void verifyKafkaConfig() {
+    if(!isENVVarExists('ZK_CONNECTION_STR')) {
+      throw new RuntimeException('Cannot find environment variable ZK_CONNECTION_STR')
+    }
+    if(!isENVVarExists('KAFKA_BROKERS')) {
+      throw new RuntimeException('Cannot find environment variable KAFKA_BROKERS')
+    }
+  }
+
 
   String getAWSAccessKey() {
     return System.getenv('AWS_ACCESS_KEY_ID') == null || System.getenv('AWS_ACCESS_KEY_ID').empty ?
@@ -166,9 +206,9 @@ class FDBenchRunner extends JavaExec {
   }
 
   void verifyAWSCredentials() {
-    if(!(isENVVarExists('AWS_ACCESS_KEY_ID') && isENVVarExists('AWS_SECRET_ACCESS_KEY') ||
-    isENVVarExists('AWS_ACCESS_KEY') && isENVVarExists('AWS_SECRET_KEY'))) {
-      throw new IllegalArgumentException('Cannot find AWS credentials in environment.')
+    if (!(isENVVarExists('AWS_ACCESS_KEY_ID') && isENVVarExists('AWS_SECRET_ACCESS_KEY') ||
+        isENVVarExists('AWS_ACCESS_KEY') && isENVVarExists('AWS_SECRET_KEY'))) {
+      throw new RuntimeException('Cannot find AWS credentials in environment.')
     }
   }
 
