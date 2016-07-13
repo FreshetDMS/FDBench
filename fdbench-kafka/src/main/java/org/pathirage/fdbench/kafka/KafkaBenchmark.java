@@ -46,11 +46,12 @@ public abstract class KafkaBenchmark implements Benchmark {
     String topic = benchmarkConfig.getTopic();
     int partitions = benchmarkConfig.getPartitionCount();
     int replicationFactor = benchmarkConfig.getReplicationFactor();
-    if (kafkaAdmin.isTopicExists(topic)) {
-      log.warn("Topic " + topic +
-          " already exists. So deleting the existing topic (This only works with Kafka versions >= 0.9.0).");
-      kafkaAdmin.deleteTopic(topic);
-    }
+    // It looks like isTopicExists doesn't work as expected
+//    if (kafkaAdmin.isTopicExists(topic)) {
+//      log.warn("Topic " + topic +
+//          " already exists. So deleting the existing topic (This only works with Kafka versions >= 0.9.0).");
+//      kafkaAdmin.deleteTopic(topic);
+//    }
 
     log.info("Creating topic " + topic + " with " + partitions +
         " partitions and replication factor " + replicationFactor);

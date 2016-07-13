@@ -92,6 +92,9 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
     this.nmClient.start();
     initialized = true;
     log.info("AM initialization completed.");
+
+    log.info("Setting up benchmark " + benchmarkName);
+    this.benchmark.setup();
   }
 
   public void run() {
@@ -127,6 +130,10 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       while (numContainers.get() > 0) {
         Thread.sleep(2000);
       }
+
+      // Teardown benchmark
+      log.info("Tearing down benchmark " + benchmarkName);
+      benchmark.teardown();
 
       // Unregister application master and exit
       rmClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");

@@ -179,7 +179,8 @@ From [http://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-
 
 # Basic Model for Samza
 
-A Samza job is a set of stream tasks $ST$ that process messages from one or more topic partitions belonging to one or more topics.
+* A Samza job is a set of stream tasks $ST$ that process messages from one or more topic partitions belonging to one or more topics and produce zero or more tuples to a one or more topics per a message processed.
+* A Samza stream task may access local key/value store one or more times per a message processed.
 
 # Basic Model for Kafka
 
@@ -264,12 +265,19 @@ Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$,
 * Can preffered replicas get assigned to same broker.
 * Multiple replicas may be competing for broker resources
 * How replication effect throughput
+* How number of producers and consumer effect latency?
 
 ## Latency Model
 
 * How replication effect latency
+* How number of producers and consumers effect latency?
+* How does presence of consumers reading the topic from begining effect latency?
 
 ## Consumer Lag Model
+
+* How number of producers and consumers effect lag?
+* How consumer behavior effect lag? What if one or more consumers are reading the topic from the begining?
+* How does number of partitions and replication factor effect consumer lag?
 
 
 # Basic Performance Tests

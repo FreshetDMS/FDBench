@@ -22,7 +22,7 @@ import java.util.Random;
 
 public abstract class KafkaBenchmarkConfig extends KafkaConfig {
 
-  private static final String TOPIC = "kafka.bench.topic";
+  private static final String TOPIC = "kafka.bench.topic.name";
   private static final String TOPIC_PARTITIONS = "kafka.bench.partitions";
   private static final String TOPIC_REPLICATION = "kafka.bench.replication.factor";
   private static final String MESSAGE_SIZE = "kafka.bench.message.size";
@@ -36,7 +36,7 @@ public abstract class KafkaBenchmarkConfig extends KafkaConfig {
   }
 
   public String getTopic() {
-    return getString(TOPIC, "kafkabenchtopic" + random.nextInt(1000));
+    return getString(TOPIC, "kafkabenchtopic");
   }
 
   public int getPartitionCount() {

@@ -113,10 +113,11 @@ project(':fdbench-yarn') {
     }
   }
 
-  task testYarn(type: FDBenchRunnerTask, dependsOn: [tar]) {
+  task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
     benchmark "fdbench-producer-throughput"
     benchmarkDesc "Measuring producer throughput"
     configFile "producer-throughput.conf"
+    topic "producethroughputbench" + new Random(System.currentTimeMillis()).nextInt(1000)
   }
 
   task killYarnApp(type: JavaExec) {

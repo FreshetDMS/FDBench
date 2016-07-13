@@ -97,6 +97,9 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
 
     @Override
     public void onCompletion(RecordMetadata metadata, Exception exception) {
+      if(log.isDebugEnabled()) {
+        log.debug("Produce to Kafka completed.");
+      }
       long now = System.nanoTime();
       elapsedTime.set(now - startNs);
       long latency = now - sendStartNanos;
