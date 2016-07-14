@@ -12,13 +12,13 @@ subprojects {
     ignoreFailures = true
   }
 
-// PMD
-  apply plugin: 'pmd'
-//tasks.withType(Pmd) { reports.html.enabled true }
-
-  apply plugin: 'net.saliman.cobertura'
-  check.dependsOn 'cobertura'
-  cobertura {
-    coverageFormats = [ 'html', 'xml' ]
-  }
+//// PMD
+//  apply plugin: 'pmd'
+////tasks.withType(Pmd) { reports.html.enabled true }
+//
+//  apply plugin: 'net.saliman.cobertura'
+//  check.dependsOn 'cobertura'
+//  cobertura {
+//    coverageFormats = [ 'html', 'xml' ]
+//  }
 }
