@@ -114,10 +114,11 @@ project(':fdbench-yarn') {
   }
 
   task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
-    benchmark "fdbench-producer-throughput"
+    benchmark "fdbench-producer-throughput-10"
     benchmarkDesc "Measuring producer throughput"
     configFile "producer-throughput.conf"
-    topic "producethroughputbench" + new Random(System.currentTimeMillis()).nextInt(1000)
+    topic "producer-tp-10"
+    partitions 2
   }
 
   task killYarnApp(type: JavaExec) {
@@ -141,15 +142,19 @@ class FDBenchRunnerTask extends JavaExec {
   int partitions = 1
   int replicationFactor = 1
   int parallelism = 1
-  int maxRecords = 500000
-  int maxThroughput = 10000
-  String metricsTable = 'fdbench-metrics'
+  int maxRecords = 50000000
+  int maxThroughput = 100000
+  String metricsTable = 'fdbench-metrics-0716'
   File deployDir = new File(project.buildDir.absolutePath + '/deploy')
   File configDir = new File(project.projectDir.absolutePath + '/src/main/resources')
 
   FDBenchRunnerTask() {
-    classpath = project.sourceSets.main.runtimeClasspath + project.files(System.getenv('HADOOP_CONF_DIR'))
+    classpath = project.sourceSets.main.runtimeClasspath + project.files(getEnv('HADOOP_CONF_DIR', '/usr/local/hadoop'))
     main = 'org.pathirage.fdbench.BenchRunner'
+  }
+
+  String getEnv(String name, String defaultValue) {
+    return System.getenv(name) != null ? System.getenv(name) : defaultValue
   }
 
   @Override

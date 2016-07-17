@@ -18,12 +18,15 @@ package org.pathirage.fdbench.kafka;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.kafka.common.PartitionInfo;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.api.Benchmark;
+import org.pathirage.fdbench.config.BenchConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.IntStream;
@@ -37,7 +40,8 @@ public abstract class KafkaBenchmark implements Benchmark {
 
   public KafkaBenchmark(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
     this.benchmarkConfig = benchmarkConfig;
-    this.kafkaAdmin = new KafkaAdmin(benchmarkConfig.getBrokers(), benchmarkConfig.getZKConnectionString());
+    this.kafkaAdmin = new KafkaAdmin(new BenchConfig(benchmarkConfig.getRawConfig()).getName(),
+        benchmarkConfig.getBrokers(), benchmarkConfig.getZKConnectionString());
     this.parallelism = parallelism;
   }
 
@@ -46,17 +50,19 @@ public abstract class KafkaBenchmark implements Benchmark {
     String topic = benchmarkConfig.getTopic();
     int partitions = benchmarkConfig.getPartitionCount();
     int replicationFactor = benchmarkConfig.getReplicationFactor();
-    // It looks like isTopicExists doesn't work as expected
-//    if (kafkaAdmin.isTopicExists(topic)) {
-//      log.warn("Topic " + topic +
-//          " already exists. So deleting the existing topic (This only works with Kafka versions >= 0.9.0).");
-//      kafkaAdmin.deleteTopic(topic);
-//    }
+    if (kafkaAdmin.isTopicExists(topic) && !benchmarkConfig.isReuseTopic()) {
+      throw new RuntimeException("Topic reuse is disabled and topic " + topic + " already exists.");
+    }
+
+    if (kafkaAdmin.isTopicExists(topic) &&
+        kafkaAdmin.isPartitionCountAndReplicationFactorMatch(topic, partitions, replicationFactor)) {
+      throw new RuntimeException("Topic reuse is enabled. But existing topic's partition count " +
+          " and replication factor does not match.");
+    }
 
     log.info("Creating topic " + topic + " with " + partitions +
         " partitions and replication factor " + replicationFactor);
-    // TODO: Why we need to pass properties to createTopic
-    kafkaAdmin.createTopic(topic, partitions, replicationFactor, new Properties());
+    kafkaAdmin.createTopic(topic, partitions, replicationFactor);
   }
 
   @Override

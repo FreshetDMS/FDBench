@@ -17,7 +17,6 @@
 package org.pathirage.fdbench.kafka.throughput;
 
 import com.typesafe.config.Config;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -67,13 +66,20 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
 
   @Override
   public void run() {
-    log.info("Starting producer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() + " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS));
+    log.info("Starting producer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() +
+        " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS) + " of topic: " + getTopic() +
+        " and the record limit: " + getRecordLimit());
     ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTopic(), generateRandomMessage());
     ThroughputBenchmarkConfig c = (ThroughputBenchmarkConfig) getConfig();
 
     long startNs = System.nanoTime();
     NSThroughputThrottler throttler = new NSThroughputThrottler(getMessageRate(), startNs);
     for (int i = 0; i < getRecordLimit(); i++) {
+      if (log.isDebugEnabled()) {
+        if (i % 10000 == 0) {
+          log.info(i + " messages done.");
+        }
+      }
       long sendStartNanos = System.nanoTime();
       producer.send(c.isReuseMessage() ?
               record : new ProducerRecord<byte[], byte[]>(getTopic(), generateRandomMessage()),
@@ -97,7 +103,7 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
 
     @Override
     public void onCompletion(RecordMetadata metadata, Exception exception) {
-      if(log.isDebugEnabled()) {
+      if (log.isDebugEnabled()) {
         log.debug("Produce to Kafka completed.");
       }
       long now = System.nanoTime();

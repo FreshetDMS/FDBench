@@ -19,26 +19,28 @@ import kafka.admin.AdminUtils;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
-import org.I0Itec.zkclient.exception.ZkMarshallingError;
-import org.I0Itec.zkclient.serialize.ZkSerializer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.PartitionInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 public class KafkaClusterVerifier {
+  private static final Logger log = LoggerFactory.getLogger(KafkaClusterVerifier.class);
+
   private final KafkaProducer<String, String> producer;
   private final KafkaConsumer<String, String> consumer;
   private final ZkUtils zkUtils;
 
+  private static final String TOPIC = "test-topic-creation7";
+
   public KafkaClusterVerifier(String kafkaBrokers, String zkConnectionStr) {
     this.producer = new KafkaProducer<String, String>(getProducerProperties(kafkaBrokers));
-    this.consumer = new KafkaConsumer<String, String>(getConsumerProperties(kafkaBrokers));
+    this.consumer = new KafkaConsumer<String, String>(Utils.getConsumerProperties(kafkaBrokers, "kafka-cluster-validator"));
     this.zkUtils = createZkUtils(zkConnectionStr);
   }
 
@@ -49,26 +51,34 @@ public class KafkaClusterVerifier {
   }
 
   public void verify() {
-    verifyProducing();
     verifyTopicCreation();
+    verifyProducing();
   }
 
   public void verifyProducing() {
-    producer.send(new ProducerRecord<String, String>("testkafkacluster", "rkey", "rvalue"),
+    producer.send(new ProducerRecord<String, String>(TOPIC, "rkey", "rvalue"),
         new Callback() {
           @Override
           public void onCompletion(RecordMetadata metadata, Exception exception) {
             if (exception != null) {
               throw new RuntimeException("Kafka cluster verification failed.");
             }
+            log.info("Message sent successfully. Topic: " + metadata.topic() + " Offset: " + metadata.offset() +
+                " Partition: " + metadata.partition());
           }
         });
+    producer.close();
   }
 
   public void verifyTopicCreation() {
-    AdminUtils.createTopic(zkUtils, "test-topic-creation", 2, 1, null);
+    AdminUtils.createTopic(zkUtils, TOPIC, 2, 1, new Properties());
     Map<String, List<PartitionInfo>> topics = consumer.listTopics();
-    if(!topics.containsKey("test-topic-creation")){
+
+    for (String topc : topics.keySet()) {
+      System.out.println("Topic: " + topc);
+    }
+
+    if (!topics.containsKey("test-topic-creation")) {
       throw new RuntimeException("Cannot find the topic created.");
     }
   }
@@ -82,41 +92,6 @@ public class KafkaClusterVerifier {
     producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, "cluster-validator");
 
     return producerProps;
-  }
-
-  private Properties getConsumerProperties(String kafkaBrokers) {
-    Properties props = new Properties();
-
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
-    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-cluster-validator");
-
-    return props;
-  }
-
-  private class ZKStringSerializer implements ZkSerializer {
-
-    @Override
-    public byte[] serialize(Object data) throws ZkMarshallingError {
-      try {
-        return ((String)data).getBytes("UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new ZkMarshallingError(e);
-      }
-    }
-
-    @Override
-    public Object deserialize(byte[] bytes) throws ZkMarshallingError {
-      if(bytes == null) {
-        return null;
-      }
-      try {
-        return new String(bytes, "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new ZkMarshallingError(e);
-      }
-    }
   }
 
   public static void main(String[] args) {

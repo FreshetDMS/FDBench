@@ -22,9 +22,10 @@ import java.util.Random;
 
 public abstract class KafkaBenchmarkConfig extends KafkaConfig {
 
+  private static final String REUSE_TOPIC = "kafka.bench.topic.reuse";
   private static final String TOPIC = "kafka.bench.topic.name";
-  private static final String TOPIC_PARTITIONS = "kafka.bench.partitions";
-  private static final String TOPIC_REPLICATION = "kafka.bench.replication.factor";
+  private static final String TOPIC_PARTITIONS = "kafka.bench.topic.partitions";
+  private static final String TOPIC_REPLICATION = "kafka.bench.topic.replication.factor";
   private static final String MESSAGE_SIZE = "kafka.bench.message.size";
   private static final String MESSAGE_RATE = "kafka.bench.message.rate";
   private static final String DURATION = "kafka.bench.duration";
@@ -61,5 +62,9 @@ public abstract class KafkaBenchmarkConfig extends KafkaConfig {
 
   public int getRecordLimit() {
     return getInt(RECORD_LIMIT, -1);
+  }
+
+  public boolean isReuseTopic() {
+    return getBool(REUSE_TOPIC, false);
   }
 }

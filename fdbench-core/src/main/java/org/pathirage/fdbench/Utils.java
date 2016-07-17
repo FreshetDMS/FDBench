@@ -17,7 +17,29 @@
 package org.pathirage.fdbench;
 
 public class Utils {
-  public static  <T> T instantiate(final String className, final Class<T> type) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+  public static <T> T instantiate(final String className, final Class<T> type) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
     return type.cast(Class.forName(className).newInstance());
+  }
+
+  public static void executeUntilSuccessOrTimeout(final ExponentialBackOffFunction fn, final long startTimeMills, final long timeoutMills) {
+    int i = 0;
+    while (!fn.execute() && System.currentTimeMillis() - startTimeMills < timeoutMills) {
+      try {
+        Thread.sleep(fibonacci(i) * 1000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException("Exponential back off thread interrupted.", e);
+      }
+    }
+
+    throw new RuntimeException("Exponential back off timed out.");
+  }
+
+  public static long fibonacci(int n) {
+    if (n <= 1) return n;
+    else return fibonacci(n - 1) + fibonacci(n - 2);
+  }
+
+  public interface ExponentialBackOffFunction {
+    boolean execute();
   }
 }
