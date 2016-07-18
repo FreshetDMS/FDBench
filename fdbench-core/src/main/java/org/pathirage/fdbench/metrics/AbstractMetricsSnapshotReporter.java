@@ -121,7 +121,7 @@ public abstract class AbstractMetricsSnapshotReporter implements MetricsReporter
 
           @Override
           public <T> void gauge(Gauge<T> gauge) {
-            throw new UnsupportedOperationException("Guages not supported yet.");
+            metricsGroupEvent.put(name, gauge.getValue());
           }
 
           @Override
