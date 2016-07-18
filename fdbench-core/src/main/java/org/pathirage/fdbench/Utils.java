@@ -23,7 +23,12 @@ public class Utils {
 
   public static void executeUntilSuccessOrTimeout(final ExponentialBackOffFunction fn, final long startTimeMills, final long timeoutMills) {
     int i = 0;
-    while (!fn.execute() && System.currentTimeMillis() - startTimeMills < timeoutMills) {
+
+    while ((System.currentTimeMillis() - startTimeMills) < timeoutMills) {
+      if(fn.execute()) {
+        return;
+      }
+
       try {
         Thread.sleep(fibonacci(i) * 1000);
       } catch (InterruptedException e) {
