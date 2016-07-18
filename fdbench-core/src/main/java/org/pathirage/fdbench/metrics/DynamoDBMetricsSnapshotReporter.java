@@ -101,33 +101,38 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
   @Override
   public void run() {
     log.info("Starting to publish metrics.");
+    try {
+      for (Pair<String, MetricsRegistry> registry : registries) {
+        log.info("Flushing metrics for " + registry.getValue());
 
-    for (Pair<String, MetricsRegistry> registry : registries) {
-      log.info("Flushing metrics for " + registry.getValue());
+        Map<String, Map<String, Object>> metricsEvent = metricRegistryToMap(registry.getValue());
 
-      Map<String, Map<String, Object>> metricsEvent = metricRegistryToMap(registry.getValue());
+        long recordingTime = System.currentTimeMillis();
+        Item metricsSnapshot = new Item()
+            .withPrimaryKey("Id", recordingTime)
+            .withString("BenchName", jobName)
+            .withString("Container", containerName)
+            .withLong("Timestamp", recordingTime)
+            .withString("Snapshot", new Gson().toJson(metricsEvent));
 
-      long recordingTime = System.currentTimeMillis();
-      Item metricsSnapshot = new Item()
-          .withPrimaryKey("Id", recordingTime)
-          .withString("BenchName", jobName)
-          .withString("Container", containerName)
-          .withLong("Timestamp", recordingTime)
-          .withString("Snapshot", new Gson().toJson(metricsEvent));
+        if (log.isDebugEnabled()) {
+          log.debug("Putting an item with id " + registry.getKey() + recordingTime);
+        }
 
-      if(log.isDebugEnabled()) {
-        log.debug("Putting an item with id " + registry.getKey() + recordingTime);
+        PutItemOutcome outcome = table.putItem(metricsSnapshot);
+
+        if (log.isDebugEnabled()) {
+          log.debug("Done putting the item with id " + registry.getKey() + recordingTime);
+        }
+
+        if (log.isDebugEnabled()) {
+          log.debug("Published metrics snapshot to DynamoDB table " + tableName + " with outcome " + outcome.toString());
+        }
       }
-
-      PutItemOutcome outcome = table.putItem(metricsSnapshot);
-
-      if(log.isDebugEnabled()) {
-        log.debug("Done putting the item with id " + registry.getKey() + recordingTime);
-      }
-
-      if(log.isDebugEnabled()) {
-        log.debug("Published metrics snapshot to DynamoDB table " + tableName + " with outcome " + outcome.toString());
-      }
+    } catch (Exception e) {
+      String errMessage = "Error occurred while publishing metrics to DynamoDB table " + tableName;
+      log.error(errMessage, e);
+      throw new RuntimeException(errMessage, e);
     }
   }
 }
