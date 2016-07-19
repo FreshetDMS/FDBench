@@ -28,6 +28,9 @@ import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractMetricsSnapshotReporter implements MetricsReporter, Runnable {
   private static final Logger log = LoggerFactory.getLogger(AbstractMetricsSnapshotReporter.class);
+  private static final int BYTES_PER_MB = 1024 * 1024;
   final ScheduledExecutorService executor;
   final String name;
   final String jobName;
@@ -135,4 +139,30 @@ public abstract class AbstractMetricsSnapshotReporter implements MetricsReporter
     }
     return metricsEvent;
   }
+
+  protected double getTotalMemory() {
+    return Runtime.getRuntime().totalMemory() / (double) BYTES_PER_MB;
+  }
+
+  protected double getFreeMemory() {
+    return Runtime.getRuntime().freeMemory() / (double) BYTES_PER_MB;
+  }
+
+  protected double getUsedMemory() {
+    return getTotalMemory() - getFreeMemory();
+  }
+
+  protected double getMaxMemory() {
+    return Runtime.getRuntime().maxMemory() / (double) BYTES_PER_MB;
+  }
+
+  protected long getJVMCPUTime() {
+    OperatingSystemMXBean bean =
+        ManagementFactory.getOperatingSystemMXBean( );
+    if ( ! (bean instanceof com.sun.management.OperatingSystemMXBean) )
+      return 0L;
+    return ((com.sun.management.OperatingSystemMXBean)bean)
+        .getProcessCpuTime( );
+  }
+
 }

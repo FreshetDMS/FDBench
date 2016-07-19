@@ -113,7 +113,13 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
             .withString("BenchName", jobName)
             .withString("Container", containerName)
             .withLong("Timestamp", recordingTime)
+            .withDouble("TotlaMem", getTotalMemory())
+            .withDouble("FreeMem", getFreeMemory())
+            .withDouble("UsedMem", getUsedMemory())
+            .withDouble("MaxMem", getMaxMemory())
+            .withLong("JVMCPUTime", getJVMCPUTime())
             .withString("Snapshot", new Gson().toJson(metricsEvent));
+
 
         if (log.isDebugEnabled()) {
           log.debug("Putting an item with id " + registry.getKey() + recordingTime);
