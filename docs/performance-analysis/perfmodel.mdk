@@ -182,6 +182,22 @@ From [http://www.confluent.io/blog/how-to-choose-the-number-of-topicspartitions-
 * A Samza job is a set of stream tasks $ST$ that process messages from one or more topic partitions belonging to one or more topics and produce zero or more tuples to a one or more topics per a message processed.
 * A Samza stream task may access local key/value store one or more times per a message processed.
 
+## Notes
+
+### samza-dev mail on 07-28-2016
+
+Have you tried increasing the number of containers? Our benchmarks show
+about 1M messages per sec processed on one machine. You should be able to
+scale linearly by increasing number of containers. All relevant
+Kafka producer properties like batch size, compression and linger can be
+passed to Samza.
+
+For concurrency, the upcoming release of Samza includes the multi threading
+feature. It will provide built in support for processing multiple tasks in
+parallel.
+
+SAMZA-863 and SAMZA-961 are relevant jiras tracking this feature.
+
 # Basic Model for Kafka
 
 A Kafka cluster is a set of borkers $B$ that hosts a set of topics $T$. A topic $t~(t \in T)$ is partitioned into $n$ partitions $(P)$ and each partition $p~(p \in P)$ is replicated [@kafkawiki:reptools] $m$ times for fault tolerance and availability. Each replica $r$ of a partition $p$ of topic $t$ get assigned to a broker $b~(b \in B)$ at topic creation and replica may get assigned to a different broker due to broker failures or partition reassignment [@kafkawiki:reptools].
