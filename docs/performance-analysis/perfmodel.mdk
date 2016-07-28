@@ -298,6 +298,8 @@ Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$,
 
 # Basic Performance Tests
 
+## Kafka
+
 * Impact of the number of producers
 * Impact of the number of servers
 * Impact of the message size
@@ -305,6 +307,14 @@ Let $cr_k$ be the capacity of replica $k$, $cb_i$ be the capacity of broker $i$,
 * Impact of the number of partitions
 * Impact of replication
 * Impact of replaying
+
+## Samza
+* Samza throughput
+* Impact of straglers
+* Error recovery (Local state)
+* How local state effect performance
+* Connecting multiple Samza jobs together (Latency)
+* Repartitioning and effect of straglers
 
 # TODO
 
