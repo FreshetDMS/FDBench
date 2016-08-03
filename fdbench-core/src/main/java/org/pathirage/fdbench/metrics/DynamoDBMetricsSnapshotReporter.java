@@ -72,10 +72,13 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
     } catch (ResourceNotFoundException e) {
       log.info("No table with name " + tableName + " exists. So creating a new table.");
       ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
-      attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType("N"));
+      attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType(ScalarAttributeType.N));
+      attributeDefinitions.add(new AttributeDefinition().withAttributeName("BenchName").withAttributeType(ScalarAttributeType.S));
+      attributeDefinitions.add(new AttributeDefinition().withAttributeName("Container").withAttributeType(ScalarAttributeType.S));
 
       ArrayList<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-      keySchema.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.HASH));
+      keySchema.add(new KeySchemaElement().withAttributeName("BenchName").withKeyType(KeyType.HASH));
+      keySchema.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.RANGE));
 
       CreateTableRequest request = new CreateTableRequest()
           .withTableName(tableName)

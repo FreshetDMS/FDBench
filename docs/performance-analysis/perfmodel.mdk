@@ -25,7 +25,6 @@ Tex Header      : \newlist{todolist}{itemize}{2}
                   \newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
 
 
-
 @if not tex {
   .madoko {
 font-family: 'Crimson Text', serif;

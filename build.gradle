@@ -42,8 +42,6 @@ subprojects { project ->
 }
 
 project(':fdbench-core') {
-
-
   dependencies {
     compile "com.google.guava:guava:$guavaVersion"
     compile 'com.googlecode.objectify:objectify:5.1.12'
@@ -58,6 +56,28 @@ project(':fdbench-core') {
     compile 'ch.qos.logback:logback-classic:1.0.13'
     compile 'com.amazonaws:aws-java-sdk-dynamodb'
     testCompile 'junit:junit:4.12'
+  }
+}
+
+project(':fdbench-tools') {
+  dependencies {
+    compile "com.google.guava:guava:$guavaVersion"
+    compile 'com.googlecode.objectify:objectify:5.1.12'
+    compile 'com.typesafe:config:1.3.0'
+    compile 'com.beust:jcommander:1.48'
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'com.google.code.gson:gson:2.7'
+    compile 'com.google.guava:guava:19.0'
+    compile 'ch.qos.logback:logback-classic:1.0.13'
+    compile 'com.amazonaws:aws-java-sdk-dynamodb'
+    compile 'org.freemarker:freemarker:2.3.23'
+    testCompile 'junit:junit:4.12'
+  }
+
+  task plotResults(type: FDBenchThroughputResultPlotterTask) {
+    tableName "fdbench-producer-metrics-0802"
+    benchmarkName "fdbench-producer-throughput-13"
+    outputDir new File(project.buildDir.absolutePath + File.separator + "results")
   }
 }
 
@@ -113,11 +133,21 @@ project(':fdbench-yarn') {
     }
   }
 
+  task testConsumerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
+    benchmark "fdbench-consumer-throughput-1"
+    benchmarkDesc "Measuring consumer throughput"
+    configFile "consumer-throughput.conf"
+    topic "bench-topic-1"
+    metricsTable 'fdbench-consumer-metrics-0802'
+    partitions 2
+  }
+
   task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
-    benchmark "fdbench-producer-throughput-10"
+    benchmark "fdbench-producer-throughput-13"
     benchmarkDesc "Measuring producer throughput"
     configFile "producer-throughput.conf"
-    topic "producer-tp-10"
+    topic "bench-topic-1"
+    metricsTable 'fdbench-producer-metrics-0802'
     partitions 2
   }
 
@@ -134,7 +164,77 @@ project(':fdbench-yarn') {
   }
 }
 
-class FDBenchRunnerTask extends JavaExec {
+class JavaExecWithEnv extends JavaExec {
+  String getEnv(String name, String defaultValue) {
+    return System.getenv(name) != null ? System.getenv(name) : defaultValue
+  }
+
+  boolean isENVVarExists(String varName) {
+    String varValue = System.getenv(varName)
+    if (varValue != null && !varValue.empty) {
+      return true
+    }
+
+    return false
+  }
+}
+
+class JavaExecWithAWS extends JavaExecWithEnv {
+  String getAWSAccessKey() {
+    return System.getenv('AWS_ACCESS_KEY_ID') == null || System.getenv('AWS_ACCESS_KEY_ID').empty ?
+        System.getenv('AWS_ACCESS_KEY') : System.getenv('AWS_ACCESS_KEY_ID')
+  }
+
+  String getAWSSecretAccessKey() {
+    return System.getenv('AWS_SECRET_ACCESS_KEY') == null || System.getenv('AWS_SECRET_ACCESS_KEY').empty ?
+        System.getenv('AWS_SECRET_KEY') : System.getenv('AWS_SECRET_ACCESS_KEY')
+  }
+
+  void verifyAWSCredentials() {
+    if (!(isENVVarExists('AWS_ACCESS_KEY_ID') && isENVVarExists('AWS_SECRET_ACCESS_KEY') ||
+        isENVVarExists('AWS_ACCESS_KEY') && isENVVarExists('AWS_SECRET_KEY'))) {
+      throw new RuntimeException('Cannot find AWS credentials in environment.')
+    }
+  }
+}
+
+class JavaExecWithKafka extends JavaExecWithAWS {
+  void verifyKafkaConfig() {
+    if(!isENVVarExists('ZK_CONNECTION_STR')) {
+      throw new RuntimeException('Cannot find environment variable ZK_CONNECTION_STR')
+    }
+    if(!isENVVarExists('KAFKA_BROKERS')) {
+      throw new RuntimeException('Cannot find environment variable KAFKA_BROKERS')
+    }
+  }
+}
+
+class FDBenchThroughputResultPlotterTask extends JavaExecWithAWS {
+  String tableName
+  String benchmarkName
+  File outputDir
+
+  FDBenchThroughputResultPlotterTask() {
+    classpath = project.sourceSets.main.runtimeClasspath
+    main = 'org.pathirage.fdbench.tools.ThroughputResultPlotter'
+  }
+
+  @Override
+  void exec() {
+    verifyAWSCredentials()
+    if(!outputDir.exists()) {
+      if(!outputDir.mkdirs()) {
+        throw new RuntimeException("Couldn't create output directory " + outputDir.getAbsolutePath())
+      }
+    }
+
+    this.setArgs(['-t', tableName, '-b', benchmarkName, '-i', getAWSAccessKey(), '-s', getAWSSecretAccessKey(),
+    '-o', outputDir.getAbsolutePath()])
+    super.exec()
+  }
+}
+
+class FDBenchRunnerTask extends JavaExecWithKafka {
   String benchmark
   String benchmarkDesc
   String configFile
@@ -189,41 +289,5 @@ class FDBenchRunnerTask extends JavaExec {
     }
     this.setArgs(['-c', deployDir.absolutePath + '/' + configFile])
     super.exec()
-  }
-
-  void verifyKafkaConfig() {
-    if(!isENVVarExists('ZK_CONNECTION_STR')) {
-      throw new RuntimeException('Cannot find environment variable ZK_CONNECTION_STR')
-    }
-    if(!isENVVarExists('KAFKA_BROKERS')) {
-      throw new RuntimeException('Cannot find environment variable KAFKA_BROKERS')
-    }
-  }
-
-
-  String getAWSAccessKey() {
-    return System.getenv('AWS_ACCESS_KEY_ID') == null || System.getenv('AWS_ACCESS_KEY_ID').empty ?
-        System.getenv('AWS_ACCESS_KEY') : System.getenv('AWS_ACCESS_KEY_ID')
-  }
-
-  String getAWSSecretAccessKey() {
-    return System.getenv('AWS_SECRET_ACCESS_KEY') == null || System.getenv('AWS_SECRET_ACCESS_KEY').empty ?
-        System.getenv('AWS_SECRET_KEY') : System.getenv('AWS_SECRET_ACCESS_KEY')
-  }
-
-  void verifyAWSCredentials() {
-    if (!(isENVVarExists('AWS_ACCESS_KEY_ID') && isENVVarExists('AWS_SECRET_ACCESS_KEY') ||
-        isENVVarExists('AWS_ACCESS_KEY') && isENVVarExists('AWS_SECRET_KEY'))) {
-      throw new RuntimeException('Cannot find AWS credentials in environment.')
-    }
-  }
-
-  boolean isENVVarExists(String varName) {
-    String varValue = System.getenv(varName)
-    if (varValue != null && !varValue.empty) {
-      return true
-    }
-
-    return false
   }
 }

@@ -51,7 +51,7 @@ public class BenchRunner {
       job.submit(configFilePath);
     } else {
       String header = "Execute Kafka benchmarks\n\n";
-      String footer = "\nPlease report issues at https://github.iu.edu/mpathira/kafka-bench/issues";
+      String footer = "\nPlease report issues at https://github.com/milinda/FDBench/issues";
 
       HelpFormatter helpFormatter = new HelpFormatter();
       helpFormatter.printHelp("kbench", header, options, footer, true);
