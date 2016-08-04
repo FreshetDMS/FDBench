@@ -143,12 +143,13 @@ project(':fdbench-yarn') {
   }
 
   task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
-    benchmark "fdbench-producer-throughput-13"
+    benchmark "fdbench-producer-throughput"
     benchmarkDesc "Measuring producer throughput"
     configFile "producer-throughput.conf"
-    topic "bench-topic-1"
-    metricsTable 'fdbench-producer-metrics-0802'
+    topic "bench-topic-2"
+    metricsTable 'fdbench-producer-metrics-0804'
     partitions 2
+    maxRecords 10000000
   }
 
   task killYarnApp(type: JavaExec) {
@@ -176,6 +177,30 @@ class JavaExecWithEnv extends JavaExec {
     }
 
     return false
+  }
+
+  int getNextNumberInSequence(String sequence) {
+    def homeDir = System.getProperty('user.home')
+    def fdbenchDir = homeDir + File.separator + '.fdbench'
+    if(!new File(fdbenchDir).exists()) {
+      if(!new File(fdbenchDir).mkdirs()){
+        throw new RuntimeException("Couldn't create FDBench config directory: " + fdbenchDir)
+      }
+    }
+
+    if(!new File(fdbenchDir).isDirectory()) {
+      throw new RuntimeException(fdbenchDir + " is not a directory!")
+    }
+
+    def sequenceFile = new File(fdbenchDir + File.separator + sequence)
+    if(!sequenceFile.exists()) {
+      sequenceFile.write 1.toString()
+      return 1
+    } else {
+      def v = Integer.valueOf(sequenceFile.text) + 1
+      sequenceFile.write v.toString()
+      return v
+    }
   }
 }
 
@@ -271,7 +296,7 @@ class FDBenchRunnerTask extends JavaExecWithKafka {
       include configFile
       into deployDir
       expand([
-          benchmark: benchmark,
+          benchmark: benchmark + '-' + getNextNumberInSequence(),
           benchmarkDescription: benchmarkDesc,
           parallelism: parallelism,
           zkConnect: System.getenv('ZK_CONNECTION_STR'),

@@ -55,28 +55,20 @@ public class ThroughputResultPlotter {
   String outputDir = System.getProperty("user.dir") + File.separator + "out";
 
   public void plot() {
+    Map<BigDecimal, Item> measurements = new HashMap<>();
+
     AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient(new BasicAWSCredentials(awsAccessKeyId,
         awsAccessKeySecret));
     dynamoDBClient.withRegion(Regions.fromName(awsRegion));
     DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
 
-    Table table = dynamoDB.getTable(tableName);
-    Index index = table.getIndex("BenchName-index");
+    TableKeysAndAttributes benchMetricsTableKeysAndAttribs = new TableKeysAndAttributes(tableName);
+    benchMetricsTableKeysAndAttribs.addHashOnlyPrimaryKey("BenchName", benchmarkName);
 
-    QuerySpec spec = new QuerySpec()
-        .withKeyConditionExpression("BenchName = :v_benchname")
-        .withValueMap(new ValueMap()
-            .withString(":v_benchname", benchmarkName));
+    BatchGetItemOutcome outcome = dynamoDB.batchGetItem(benchMetricsTableKeysAndAttribs);
 
-    ItemCollection<QueryOutcome> items = index.query(spec);
-    Iterator<Item> iter = items.iterator();
-
-    Map<BigDecimal, Item> measurements = new HashMap<>();
-
-    while (iter.hasNext()) {
-      Item i = iter.next();
-      BigDecimal id = (BigDecimal)i.get("Id");
-      measurements.put(id, i);
+    for(Item item : outcome.getTableItems().get(tableName)) {
+      measurements.put(item.getNumber("Id"), item);
     }
 
     BigDecimal ts = (BigDecimal) measurements.keySet().toArray()[
