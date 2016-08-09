@@ -20,21 +20,31 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.*;
-import org.apache.samza.config.Config;
-import org.apache.samza.metrics.MetricsReporter;
-import org.apache.samza.metrics.ReadableMetricsRegistry;
-import org.pathirage.fdbench.FDBenchException;
+import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import com.amazonaws.services.dynamodbv2.model.KeyType;
+import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import com.google.gson.Gson;
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.samza.metrics.*;
+import org.pathirage.fdbench.utils.DynamoDBUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
-public class DynamoDBSamzaMetricsSnapshotReporter implements MetricsReporter {
+public class DynamoDBSamzaMetricsSnapshotReporter implements MetricsReporter, Runnable {
   private static final Logger log = LoggerFactory.getLogger(DynamoDBSamzaMetricsSnapshotReporter.class);
 
   private final String name;
@@ -45,8 +55,9 @@ public class DynamoDBSamzaMetricsSnapshotReporter implements MetricsReporter {
   private final String awsKeyId;
   private final String awsKeySecret;
   private final Table table;
+  private final int pollingInterval;
 
-  private final ExecutorService executor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+  private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
     @Override
     public Thread newThread(Runnable r) {
       Thread thread = new Thread(r);
@@ -56,8 +67,12 @@ public class DynamoDBSamzaMetricsSnapshotReporter implements MetricsReporter {
     }
   });
 
+  final List<Pair<String, ReadableMetricsRegistry>> registries = new ArrayList<>();
+
+
   public DynamoDBSamzaMetricsSnapshotReporter(String name, String containerName, String jobName, String jobId,
-                                              String version, String tableName, String awsKeyId, String awsKeySecret) {
+                                              String version, String tableName, String awsKeyId, String awsKeySecret,
+                                              int pollingInterval) {
     this.name = name;
     this.containerName = containerName;
     this.jobName = jobName;
@@ -65,62 +80,99 @@ public class DynamoDBSamzaMetricsSnapshotReporter implements MetricsReporter {
     this.version = version;
     this.awsKeyId = awsKeyId;
     this.awsKeySecret = awsKeySecret;
+    this.pollingInterval = pollingInterval;
     AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient(new BasicAWSCredentials(awsKeyId, awsKeySecret));
     dynamoDBClient.withRegion(Regions.US_WEST_2);
-    this.table = createDynamoDBTable(new DynamoDB(dynamoDBClient), tableName);
-  }
 
-  private Table createDynamoDBTable(DynamoDB dynamoDB, String tableName) {
-    Table table;
-    try {
-      log.info("Checking the availability of table " + tableName);
-      table = dynamoDB.getTable(tableName);
-      table.describe();
+    ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
+    attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType(ScalarAttributeType.N));
+    attributeDefinitions.add(new AttributeDefinition().withAttributeName("JobName").withAttributeType(ScalarAttributeType.S));
 
-      return table;
-    } catch (ResourceNotFoundException e) {
-      log.info("No table with name " + tableName + " exists. So creating a new table.");
-      ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
-      attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType(ScalarAttributeType.N));
-      attributeDefinitions.add(new AttributeDefinition().withAttributeName("BenchName").withAttributeType(ScalarAttributeType.S));
+    ArrayList<KeySchemaElement> keySchemas = new ArrayList<KeySchemaElement>();
+    keySchemas.add(new KeySchemaElement().withAttributeName("JobName").withKeyType(KeyType.HASH));
+    keySchemas.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.RANGE));
 
-      ArrayList<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-      keySchema.add(new KeySchemaElement().withAttributeName("BenchName").withKeyType(KeyType.HASH));
-      keySchema.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.RANGE));
-
-      CreateTableRequest request = new CreateTableRequest()
-          .withTableName(tableName)
-          .withKeySchema(keySchema)
-          .withAttributeDefinitions(attributeDefinitions)
-          .withProvisionedThroughput(new ProvisionedThroughput()
-              .withReadCapacityUnits(5L)
-              .withWriteCapacityUnits(5L));
-
-      table = dynamoDB.createTable(request);
-
-      try {
-        table.waitForActive();
-        return table;
-      } catch (InterruptedException ie) {
-        String errMsg = "Waiting for DynamoDB table to become active interrupted.";
-        log.error(errMsg, ie);
-        throw new FDBenchException(errMsg, ie);
-      }
-    }
+    this.table = DynamoDBUtils.createTable(new DynamoDB(dynamoDBClient), tableName, attributeDefinitions, keySchemas, 5L, 5L);
   }
 
   @Override
   public void start() {
-
+    log.info("Starting " + getClass().getName() + " instance with name " + name);
+    executor.scheduleWithFixedDelay(this, 0, pollingInterval, TimeUnit.SECONDS);
   }
 
   @Override
   public void register(String source, ReadableMetricsRegistry registry) {
-
+    registries.add(Pair.of(source, registry));
   }
 
   @Override
   public void stop() {
+    log.info("Stopping reporter timer");
+    executor.shutdown();
+    try {
+      executor.awaitTermination(60, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      log.error("Waiting for timer to stop interrupted.", e);
+    }
 
+    if(!executor.isTerminated()) {
+      log.warn("Unable to shutdown report timer.");
+    }
+  }
+
+  @Override
+  public void run() {
+    if(log.isDebugEnabled()) {
+      log.debug("Begin flushing metrics.");
+    }
+
+    for(Pair<String, ReadableMetricsRegistry> registryPair : registries) {
+      if(log.isDebugEnabled()){
+        log.debug("Flushing metrics for " + registryPair.getKey());
+      }
+
+      Map<String, Map<String, Object>> metricsMsg = new HashMap<>();
+
+      for(String group : registryPair.getValue().getGroups()) {
+        Map<String, Object> groupMsg = new HashMap<>();
+        for(Map.Entry<String, Metric> metricEntry : registryPair.getValue().getGroup(group).entrySet()) {
+          String name = metricEntry.getKey();
+
+          metricEntry.getValue().visit(new MetricsVisitor() {
+            @Override
+            public void counter(Counter counter) {
+              groupMsg.put(name, counter.getCount());
+            }
+
+            @Override
+            public <T> void gauge(Gauge<T> gauge) {
+              groupMsg.put(name, gauge.getValue());
+            }
+
+            @Override
+            public void timer(Timer timer) {
+              groupMsg.put(name, timer.getSnapshot().getAverage());
+            }
+          });
+        }
+
+        metricsMsg.put(group, groupMsg);
+      }
+
+      long recordingTime  = System.currentTimeMillis();
+      Item metricSnapshot = new Item()
+          .withPrimaryKey("JobName", jobName, "Id", recordingTime)
+          .withString("ContainerName", containerName)
+          .withString("JobId", jobId)
+          .withString("Version", version)
+          .withJSON("Snapshot", new Gson().toJson(metricsMsg));
+
+      if (log.isDebugEnabled()) {
+        log.debug("Putting an item for registry " + registryPair.getKey() + " with id " + recordingTime);
+      }
+
+      PutItemOutcome outcome = table.putItem(metricSnapshot);
+    }
   }
 }

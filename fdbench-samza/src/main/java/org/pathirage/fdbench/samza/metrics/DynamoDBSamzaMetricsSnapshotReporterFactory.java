@@ -94,6 +94,6 @@ public class DynamoDBSamzaMetricsSnapshotReporterFactory implements MetricsRepor
     }
 
     return new DynamoDBSamzaMetricsSnapshotReporter(name, containerName, jobName, jobId, version, metricsTableName,
-        awsKeyId, awsKeySecret);
+        awsKeyId, awsKeySecret, pollingInterval);
   }
 }

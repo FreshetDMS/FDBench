@@ -29,6 +29,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import org.pathirage.fdbench.utils.DynamoDBUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,46 +59,16 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
     AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient(new BasicAWSCredentials(accessKeyId, accessKeySecret));
     dynamoDBClient.withRegion(Regions.fromName(awsRegion));
     this.tableName = tableName;
-    this.table = createDynamoDBTable(new DynamoDB(dynamoDBClient));
-  }
 
-  private Table createDynamoDBTable(DynamoDB dynamoDB) {
-    Table table;
-    try {
-      log.info("Checking the availability of table " + tableName);
-      table = dynamoDB.getTable(tableName);
-      table.describe();
+    ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
+    attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType(ScalarAttributeType.N));
+    attributeDefinitions.add(new AttributeDefinition().withAttributeName("BenchName").withAttributeType(ScalarAttributeType.S));
 
-      return table;
-    } catch (ResourceNotFoundException e) {
-      log.info("No table with name " + tableName + " exists. So creating a new table.");
-      ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
-      attributeDefinitions.add(new AttributeDefinition().withAttributeName("Id").withAttributeType(ScalarAttributeType.N));
-      attributeDefinitions.add(new AttributeDefinition().withAttributeName("BenchName").withAttributeType(ScalarAttributeType.S));
+    ArrayList<KeySchemaElement> keySchemas = new ArrayList<KeySchemaElement>();
+    keySchemas.add(new KeySchemaElement().withAttributeName("BenchName").withKeyType(KeyType.HASH));
+    keySchemas.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.RANGE));
 
-      ArrayList<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-      keySchema.add(new KeySchemaElement().withAttributeName("BenchName").withKeyType(KeyType.HASH));
-      keySchema.add(new KeySchemaElement().withAttributeName("Id").withKeyType(KeyType.RANGE));
-
-      CreateTableRequest request = new CreateTableRequest()
-          .withTableName(tableName)
-          .withKeySchema(keySchema)
-          .withAttributeDefinitions(attributeDefinitions)
-          .withProvisionedThroughput(new ProvisionedThroughput()
-              .withReadCapacityUnits(5L)
-              .withWriteCapacityUnits(5L));
-
-      table = dynamoDB.createTable(request);
-
-      try {
-        table.waitForActive();
-        return table;
-      } catch (InterruptedException ie) {
-        String errMsg = "Waiting for DynamoDB table to become active interrupted.";
-        log.error(errMsg, ie);
-        throw new FDBenchException(errMsg, ie);
-      }
-    }
+    this.table = DynamoDBUtils.createTable(new DynamoDB(dynamoDBClient), tableName, attributeDefinitions, keySchemas, 5L, 5L);
   }
 
   @Override
@@ -111,8 +82,7 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
 
         long recordingTime = System.currentTimeMillis();
         Item metricsSnapshot = new Item()
-            .withPrimaryKey("Id", recordingTime)
-            .withString("BenchName", jobName)
+            .withPrimaryKey("BenchName", jobName, "Id", recordingTime)
             .withString("Container", containerName)
             .withLong("Timestamp", recordingTime)
             .withDouble("TotlaMem", getTotalMemory())
@@ -124,13 +94,13 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
 
 
         if (log.isDebugEnabled()) {
-          log.debug("Putting an item with id " + registry.getKey() + recordingTime);
+          log.debug("Putting an item for registry " + registry.getKey() + " with id " + recordingTime);
         }
 
         PutItemOutcome outcome = table.putItem(metricsSnapshot);
 
         if (log.isDebugEnabled()) {
-          log.debug("Done putting the item with id " + registry.getKey() + recordingTime);
+          log.debug("Done putting the item for registry " + registry.getKey() + " with the id " + recordingTime);
         }
 
         if (log.isDebugEnabled()) {

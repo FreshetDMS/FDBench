@@ -1,2 +1,3 @@
 rootProject.name = 'fdbench'
-include 'fdbench-kafka', 'fdbench-core', 'fdbench-yarn', 'fdbench-tools', 'fdbench-samza'
+include 'fdbench-kafka', 'fdbench-core', 'fdbench-yarn', 'fdbench-tools', 'fdbench-samza', 'fdbench-utils',
+    'fdbench-api'
