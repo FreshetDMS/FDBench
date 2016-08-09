@@ -59,7 +59,6 @@ public class FreemarkerTest {
     String output = sw.toString();
 
     Assert.assertTrue(output.contains("50"));
-
-    System.out.println(output);
+    Assert.assertTrue(output.contains("70"));
   }
 }
