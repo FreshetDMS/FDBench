@@ -23,7 +23,7 @@ import org.apache.samza.config.MetricsConfig;
 import org.apache.samza.config.TaskConfig;
 import org.apache.samza.metrics.MetricsReporter;
 import org.apache.samza.metrics.MetricsReporterFactory;
-import scala.Function0;
+import scala.runtime.AbstractFunction0;
 import scala.Option;
 
 public class DynamoDBSamzaMetricsSnapshotReporterFactory implements MetricsReporterFactory {
@@ -36,21 +36,21 @@ public class DynamoDBSamzaMetricsSnapshotReporterFactory implements MetricsRepor
     TaskConfig taskConfig = new TaskConfig(config);
     MetricsConfig metricsConfig = new MetricsConfig(config);
 
-    String jobName = jobConfig.getName().getOrElse(new Function0<String>() {
+    String jobName = jobConfig.getName().getOrElse(new AbstractFunction0<String>() {
       @Override
       public String apply() {
         throw new SamzaException("Job must be defined in config.");
       }
     });
 
-    String jobId = jobConfig.getJobId().getOrElse(new Function0<String>() {
+    String jobId = jobConfig.getJobId().getOrElse(new AbstractFunction0<String>() {
       @Override
       public String apply() {
         return new Integer(1).toString();
       }
     });
 
-    String taskClass = taskConfig.getTaskClass().getOrElse(new Function0<String>() {
+    String taskClass = taskConfig.getTaskClass().getOrElse(new AbstractFunction0<String>() {
       @Override
       public String apply() {
         throw new SamzaException("No task class defined in config.");
@@ -59,7 +59,7 @@ public class DynamoDBSamzaMetricsSnapshotReporterFactory implements MetricsRepor
 
     String version;
     try {
-      version = Option.apply(Class.forName(taskClass).getPackage().getImplementationVersion()).getOrElse(new Function0<String>() {
+      version = Option.apply(Class.forName(taskClass).getPackage().getImplementationVersion()).getOrElse(new AbstractFunction0<String>() {
         @Override
         public String apply() {
           return "0.0.1";
@@ -69,14 +69,14 @@ public class DynamoDBSamzaMetricsSnapshotReporterFactory implements MetricsRepor
       throw new SamzaException("Task class not found.", e);
     }
 
-    String metricsTableName = metricsConfig.getMetricsReporterStream(name).getOrElse(new Function0<String>() {
+    String metricsTableName = metricsConfig.getMetricsReporterStream(name).getOrElse(new AbstractFunction0<String>() {
       @Override
       public String apply() {
         throw new SamzaException("No metrics table defined in config.");
       }
     });
 
-    Integer pollingInterval = new Integer(metricsConfig.getMetricsReporterInterval(name).getOrElse(new Function0<String>() {
+    Integer pollingInterval = new Integer(metricsConfig.getMetricsReporterInterval(name).getOrElse(new AbstractFunction0<String>() {
       @Override
       public String apply() {
         return "60";
