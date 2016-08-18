@@ -54,25 +54,28 @@ public abstract class KafkaBenchmark implements Benchmark {
       throw new RuntimeException("Topic reuse is disabled and topic " + topic + " already exists.");
     }
 
-    if (kafkaAdmin.isTopicExists(topic) &&
-        kafkaAdmin.isPartitionCountAndReplicationFactorMatch(topic, partitions, replicationFactor)) {
+    if (benchmarkConfig.isReuseTopic() && !kafkaAdmin.isTopicExists(topic)) {
+      throw new RuntimeException("Topic reuse is enabled. But the topic " + topic + " does not exist.");
+    }
+
+    if (benchmarkConfig.isReuseTopic() && !kafkaAdmin.isPartitionCountAndReplicationFactorMatch(topic, partitions, replicationFactor)) {
       throw new RuntimeException("Topic reuse is enabled. But existing topic's partition count " +
           " and replication factor does not match.");
     }
 
-    log.info("Creating topic " + topic + " with " + partitions +
-        " partitions and replication factor " + replicationFactor);
-    kafkaAdmin.createTopic(topic, partitions, replicationFactor);
+    if (!benchmarkConfig.isReuseTopic()) {
+      log.info("Creating topic " + topic + " with " + partitions +
+          " partitions and replication factor " + replicationFactor);
+      kafkaAdmin.createTopic(topic, partitions, replicationFactor);
+    }
   }
 
   @Override
   public void teardown() {
     String topic = benchmarkConfig.getTopic();
-    if (kafkaAdmin.isTopicExists(topic)) {
+    if (kafkaAdmin.isTopicExists(topic) && benchmarkConfig.isDeleteTopic()) {
       log.info("Deleting topic: " + topic);
       kafkaAdmin.deleteTopic(topic);
-    } else {
-      log.warn("Cannot find topic " + topic + ". May be something went wrong during benchmark setup.");
     }
   }
 

@@ -113,4 +113,9 @@ public class DynamoDBMetricsSnapshotReporter extends AbstractMetricsSnapshotRepo
       throw new RuntimeException(errMessage, e);
     }
   }
+
+  @Override
+  public void flush() {
+    run();
+  }
 }

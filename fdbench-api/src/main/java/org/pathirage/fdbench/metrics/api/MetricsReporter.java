@@ -22,4 +22,6 @@ public interface MetricsReporter {
   void register(String source, MetricsRegistry registry);
 
   void stop();
+
+  void flush();
 }

@@ -177,21 +177,27 @@ project(':fdbench-yarn') {
   }
 
   task testConsumerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
-    benchmark "fdbench-consumer-throughput-1"
+    benchmark "fdbench-consumer-throughput"
     benchmarkDesc "Measuring consumer throughput"
     configFile "consumer-throughput.conf"
-    topic "bench-topic-1"
-    metricsTable 'fdbench-consumer-metrics-0802'
-    partitions 2
+    topic "bench-topic-5"
+    deleteTopic false
+    reuseTopic true
+    metricsTable 'fdbench-consumer-metrics-0818-4'
+    partitions 1
+    maxRecords 10000000
   }
 
   task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
     benchmark "fdbench-producer-throughput"
     benchmarkDesc "Measuring producer throughput"
     configFile "producer-throughput.conf"
-    topic "bench-topic-2"
-    metricsTable 'fdbench-producer-metrics-0804'
-    partitions 2
+    topic "bench-topic-5"
+    deleteTopic false
+    reuseTopic false
+    metricsTable 'fdbench-producer-metrics-0818-3'
+    partitions 1
+    maxThroughput 1000000
     maxRecords 10000000
   }
 
@@ -307,11 +313,13 @@ class FDBenchRunnerTask extends JavaExecWithKafka {
   String benchmarkDesc
   String configFile
   String topic = "fdbench-topic"
+  boolean deleteTopic = true
+  boolean reuseTopic = false
   int partitions = 1
   int replicationFactor = 1
   int parallelism = 1
   int maxRecords = 50000000
-  int maxThroughput = 100000
+  int maxThroughput = 50000
   String metricsTable = 'fdbench-metrics-0716'
   File deployDir = new File(project.buildDir.absolutePath + '/deploy')
   File configDir = new File(project.projectDir.absolutePath + '/src/main/resources')
@@ -345,6 +353,8 @@ class FDBenchRunnerTask extends JavaExecWithKafka {
           zkConnect: System.getenv('ZK_CONNECTION_STR'),
           kafkaBrokers: System.getenv('KAFKA_BROKERS'),
           topic: topic,
+          deleteTopic: deleteTopic,
+          reuseTopic: reuseTopic,
           partitions: partitions,
           replicationFactor: replicationFactor,
           maxRecords: maxRecords,

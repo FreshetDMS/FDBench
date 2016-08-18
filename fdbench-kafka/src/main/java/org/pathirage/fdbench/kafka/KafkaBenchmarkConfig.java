@@ -24,6 +24,7 @@ public abstract class KafkaBenchmarkConfig extends KafkaConfig {
 
   private static final String REUSE_TOPIC = "kafka.bench.topic.reuse";
   private static final String TOPIC = "kafka.bench.topic.name";
+  private static final String DELETE_TOPIC = "kafka.bench.topic.delete";
   private static final String TOPIC_PARTITIONS = "kafka.bench.topic.partitions";
   private static final String TOPIC_REPLICATION = "kafka.bench.topic.replication.factor";
   private static final String MESSAGE_SIZE = "kafka.bench.message.size";
@@ -66,5 +67,9 @@ public abstract class KafkaBenchmarkConfig extends KafkaConfig {
 
   public boolean isReuseTopic() {
     return getBool(REUSE_TOPIC, false);
+  }
+
+  public boolean isDeleteTopic() {
+    return getBool(DELETE_TOPIC, true);
   }
 }

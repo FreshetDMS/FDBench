@@ -99,11 +99,16 @@ public class FDMessagingBenchContainer {
     benchTask.stop();
   }
 
+  private void flushMetrics() {
+    metricsReporters.values().forEach(MetricsReporter::flush);
+  }
+
   private void shutdownMetrics() {
     metricsReporters.values().forEach(MetricsReporter::stop);
   }
 
   private void tearDownContainer() {
+    flushMetrics();
     shutdownBenchmark();
     shutdownMetrics();
   }

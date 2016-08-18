@@ -54,6 +54,13 @@ public class KafkaAdmin {
   public boolean isPartitionCountAndReplicationFactorMatch(String topic, int partitionCount, int replicationFactor) {
     List<PartitionInfo> partitions = getTopicMetadata(topic);
 
+    if(partitions != null && !partitions.isEmpty()) {
+      log.info("Topic " + topic + " has " + partitions.size() + " partitions (expected:" + partitionCount + ") and " +
+      " the replication factor is " + partitions.get(0).replicas().length + " (expected:" + replicationFactor + ").");
+    } else {
+      log.info("Topic " + topic + " has no partitions." );
+    }
+
     return partitions != null && !partitions.isEmpty() && partitions.size() == partitionCount &&
         partitions.get(0).replicas().length == replicationFactor;
   }

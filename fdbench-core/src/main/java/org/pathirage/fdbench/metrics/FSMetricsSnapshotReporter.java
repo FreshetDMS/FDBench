@@ -84,4 +84,9 @@ public class FSMetricsSnapshotReporter extends AbstractMetricsSnapshotReporter i
       }
     }
   }
+
+  @Override
+  public void flush() {
+    run();
+  }
 }
