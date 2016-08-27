@@ -55,9 +55,13 @@ Existing data generators like PDGF and Myriad works well for benchmarking worklo
 	 	\item Millions of distributed actors
 	 	\item Out-of-order arrivals
 	 	\item Late arrivals
-	 	\item Bursts
+	 	\item Data stream bursts and other abnormalities common in data streams
 	 \end{itemize} 
 	\item Ability to generate relations that encoded as streams
+	\item Support for relation updates
+	\item Ability to support custom schema specifications
+	\item Ability to extend data output format (Avro, Thrift, JSON) as well as output medium (Kafka, Kinesis)
+	\item Able run on top of a modern resource manager such as YARN or Mesos.
 \end{itemize}
 
 
