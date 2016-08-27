@@ -1,0 +1,69 @@
+\documentclass{thesis}
+
+\usepackage{tikz}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage{pgfgantt}
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{wrapfig}
+\usepackage{listings}
+\usepackage{flafter}
+\usepackage{enumitem}
+\setlist{nosep}
+\usepackage{sourcecodepro}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+\renewcommand{\baselinestretch}{1.1}
+\addtokomafont{disposition}{\rmfamily}
+
+\usepackage{caption}
+
+\DeclareCaptionFormat{myformat}{\hrulefill\\#1#2#3}
+\DeclareCaptionLabelFormat{bf-parens}{\textbf{#1~#2}}
+\captionsetup[figure]{labelformat=bf-parens,format=myformat}
+
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{216,229,229}
+
+\lstset{basicstyle=\ttfamily,breaklines=true,frame=tb,emph={STREAM}, emphstyle=\underbar,keywordstyle=\bfseries}
+
+
+\graphicspath{{./fig/}}
+
+\title{Data Generator for Fast Data Benchmarking}
+
+\author{Milinda Pathirage}
+
+\begin{document}
+
+\maketitle
+
+%\tableofcontents
+
+\begin{abstract}
+Existing data generators like PDGF and Myriad works well for benchmarking workloads related to Big Data where we process data at rest. Fast data workloads, that process data while they are on their way to become data at rest are inherently different from Big Data workloads. Fast data processing often involve windowed aggregations and joins as well as out-of-order or late arruval handling. Data generators for fast data benchmarks should be able to simulate the real world scenarios that involves late and out-of-order arrivals. There aren't any existing solution that allows generation of high volume, high velocity data for fast data benchmarking. This document discuss such a data generator's design and requirements.
+\end{abstract}
+
+\section{Requirements}
+
+\begin{itemize}
+	\item It should be possible to simulate a real streaming data workload with following properties:
+	\begin{itemize}
+	 	\item Millions of distributed actors
+	 	\item Out-of-order arrivals
+	 	\item Late arrivals
+	 	\item Bursts
+	 \end{itemize} 
+	\item Ability to generate relations that encoded as streams
+\end{itemize}
+
+
+
+
+\bibliographystyle{abbrv}
+\bibliography{bibliography}
+
+\end{document}
