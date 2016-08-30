@@ -19,9 +19,13 @@ package org.pathirage.fdbench.datagen.webperf;
 import org.pathirage.fdbench.datagen.api.DataGenerator;
 
 /**
- * Generate a event stream imitating web application logs of a SOA based application
- * involving multiple front-end services and back-end services which form a call-tree
- * to serve a single user request as mentioned in {@link goo.gl/0jU1ko}.
+ * This is a data generator that simulates a web application request logs of a SOA based application
+ * involving multiple front-end servers and multiple back-end services that form a call-tree
+ * to serve requests from front-end servers. Front-end servers calls back-end services to serve requests
+ * from users for different pages in the website. This generator tries to simulate environment discussed
+ * in <a href="http://goo.gl/0jU1ko">http://goo.gl/0jU1ko</a>.
+ *
+ * Multiple instances of this generator will run in parallel.
  */
 public class WebCallTreeEventGenerator implements DataGenerator {
   private final Mode mode;
