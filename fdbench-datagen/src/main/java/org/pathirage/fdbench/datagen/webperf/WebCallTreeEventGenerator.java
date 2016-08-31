@@ -18,6 +18,9 @@ package org.pathirage.fdbench.datagen.webperf;
 
 import org.pathirage.fdbench.datagen.api.DataGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This is a data generator that simulates a web application request logs of a SOA based application
  * involving multiple front-end servers and multiple back-end services that form a call-tree
@@ -36,6 +39,8 @@ public class WebCallTreeEventGenerator implements DataGenerator {
   private final int generatorParallelism;
   private final int maxDeliveryDelayMilliseconds;
 
+  private final List<String> webPages = new ArrayList<>();
+
   public WebCallTreeEventGenerator(Mode mode, int maxCallTreeDepth, int maxCallTreeBranchingFactor,
                                    int numberOfFrontEndServers, int numberOfWebPages, int generatorParallelism,
                                    int maxDeliveryDelayMilliseconds) {
@@ -46,6 +51,10 @@ public class WebCallTreeEventGenerator implements DataGenerator {
     this.numberOfWebPages = numberOfWebPages;
     this.generatorParallelism = generatorParallelism;
     this.maxDeliveryDelayMilliseconds = maxDeliveryDelayMilliseconds;
+  }
+
+  private void init() {
+
   }
 
   @Override
