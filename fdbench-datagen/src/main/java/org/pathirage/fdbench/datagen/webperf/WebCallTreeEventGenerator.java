@@ -20,6 +20,7 @@ import org.pathirage.fdbench.datagen.api.DataGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * This is a data generator that simulates a web application request logs of a SOA based application
@@ -31,6 +32,11 @@ import java.util.List;
  * Multiple instances of this generator will run in parallel.
  */
 public class WebCallTreeEventGenerator implements DataGenerator {
+  private static final int MIN_PAGE_LENGTH = 6;
+  private static final int MAX_PAGE_LENGTH = 15;
+  private static final String BASE_URL = "http://example.com/";
+  private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz0123456789/";
+
   private final Mode mode;
   private final int maxCallTreeDepth;
   private final int maxCallTreeBranchingFactor;
@@ -38,12 +44,14 @@ public class WebCallTreeEventGenerator implements DataGenerator {
   private final int numberOfWebPages;
   private final int generatorParallelism;
   private final int maxDeliveryDelayMilliseconds;
+  private final Random pageLengthRand;
+  private final Random rand;
 
   private final List<String> webPages = new ArrayList<>();
 
   public WebCallTreeEventGenerator(Mode mode, int maxCallTreeDepth, int maxCallTreeBranchingFactor,
                                    int numberOfFrontEndServers, int numberOfWebPages, int generatorParallelism,
-                                   int maxDeliveryDelayMilliseconds) {
+                                   int maxDeliveryDelayMilliseconds, long pageLengthSeed, long rnSeed) {
     this.mode = mode;
     this.maxCallTreeDepth = maxCallTreeDepth;
     this.maxCallTreeBranchingFactor = maxCallTreeBranchingFactor;
@@ -51,10 +59,24 @@ public class WebCallTreeEventGenerator implements DataGenerator {
     this.numberOfWebPages = numberOfWebPages;
     this.generatorParallelism = generatorParallelism;
     this.maxDeliveryDelayMilliseconds = maxDeliveryDelayMilliseconds;
+    this.rand = new Random(rnSeed);
+    this.pageLengthRand = new Random(pageLengthSeed);
+  }
+
+  private void genWebPages() {
+    for(int i = 0; i < numberOfWebPages; i++) {
+      int pageLength = MIN_PAGE_LENGTH + pageLengthRand.nextInt(MAX_PAGE_LENGTH);
+      char[] page = new char[pageLength];
+      for (int j = 0; j < pageLength; j++) {
+        page[j] = CHARACTERS.charAt(rand.nextInt(CHARACTERS.length()));
+      }
+      // TODO: How to handle '/' at the end
+      webPages.add(new String(page));
+    }
   }
 
   private void init() {
-
+    genWebPages();
   }
 
   @Override
