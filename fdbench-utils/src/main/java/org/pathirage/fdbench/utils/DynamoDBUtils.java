@@ -36,8 +36,6 @@ public class DynamoDBUtils {
       log.info("Checking the availability of table " + tableName);
       table = dynamoDB.getTable(tableName);
       table.describe();
-
-      return table;
     } catch (ResourceNotFoundException e) {
       log.info("No table with name " + tableName + " exists. So creating a new table.");
 
@@ -51,15 +49,15 @@ public class DynamoDBUtils {
               .withWriteCapacityUnits(5L));
 
       table = dynamoDB.createTable(request);
+    }
 
-      try {
-        table.waitForActive();
-        return table;
-      } catch (InterruptedException ie) {
-        String errMsg = "Waiting for DynamoDB table to become active interrupted.";
-        log.error(errMsg, ie);
-        throw new FDBenchException(errMsg, ie);
-      }
+    try {
+      table.waitForActive();
+      return table;
+    } catch (InterruptedException ie) {
+      String errMsg = "Waiting for DynamoDB table to become active interrupted.";
+      log.error(errMsg, ie);
+      throw new FDBenchException(errMsg, ie);
     }
   }
 }

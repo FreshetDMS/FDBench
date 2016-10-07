@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * This is a data generator that simulates a web application request logs of a SOA based application
@@ -61,46 +62,57 @@ public class WebCallTreeEventGenerator implements DataGenerator {
   private static final String WEB_PAGES_FILE = "web_pages.txt";
   private static final String SVC_NAMES_FILE = "service_names.txt";
   private static final int MIN_SVCS = 4;
+  private static final int MIN_BRANCHING_FACTOR = 2;
 
   private final Mode mode;
   private final int maxCallTreeDepth;
   private final int maxServicesInOneLevel;
+  private final int maxBranchingFactor;
   private final int numberOfFrontEndServers;
   private final int numberOfWebPages;
   private final int maxDeliveryDelayMilliseconds;
+  private final int maxRequestsPerSecond;
   private final Random urlRand;
   private final Random svcRand;
+  private final Random bfRand;
+  private final Random treeRand;
 
-  private final Set<String> webPages = new HashSet<>();
-  private final Map<Integer, Set<String>> backendServices = new HashMap<>();
+  private final Map<Integer, Set<String>> servicesTree = new HashMap<>();
   private final Set<String> selectedNames = new HashSet<>();
-  private final Map<String, Object> callTreeTemplate = new HashMap<>();
+  private final Map<String, Set<String>> callTree = new HashMap<>();
 
-  public WebCallTreeEventGenerator(Mode mode, int maxCallTreeDepth, int maxServicesInOneLevel,
-                                   int numberOfFrontEndServers, int numberOfWebPages,
-                                   int maxDeliveryDelayMilliseconds, long rnSeed) {
+  public WebCallTreeEventGenerator(Mode mode, int maxCallTreeDepth, int maxServicesInOneLevel, int maxBranchingFactor,
+                                   int numberOfFrontEndServers, int numberOfWebPages, int maxDeliveryDelayMilliseconds,
+                                   int maxRequestsPerSecond, long rnSeed) {
     this.mode = mode;
     this.maxCallTreeDepth = maxCallTreeDepth;
     this.maxServicesInOneLevel = maxServicesInOneLevel;
+    this.maxBranchingFactor = maxBranchingFactor;
     this.numberOfFrontEndServers = numberOfFrontEndServers;
     this.numberOfWebPages = numberOfWebPages;
     this.maxDeliveryDelayMilliseconds = maxDeliveryDelayMilliseconds;
+    this.maxRequestsPerSecond = maxRequestsPerSecond;
     this.urlRand = new Random(rnSeed);
-    this.svcRand = new Random(rnSeed);
+    this.svcRand = new Random(rnSeed + 1024L);
+    this.bfRand = new Random(rnSeed + 2048L);
+    this.treeRand = new Random(rnSeed + 4096L);
   }
 
   private void genWebPages() throws URISyntaxException, IOException {
     List<String> pages =
         Files.readAllLines(Paths.get(this.getClass().getResource(WEB_PAGES_FILE).toURI()), Charset.defaultCharset());
+    Set<String> webPages = new HashSet<>();
     for (int i = 0; i < numberOfWebPages; i++) {
       webPages.add(pages.get(urlRand.nextInt(pages.size())));
     }
+
+    servicesTree.put(0, webPages);
   }
 
   private void generateServices() throws URISyntaxException, IOException {
     List<String> allSvcNames =
         Files.readAllLines(Paths.get(this.getClass().getResource(SVC_NAMES_FILE).toURI()), Charset.defaultCharset());
-    for (int i = 0; i < maxCallTreeDepth; i++) {
+    for (int i = 1; i <= maxCallTreeDepth; i++) {                     // Level 0 is the front-end web pages
       int numSvcs = MIN_SVCS + svcRand.nextInt(maxServicesInOneLevel);
       Set<String> svcNames = new HashSet<>();
       for (int j = 0; j < numSvcs; i++) {
@@ -113,19 +125,36 @@ public class WebCallTreeEventGenerator implements DataGenerator {
         selectedNames.add(svcName);
       }
 
-      backendServices.put(i, svcNames);
+      servicesTree.put(i , svcNames);
     }
   }
 
-  private void generateCallTreeTemplates() {
-    for (String webPage : webPages) {
+  private void generateCallTree() {
+    for (int i = 0; i < servicesTree.keySet().size(); i++) {
+      Set<String> serviceInThisLevel = servicesTree.get(i);
+      Set<String> servicesInNextLevel = servicesTree.get(i + 1);
 
+      for(String svc : serviceInThisLevel) {
+        Set<String> downStreamServices = new HashSet<>();
+        int bf = MIN_BRANCHING_FACTOR +  bfRand.nextInt(maxBranchingFactor);
+        if (bf > servicesInNextLevel.size()) {
+          throw new RuntimeException(String.format("Branching factor (%d) is greater than services (%d) in the next level.", bf, servicesInNextLevel.size()));
+        }
+
+        for (int j = 0; j < bf; j++) {
+          int downstreamSvcIdx = treeRand.nextInt(servicesInNextLevel.size());
+          downStreamServices.add(servicesInNextLevel.toArray(new String[servicesInNextLevel.size()])[downstreamSvcIdx]);
+        }
+
+        callTree.put(svc, downStreamServices);
+      }
     }
   }
 
   private void init() throws IOException, URISyntaxException {
     genWebPages();
     generateServices();
+    generateCallTree();
   }
 
   @Override

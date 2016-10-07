@@ -48,4 +48,8 @@ public class E2ELatencyBenchmark extends KafkaBenchmark {
     return E2ELatencyBenchTaskFactory.class;
   }
 
+  @Override
+  public boolean isValidPartitionCountAndParallelism(int partitionCount, int parallelism) {
+    return true;
+  }
 }

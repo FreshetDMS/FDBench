@@ -79,13 +79,14 @@ public abstract class KafkaBenchmark implements Benchmark {
     }
   }
 
+  public abstract boolean isValidPartitionCountAndParallelism(int partitionCount, int parallelism);
+
   @Override
   public Map<String, String> configureTask(int taskId) {
     Map<String, String> taskConfig = new HashMap<>();
     int partitionCount = benchmarkConfig.getPartitionCount();
-    if (partitionCount % parallelism != 0) {
-      String errMsg = String.format("Partition count (%s) be evenly divisible by task count (%s) for end-to-end " +
-          "latency benchmark.", partitionCount, parallelism);
+    if (!isValidPartitionCountAndParallelism(partitionCount, parallelism)) {
+      String errMsg = String.format("Partition count (%d) and parallelism (%d) don't go together for this benchmark.", partitionCount, parallelism);
       log.error(errMsg);
       throw new FDBenchException(errMsg);
     }

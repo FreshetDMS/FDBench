@@ -196,12 +196,12 @@ project(':fdbench-yarn') {
     benchmark "fdbench-consumer-throughput"
     benchmarkDesc "Measuring consumer throughput"
     configFile "consumer-throughput.conf"
-    topic "bench-topic-5"
+    topic "bench-topic-1"
     deleteTopic false
     reuseTopic true
-    metricsTable 'fdbench-consumer-metrics-0818-4'
+    metricsTable 'fdbench-consumer-metrics-ec2-1005-1'
     partitions 1
-    maxRecords 10000000
+    maxRecords 100000000
   }
 
   task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
@@ -211,10 +211,11 @@ project(':fdbench-yarn') {
     topic "bench-topic-5"
     deleteTopic false
     reuseTopic false
-    metricsTable 'fdbench-producer-metrics-0818-3'
+    metricsTable 'fdbench-producer-metrics-ec2-1005-p1-c3-1'
     partitions 1
     maxThroughput 1000000
-    maxRecords 10000000
+    maxRecords 100000000
+    parallelism 3
   }
 
   task killYarnApp(type: JavaExec) {

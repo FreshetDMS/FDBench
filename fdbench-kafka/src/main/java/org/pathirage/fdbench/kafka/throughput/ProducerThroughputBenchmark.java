@@ -31,4 +31,8 @@ public class ProducerThroughputBenchmark extends KafkaBenchmark {
     return ProducerThroughputTaskFactory.class;
   }
 
+  @Override
+  public boolean isValidPartitionCountAndParallelism(int partitionCount, int parallelism) {
+    return true;
+  }
 }

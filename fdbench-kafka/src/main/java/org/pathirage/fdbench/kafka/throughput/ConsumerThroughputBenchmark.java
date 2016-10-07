@@ -29,4 +29,9 @@ public class ConsumerThroughputBenchmark extends KafkaBenchmark {
   public Class<? extends BenchmarkTaskFactory> getTaskFactoryClass() {
     return ConsumerThroughputTaskFactory.class;
   }
+
+  @Override
+  public boolean isValidPartitionCountAndParallelism(int partitionCount, int parallelism) {
+    return partitionCount % parallelism == 0;
+  }
 }
