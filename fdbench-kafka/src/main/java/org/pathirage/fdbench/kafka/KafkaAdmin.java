@@ -17,6 +17,7 @@
 package org.pathirage.fdbench.kafka;
 
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
@@ -74,7 +75,7 @@ public class KafkaAdmin {
   }
 
   public void createTopic(String topic, int partitions, int replicationFactor) {
-    AdminUtils.createTopic(kafkaZKUtils, topic, partitions, replicationFactor, new Properties());
+    AdminUtils.createTopic(kafkaZKUtils, topic, partitions, replicationFactor, new Properties(), RackAwareMode.Disabled$.MODULE$);
     org.pathirage.fdbench.Utils.executeUntilSuccessOrTimeout(() -> {
       return consumer.listTopics().containsKey(topic);
     }, System.currentTimeMillis(), 30 * 1000);

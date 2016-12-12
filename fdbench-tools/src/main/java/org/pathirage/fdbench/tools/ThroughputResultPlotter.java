@@ -102,7 +102,7 @@ public class ThroughputResultPlotter {
   }
 
   private void writeOutput(TreeSet<String> percentiles, List<Double> latencies) throws IOException, TemplateException {
-    Configuration config = new Configuration(Configuration.VERSION_2_3_23);
+    Configuration config = new Configuration(Configuration.VERSION_2_3_25);
     config.setClassForTemplateLoading(ThroughputResultPlotter.class, "/org/pathirage/fdbench/templates");
 
     Template template = config.getTemplate("throughput.ftl");

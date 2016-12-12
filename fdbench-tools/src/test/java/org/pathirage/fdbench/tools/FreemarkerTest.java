@@ -30,7 +30,7 @@ public class FreemarkerTest {
 
   @Test
   public void testSimpleTemplate() throws IOException, TemplateException {
-    Configuration config = new Configuration(Configuration.VERSION_2_3_23);
+    Configuration config = new Configuration(Configuration.VERSION_2_3_25);
     config.setClassForTemplateLoading(FreemarkerTest.class, "/org/pathirage/fdbench/templates");
 
     Template template = config.getTemplate("throughput.ftl");

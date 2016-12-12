@@ -16,6 +16,7 @@
 package org.pathirage.fdbench.kafka;
 
 import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.ZkConnection;
@@ -71,7 +72,7 @@ public class KafkaClusterVerifier {
   }
 
   public void verifyTopicCreation() {
-    AdminUtils.createTopic(zkUtils, TOPIC, 2, 1, new Properties());
+    AdminUtils.createTopic(zkUtils, TOPIC, 2, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
     Map<String, List<PartitionInfo>> topics = consumer.listTopics();
 
     for (String topc : topics.keySet()) {

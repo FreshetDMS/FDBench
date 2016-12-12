@@ -78,7 +78,7 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
   public void run() {
     log.info("Starting consumer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() + " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS));
     // Assign topic partitions
-    List<TopicPartition> assignedPartitions = new ArrayList<>();
+    List<TopicPartition> assignedPartitions = new ArrayList<TopicPartition>();
 
     for (String partition : partitionAssignment) {
       assignedPartitions.add(new TopicPartition(getTopic(), Integer.valueOf(partition)));
@@ -87,7 +87,7 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
     consumer.assign(assignedPartitions);
 
     // Seek to begining
-    consumer.seekToBeginning(assignedPartitions.toArray(new TopicPartition[assignedPartitions.size()]));
+    consumer.seekToBeginning(assignedPartitions);
 
     long startNs = System.nanoTime();
     long lastConsumerNs = System.nanoTime();
