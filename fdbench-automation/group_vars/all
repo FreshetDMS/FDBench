@@ -1,0 +1,70 @@
+# ---------------------------
+# EC2
+# ---------------------------
+ec2:
+  key: macbookpro
+  zookeeper_instance_type: c3.xlarge
+  kafka_instance_type: r3.2xlarge
+  image: ami-9abea4fb
+  region: us-west-2
+  kafka_security_group: kafka
+  zookeeper_security_group: zookeeper
+  kafka_instance_count: 3
+  zookeeper_instance_count: 3
+  zk_spot_price: 0.5
+  kafka_spot_price: 0.8
+
+# ---------------------------
+# SSH
+# ---------------------------
+ssh_known_hosts_command: "ssh-keyscan -H -T 10"
+ssh_known_hosts_file: "/Users/mpathira/.ssh/known_hosts"
+
+# ---------------------------
+# Monitoring
+# ---------------------------
+influxdb_host: mugo.cs.indiana.edu
+
+#----------------------------
+#  JAVA
+#----------------------------
+java_home: /usr/local/java/jdk
+jdk_archive_url: http://download.oracle.com/otn-pub/java/jdk/8u101-b13/jdk-8u101-linux-x64.tar.gz
+jdk_archive_filename: jdk-8u101-linux-x64.tar.gz
+jdk_version: jdk1.8.0_101
+
+# --------------------------------------
+# Common
+# --------------------------------------
+
+# Common Location information.
+common:
+  install_base_path: /usr/local
+  soft_link_base_path: /opt
+
+#----------------------------
+#  Zookeeper
+#----------------------------
+zookeeper:
+  version: 3.4.6
+  user: zkadmin
+  group: zkadmin
+  password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
+  data_store: /mnt/data/zookeeper
+  logging: /mnt/data/zookeeper_logging
+  url: https://www.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+
+#----------------------------
+#  Kafka
+#----------------------------
+kafka:
+  port: 9092
+  data_store: /mnt/data/kafka
+  log4j_rootlogger: INFO
+  topics: [ A, B, C, D ]
+  version: 0.10.0.1
+  user: kafkaadmin
+  group: kafkaadmin
+  password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
+  replication_factor: 1
+  partition_count: 8

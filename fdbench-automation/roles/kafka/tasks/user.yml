@@ -1,0 +1,4 @@
+---
+
+  - name: Create a User `"{{ kafka.user }}"` for all our Hadoop Modules.
+    user: name={{ kafka.user }} password={{ kafka.password }}

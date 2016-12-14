@@ -1,0 +1,6 @@
+---
+- name: Create `myid` file
+  file: path={{ zookeeper.data_store }}/myid state=touch mode="u=rw,g=r,o=r"  owner="{{ zookeeper.user }}" group="{{ zookeeper.group }}"
+
+- name: Initializing `myid` File for Zookeeper.
+  lineinfile: dest={{ zookeeper.data_store }}/myid line="{{ zid }}"
