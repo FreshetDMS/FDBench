@@ -61,8 +61,8 @@ kafka:
   port: 9092
   data_store: /mnt/data/kafka
   log4j_rootlogger: INFO
-  topics: [ A, B, C, D ]
-  version: 0.10.0.1
+  topics: [ A ]
+  version: 0.10.1.0
   user: kafkaadmin
   group: kafkaadmin
   password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1

@@ -113,3 +113,16 @@
   roles:
     - kafka
 
+- name: Setup Experiment
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+- name: Run Experiment
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+

@@ -85,6 +85,15 @@ project(':fdbench-samza') {
   }
 }
 
+project(':fdbench-automation') {
+  dependencies {
+    compile "com.beust:jcommander:$jCommanderVersion"
+    compile "com.typesafe:config:$typesafeConfigVersion"
+    compile "org.freemarker:freemarker:$freemakerVersion"
+    compile "org.hdrhistogram:HdrHistogram:$hdrHistogramVersion"
+  }
+}
+
 project(':fdbench-api') {
   dependencies {
     compile "org.apache.samza:samza-api:$samzaVersion"
