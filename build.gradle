@@ -91,6 +91,8 @@ project(':fdbench-automation') {
     compile "com.typesafe:config:$typesafeConfigVersion"
     compile "org.freemarker:freemarker:$freemakerVersion"
     compile "org.hdrhistogram:HdrHistogram:$hdrHistogramVersion"
+    compile "com.google.guava:guava:$guavaVersion"
+    testCompile "junit:junit:$junitVersion"
   }
 }
 

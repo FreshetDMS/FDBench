@@ -11,6 +11,13 @@ This module contains set of Ansible roles, playbooks and modules for automating 
 * Collect metrics and results
 * Upload them to somewhere based on experiment configuration
 
+## Details
+
+* We need to spawn Kafka clusters with different configurations (Different IOPS, CPUs, number of disks, default partitions, replication factors)
+* Then we need to run different workloads and collect metrics
+* Workload is a YARN app
+* So we need a YARN deployment too
+
 # TODO
 
 * Improve makefs role (*Multiple disk support is not necessary at this stage*)
@@ -18,3 +25,8 @@ This module contains set of Ansible roles, playbooks and modules for automating 
 * Add topic creation and data loading
 * We need to write a tool to create/delete Kafka topics and some data generators
 * Investigate YARN deployment (May be call ec2-hadoop script from Ansible)
+
+## Immediate TODO
+
+* Deploy latest Kafka on EC2
+* Run some experiments to figure out things needed for the paper

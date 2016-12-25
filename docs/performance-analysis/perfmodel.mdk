@@ -233,7 +233,7 @@ Let's define variables first:
 \end{aligned}
 ~
 
-For better resource utilization, we should try to minimize the number of brokers used to host topics.
+For better resource utilization, we should try to minimize the number of brokers used to hosts topics.
 
 ~ Equation {#minimization}
 \begin{aligned}
