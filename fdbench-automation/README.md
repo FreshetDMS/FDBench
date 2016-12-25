@@ -28,5 +28,6 @@ This module contains set of Ansible roles, playbooks and modules for automating 
 
 ## Immediate TODO
 
+* Wrap yarn-ec2 as an Ansible library
 * Deploy latest Kafka on EC2
 * Run some experiments to figure out things needed for the paper
