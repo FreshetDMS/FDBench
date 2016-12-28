@@ -1,5 +1,4 @@
 ---
-  # Download Zookeeper
   - name: Download Kafka
     get_url: url=http://www-us.apache.org/dist/kafka/{{ kafka.version }}/kafka_2.11-{{ kafka.version }}.tgz dest=/mnt/kafka_2.11-{{ kafka.version }}.tgz mode=0644 validate_certs=no
 

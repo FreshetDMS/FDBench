@@ -1,0 +1,33 @@
+---
+- name: Copy slaves file
+  template: src={{ item }} dest={{ common.soft_link_base_path }}/hadoop/etc/hadoop/{{ item }} owner={{ hadoop.user }} group={{ hadoop.group }}
+  with_items:
+    - slaves
+
+- name: Format namenode
+  shell: "export JAVA_HOME=/usr/local/java/jdk && {{ common.soft_link_base_path }}/hadoop/bin/hadoop namenode -format"
+  args:
+    executable: /bin/bash
+
+- name: Generate SSH key
+  command: ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa
+
+- name: Setup authorized keys
+  shell: cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+- name: Setup known hosts
+  shell: "ssh-keyscan {{ inventory_hostname }}  >> ~/.ssh/known_hosts"
+
+- name: Setup known hosts
+  shell: "ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts"
+
+- name: Setup known hosts
+  shell: "ssh-keyscan 127.0.0.1  >> ~/.ssh/known_hosts"
+
+- name: Setup known hosts
+  shell: "ssh-keyscan {{ hostvars[inventory_hostname].private_ip }} >> ~/.ssh/known_hosts"
+
+- name: Start master services
+  shell: "{{ common.soft_link_base_path }}/hadoop/sbin/start-all.sh"
+  args:
+    executable: /bin/bash

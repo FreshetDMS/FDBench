@@ -1,0 +1,15 @@
+---
+- name: Create the `"{{ hadoop.group }}"` for all our Hadoop nodes
+  group: name={{ hadoop.group }} state=present
+
+- name: Create a user `"{{ hadoop.user }}"` for all our Hadoop nodes.
+  user: name={{ hadoop.user }} group={{ hadoop.group }} password={{ hadoop.password }} shell=/bin/bash
+
+- name: Create .ssh directory
+  file: path=/home/{{ hadoop.user }}/.ssh state=directory owner={{ hadoop.user }} group={{ hadoop.group }}
+
+- name: Setup authorized keys
+  command: creates=/home/{{ hadoop.user }}/.ssh/authorized_keys cp /home/ubuntu/.ssh/authorized_keys /home/{{ hadoop.user }}/.ssh/authorized_keys
+
+- name: Setup authorized keys file permissions
+  file: path=/home/{{ hadoop.user }}/.ssh/authorized_keys owner={{ hadoop.user }} group={{ hadoop.group }} mode=0600

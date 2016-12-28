@@ -22,10 +22,7 @@
   file: path={{ java_home }} src=/usr/local/java/{{ jdk_version }} state=link force=yes
 
 - name: JDK | Oracle JDK | Add the JDK binaries to the system path (/etc/profile)
-  lineinfile: dest=/etc/profile regexp='^JAVA_HOME={{ java_home }}' line="JAVA_HOME={{ java_home }}" state=present
-
-- name: JDK | Oracle JDK | Add the JDK binaries to the system path (/etc/profile)
-  lineinfile: dest=/etc/profile regexp='^PATH=.*JAVA_HOME.*' line="PATH=$PATH:$HOME/bin:$JAVA_HOME/bin" state=present
+  lineinfile: dest=/etc/environment regexp='^JAVA_HOME' line="JAVA_HOME={{ java_home }}" state=present
 
 - name: Remove alternatives before we set them.
   command: rm -f /var/lib/alternatives/{{ item }}

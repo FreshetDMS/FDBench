@@ -1,0 +1,50 @@
+---
+- name: Download Hadoop
+  get_url: url=http://www-us.apache.org/dist/hadoop/common/hadoop-{{ hadoop.version }}/hadoop-{{ hadoop.version }}.tar.gz dest=/mnt/hadoop-{{ hadoop.version }}.tgz mode=0644 validate_certs=no
+
+- name: Copy and UnArchive the Package in Destination Server.
+  unarchive: creates={{ common.install_base_path }}/hadoop-{{ hadoop.version }} copy=no src=/mnt/hadoop-{{ hadoop.version }}.tgz dest={{ common.install_base_path }} owner={{ hadoop.user }} group={{ hadoop.group }}
+
+- name: Change Directory Permissions.
+  file: path={{ common.install_base_path }}/hadoop-{{ hadoop.version }} owner={{ hadoop.user }} group={{ hadoop.group }} recurse=yes
+
+- name: Creating a Symbolic Link in {{ common['install_base_path'] }}/hadoop.
+  file: src={{ common.install_base_path }}/hadoop-{{ hadoop.version }} path={{ common.soft_link_base_path }}/hadoop state=link owner={{ hadoop.user }} group={{ hadoop.group }}
+
+- name: Setup HADOOP_HOME
+  lineinfile: dest=/home/{{ hadoop.user }}/.bashrc regexp="HADOOP_HOME" line="export HADOOP_HOME={{ common.soft_link_base_path }}/hadoop"
+
+- name: Setup YARN_HOME
+  lineinfile:  dest=/home/{{ hadoop.user }}/.bashrc regexp="YARN_HOME" line="export YARN_HOME={{ common.soft_link_base_path }}/hadoop"
+
+- name: Setup HADOOP_CONF_DIR
+  lineinfile:  dest=/home/{{ hadoop.user }}/.bashrc regexp="HADOOP_CONF_DIR" line="export HADOOP_CONF_DIR={{ common.soft_link_base_path }}/hadoop/etc/hadoop"
+
+- name: Setup YARN_CONF_DIR
+  lineinfile:  dest=/home/{{ hadoop.user }}/.bashrc regexp="YARN_CONF_DIR" line="export YARN_CONF_DIR={{ common.soft_link_base_path }}/hadoop/etc/hadoop"
+
+- name: Setup LD_LIBRARY_PATH
+  lineinfile: dest=/home/{{ hadoop.user }}/.bashrc regexp="LD_LIBRARY_PATH=$HADOOP_HOME" line="export LD_LIBRARY_PATH=$HADOOP_HOME/lib/native:$JAVA_HOME/jre/lib/amd64/server:/usr/local/lib:$LD_LIBRARY_PATH"
+
+- name: Setup PATH
+  lineinfile: dest=/home/{{ hadoop.user }}/.bashrc regexp="^export PATH=$HADOOP_HOME" line="export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH"
+
+- name: Create tmp directory
+  file: path=/home/{{ hadoop.user }}/tmp state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755
+
+- name: Create namenode data directory
+  file: path=/home/{{ hadoop.user }}/hadoop-data/hdfs/namenode state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755
+  when: hadoop_node_type == "master"
+
+- name: Create namenode data directory
+  file: path=/home/{{ hadoop.user }}/hadoop-data/hdfs/datanode state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755
+  when: hadoop_node_type == "master"
+
+- name: Create remote app log directory
+  file: path=/home/{{ hadoop.user }}/yarn-data/applogs state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755
+
+- name: Create user log directory
+  file: path=/home/{{ hadoop.user }}/yarn-data/userlogs state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755
+
+- name: Create local directory
+  file: path=/home/{{ hadoop.user }}/yarn-data/nm-local-dir state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755

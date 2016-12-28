@@ -25,6 +25,7 @@ This module contains set of Ansible roles, playbooks and modules for automating 
 * Add topic creation and data loading
 * We need to write a tool to create/delete Kafka topics and some data generators
 * Investigate YARN deployment (May be call ec2-hadoop script from Ansible)
+* Change makefs role to use loop_control and iterate over possible disks
 
 ## Immediate TODO
 
