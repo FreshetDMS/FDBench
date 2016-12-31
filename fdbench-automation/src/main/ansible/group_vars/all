@@ -28,6 +28,7 @@ ssh_known_hosts_file: "/Users/mpathira/.ssh/known_hosts"
 # Hadoop Configuration
 # ---------------------------
 hadoop_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/hadoop_conf
+kafka_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/kafka_conf
 
 # ---------------------------
 # Monitoring
