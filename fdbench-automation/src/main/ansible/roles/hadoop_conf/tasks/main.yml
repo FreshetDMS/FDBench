@@ -1,0 +1,9 @@
+---
+- name: Copying Hadoop configuration files
+  template:  src=../../shared_templates/{{ item }} dest={{ hadoop_conf_path }} owner={{ hadoop.user }} group={{ hadoop.group }}
+  with_items:
+    - core-site.xml
+    - hdfs-site.xml
+    - yarn-site.xml
+    - capacity-scheduler.xml
+    - log4j.properties

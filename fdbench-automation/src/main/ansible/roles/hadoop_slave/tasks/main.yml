@@ -1,0 +1,26 @@
+---
+- name: Generate SSH key
+  command: ssh-keygen -q -t rsa -N '' -f ~/.ssh/id_rsa
+
+- name: Setup authorized keys
+  shell: cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+- name: Setup known hosts
+  shell: "ssh-keyscan {{ inventory_hostname }}  >> ~/.ssh/known_hosts"
+
+- name: Setup known hosts
+  shell: "ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts"
+
+- name: Setup known hosts
+  shell: "ssh-keyscan 127.0.0.1  >> ~/.ssh/known_hosts"
+
+- name: Setup known hosts
+  shell: "ssh-keyscan {{ hostvars[inventory_hostname].private_ip }} >> ~/.ssh/known_hosts"
+
+- name: Start node manager
+  shell: "{{ common.soft_link_base_path }}/hadoop/sbin/yarn-daemon.sh start nodemanager"
+  args:
+    executable: /bin/bash
+
+- name: Wait for nodemanager to come up
+  wait_for: host=localhost port=8042 delay=60 timeout=360 state=started

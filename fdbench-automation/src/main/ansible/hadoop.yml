@@ -35,6 +35,7 @@
             from_port: 0
             to_port: 65535
             cidr_ip: 0.0.0.0/0
+
 - name: Create EC2 instance for Hadoop master
   hosts: localhost
   connection: local
@@ -86,3 +87,62 @@
   gather_facts: yes
   roles:
     - hadoop_master
+
+- name: Create EC2 instances for Hadoop slaves
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Launch instances
+      ec2:
+        key_name: "{{ ec2.key }}"
+        group: "{{ ec2.hadoop_security_group }}"
+        instance_type: "{{ ec2.hadoop_instance_type }}"
+        image: "{{ ec2.image }}"
+        wait: yes
+        region: "{{ ec2.region }}"
+        count: "{{ ec2.hadoop_slave_count }}"
+        spot_price: "{{ ec2.hadoop_spot_price }}"
+        spot_wait_timeout: 1200
+      register: hadoop_slaves
+    - name: Add new instances to a hosts group
+      add_host: name={{ item.1.public_dns_name }} groups=hadoopslaves zid={{ item.0 + 1 }} private_ip={{ item.1.private_ip }} instance_type={{ item.1.instance_type }} hadoop_node_type=slave
+      with_indexed_items: "{{ hadoop_slaves.instances }}"
+    - name: Wait for SSH to come up
+      wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=360 state=started
+      with_items: "{{ hadoop_slaves.instances }}"
+    - name: Make sure the known hosts file exists
+      file: "path={{ ssh_known_hosts_file }} state=touch"
+    - name: Check hosts name availability
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ item.public_dns_name }}"
+      with_items: "{{ hadoop_slaves.instances }}"
+      register: hs_ssh_known_host_results
+      ignore_errors: yes
+    - name: Scan the public key
+      shell: "{{ ssh_known_hosts_command}} {{ item.item.public_dns_name }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ hs_ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+- name: Install JDK and Hadoop common
+  hosts: hadoopslaves
+  remote_user: ubuntu
+  become: true
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - jdk
+    - hadoop_common
+
+- name: Setup Hadoop slave
+  hosts: hadoopslaves
+  remote_user: "{{ hadoop.user }}"
+  gather_facts: yes
+  roles:
+    - hadoop_slave
+
+- name: Copy Hadoop configuration
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  roles:
+    - hadoop_conf

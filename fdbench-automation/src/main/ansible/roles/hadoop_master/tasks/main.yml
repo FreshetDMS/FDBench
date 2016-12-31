@@ -31,3 +31,9 @@
   shell: "{{ common.soft_link_base_path }}/hadoop/sbin/start-all.sh"
   args:
     executable: /bin/bash
+
+- name: Wait for nodemanager to come up
+  wait_for: host=localhost port=8088 delay=60 timeout=360 state=started
+
+- name: Wait for nodemanager to come up
+  wait_for: host=localhost port=8020 delay=60 timeout=360 state=started

@@ -3,7 +3,7 @@
   file: path=/home/{{ hadoop.user }}/hadoop-logs state=directory owner={{ hadoop.user }} group={{ hadoop.group }} mode=755
 
 - name: Copying Hadoop configuration files
-  template:  src={{ item }} dest={{ common.soft_link_base_path }}/hadoop/etc/hadoop/{{ item }} owner={{ hadoop.user }} group={{ hadoop.group }}
+  template:  src=../../shared_templates/{{ item }} dest={{ common.soft_link_base_path }}/hadoop/etc/hadoop/{{ item }} owner={{ hadoop.user }} group={{ hadoop.group }}
   with_items:
     - core-site.xml
     - hdfs-site.xml
