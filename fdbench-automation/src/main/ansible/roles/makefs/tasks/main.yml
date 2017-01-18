@@ -2,9 +2,12 @@
   - name: Make ext4 filesystem on EBS volume
     command: mkfs -t ext4 /dev/xvdb
 
+  - name: Turn of journaling
+    command: tune2fs -O {{ "^" }}has_journal /dev/xvdb
+
   - name: Create mount point
     file: path=/mnt state=directory
     ignore_errors: yes
 
   - name: Mount EBS volume at /mnt
-    command: mount /dev/xvdb /mnt
+    command: mount -t ext4 -o defaults,noatime,data=writeback /dev/xvdb /mnt

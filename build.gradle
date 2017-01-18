@@ -166,6 +166,7 @@ project(':fdbench-kafka') {
     compile "com.typesafe:config:$typesafeConfigVersion"
     compile "commons-cli:commons-cli:$commonsCLIVersion"
     compile "org.apache.commons:commons-lang3:$commonsLangVersion"
+    compile "org.apache.commons:commons-math3:$commonsMath3Version"
     compile "org.hdrhistogram:HdrHistogram:$hdrHistogramVersion"
     compile "com.google.code.gson:gson:$gsonVersion"
     compile "com.google.guava:guava:$guavaVersion"

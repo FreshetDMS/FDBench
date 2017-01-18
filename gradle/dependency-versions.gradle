@@ -5,6 +5,7 @@ ext {
   typesafeConfigVersion = "1.3.0"
   jCommanderVersion = "1.48"
   commonsLangVersion = "3.4"
+  commonsMath3Version = "3.6.1"
   gsonVersion = "2.7"
   logbackVersion = "1.0.13"
   freemakerVersion = "2.3.25-incubating"

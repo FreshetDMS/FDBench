@@ -21,10 +21,12 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.kafka.common.PartitionInfo;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.api.Benchmark;
+import org.pathirage.fdbench.api.BenchmarkDeploymentState;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.plaf.nimbus.State;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,7 @@ public abstract class KafkaBenchmark implements Benchmark {
   private static final Logger log = LoggerFactory.getLogger(KafkaBenchmark.class);
 
   private final KafkaBenchmarkConfig benchmarkConfig;
-  private final KafkaAdmin kafkaAdmin;
+  protected final KafkaAdmin kafkaAdmin;
   private final int parallelism;
 
   public KafkaBenchmark(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
@@ -82,7 +84,7 @@ public abstract class KafkaBenchmark implements Benchmark {
   public abstract boolean isValidPartitionCountAndParallelism(int partitionCount, int parallelism);
 
   @Override
-  public Map<String, String> configureTask(int taskId) {
+  public Map<String, String> configureTask(int taskId, BenchmarkDeploymentState deploymentState) {
     Map<String, String> taskConfig = new HashMap<>();
     int partitionCount = benchmarkConfig.getPartitionCount();
     if (!isValidPartitionCountAndParallelism(partitionCount, parallelism)) {

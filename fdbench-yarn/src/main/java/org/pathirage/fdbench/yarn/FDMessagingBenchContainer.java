@@ -23,6 +23,7 @@ import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.Utils;
 import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.api.Constants;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.pathirage.fdbench.metrics.InMemoryMetricsRegistry;
@@ -90,6 +91,7 @@ public class FDMessagingBenchContainer {
       BenchmarkTaskFactory benchTaskFactory = Utils.instantiate(taskFactoryClass, BenchmarkTaskFactory.class);
       log.info(String.format("[%s] Creating benchTask instance.", containerId));
       this.benchTask = benchTaskFactory.getTask(benchName, taskId, containerId, rawConfig, metricsRegistry);
+      this.benchTask.setup();
     } catch (Exception e) {
       throw new FDBenchException(String.format("[%s] Couldn't load benchTask factory.", containerId), e);
     }

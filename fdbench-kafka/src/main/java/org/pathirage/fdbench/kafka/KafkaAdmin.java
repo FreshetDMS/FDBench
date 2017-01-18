@@ -16,6 +16,7 @@
 
 package org.pathirage.fdbench.kafka;
 
+import kafka.admin.AdminClient;
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
@@ -32,6 +33,7 @@ import scala.collection.Seq;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import static scala.collection.JavaConversions.asScalaBuffer;
 
@@ -92,5 +94,9 @@ public class KafkaAdmin {
     }
 
     throw new FDBenchException("Cannot get partition count for topic " + topic);
+  }
+
+  public Set<String> listTopics(){
+    return consumer.listTopics().keySet();
   }
 }

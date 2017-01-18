@@ -16,6 +16,8 @@
 
 package org.pathirage.fdbench.kafka;
 
+import org.apache.commons.math3.distribution.AbstractRealDistribution;
+import org.apache.commons.math3.distribution.LogNormalDistribution;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.pathirage.fdbench.api.BenchmarkTask;
@@ -35,6 +37,7 @@ public abstract class KafkaBenchmarkTask implements BenchmarkTask {
   final MetricsRegistry metricsRegistry;
   final KafkaBenchmarkConfig config;
   final String taskType;
+  final AbstractRealDistribution messageSizeDist;
 
   public KafkaBenchmarkTask(String taskId, String taskType, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, KafkaBenchmarkConfig config) {
     this.taskId = taskId;
@@ -43,6 +46,11 @@ public abstract class KafkaBenchmarkTask implements BenchmarkTask {
     this.metricsRegistry = metricsRegistry;
     this.config = config;
     this.taskType = taskType;
+    this.messageSizeDist = new LogNormalDistribution(126, 26);
+  }
+
+  private AbstractRealDistribution getMessageSizeDist(){
+    return new LogNormalDistribution(126, 26);
   }
 
   @Override
@@ -68,7 +76,7 @@ public abstract class KafkaBenchmarkTask implements BenchmarkTask {
   }
 
   protected byte[] generateRandomMessage() {
-    byte[] payload = new byte[getMessageSize()];
+    byte[] payload = new byte[(int) messageSizeDist.sample()];
 
     for (int i = 0; i < payload.length; i++) {
       payload[i] = (byte) (random.nextInt(26) + 65);

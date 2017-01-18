@@ -45,5 +45,5 @@ public interface Benchmark {
    * @param taskId Identifier of the task to configure
    * @return Task configuration as a set of key/value pairs
    */
-  Map<String, String> configureTask(int taskId);
+  Map<String, String> configureTask(int taskId, BenchmarkDeploymentState deploymentState);
 }

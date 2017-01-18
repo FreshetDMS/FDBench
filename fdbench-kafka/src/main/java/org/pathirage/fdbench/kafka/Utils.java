@@ -31,4 +31,13 @@ public class Utils {
 
     return props;
   }
+
+  /**
+   * Simulate the inter-arrival time of a poisson process
+   * @param L Reciprocal of lambda (arrival rate) or average time interval between two events
+   * @return next time interval
+   */
+  public static double poissonRandomInterArrivalDelay(double L) {
+    return Math.log(1.0-Math.random())/-L;
+  }
 }

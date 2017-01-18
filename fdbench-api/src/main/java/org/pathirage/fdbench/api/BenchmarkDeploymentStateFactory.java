@@ -16,21 +16,8 @@
 
 package org.pathirage.fdbench.api;
 
-import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import com.typesafe.config.Config;
 
-import java.util.Collection;
-
-public interface BenchmarkTask extends Runnable {
-  String getTaskId();
-  String getBenchmarkName();
-  String getContainerId();
-
-  /**
-   * Register metrics provided by this benchmark task with all the reporters.
-   *
-   * @param reporters list of metrics reporters registered with the system
-   */
-  void registerMetrics(Collection<MetricsReporter> reporters);
-  void stop();
-  void setup();
+public interface BenchmarkDeploymentStateFactory {
+  public BenchmarkDeploymentState getDeploymentState(Config config);
 }

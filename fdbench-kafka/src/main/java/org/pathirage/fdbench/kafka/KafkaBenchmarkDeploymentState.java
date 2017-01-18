@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.api;
+package org.pathirage.fdbench.kafka;
 
-import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import org.pathirage.fdbench.api.BenchmarkDeploymentState;
 
-import java.util.Collection;
+public class KafkaBenchmarkDeploymentState implements BenchmarkDeploymentState {
 
-public interface BenchmarkTask extends Runnable {
-  String getTaskId();
-  String getBenchmarkName();
-  String getContainerId();
-
-  /**
-   * Register metrics provided by this benchmark task with all the reporters.
-   *
-   * @param reporters list of metrics reporters registered with the system
-   */
-  void registerMetrics(Collection<MetricsReporter> reporters);
-  void stop();
-  void setup();
 }

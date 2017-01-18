@@ -75,6 +75,11 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
   }
 
   @Override
+  public void setup() {
+
+  }
+
+  @Override
   public void run() {
     log.info("Starting consumer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() + " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS));
     // Assign topic partitions

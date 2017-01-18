@@ -74,6 +74,10 @@ public abstract class AbstractConfig {
     }
   }
 
+  public Config getConfig(String path) {
+    return config.getConfig(path);
+  }
+
   public Config getRawConfig() {
     return config;
   }

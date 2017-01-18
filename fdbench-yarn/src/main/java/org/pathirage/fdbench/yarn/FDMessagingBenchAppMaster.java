@@ -32,8 +32,7 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.Utils;
-import org.pathirage.fdbench.api.Benchmark;
-import org.pathirage.fdbench.api.BenchmarkFactory;
+import org.pathirage.fdbench.api.*;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.yarn.config.YarnConfig;
 import org.slf4j.Logger;
@@ -60,6 +59,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
   private AtomicInteger numContainersAllocated = new AtomicInteger(0);
   private String benchmarkName;
   private Benchmark benchmark;
+  private BenchmarkDeploymentState deploymentState;
   private boolean initialized = false;
   private Map<ContainerId, NodeId> allocatedContainers = new ConcurrentHashMap<>();
 
@@ -83,8 +83,11 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
     try {
       BenchmarkFactory benchmarkFactory = Utils.instantiate(benchConfig.getBenchmarkFactoryClass(), BenchmarkFactory.class);
       this.benchmark = benchmarkFactory.getBenchmark(benchConfig.getParallelism(), rawBenchConf);
+
+      BenchmarkDeploymentStateFactory deploymentStateFactory = Utils.instantiate(benchConfig.getBenchmarkDeploymentStateFactory(), BenchmarkDeploymentStateFactory.class);
+      this.deploymentState = deploymentStateFactory.getDeploymentState();
     } catch (Exception e) {
-      throw new FDBenchException("Cannot load task configurator factory.", e);
+      throw new FDBenchException("Error occurred during benchmark and deployment state creation.", e);
     }
 
     log.info("initializing and starting node manager client....");
@@ -186,7 +189,7 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
         envMap.put(Constants.FDBENCH_TASK_FACTORY_CLASS, benchmark.getTaskFactoryClass().getName());
 
         // Benchmark should generate environment variables that can be used in the benchmark task
-        envMap.putAll(benchmark.configureTask(numContainersAllocated.get()));
+        envMap.putAll(benchmark.configureTask(numContainersAllocated.get(), deploymentState));
 
         Map<String, LocalResource> localResourceMap = new HashMap<>();
         localResourceMap.put("__package", localizeAppPackage(System.getenv(Constants.FDBENCH_PACKAGE_PATH_ENV).trim()));

@@ -65,6 +65,11 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
   }
 
   @Override
+  public void setup() {
+
+  }
+
+  @Override
   public void run() {
     log.info("Starting producer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() +
         " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS) + " of topic: " + getTopic() +

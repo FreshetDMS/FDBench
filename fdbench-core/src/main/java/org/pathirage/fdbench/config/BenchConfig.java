@@ -30,6 +30,8 @@ public class BenchConfig extends AbstractConfig {
 
   private static final String BENCHMARK_PARALLELISM = "benchmark.parallelism";
 
+  private static final String BENCHMARK_DEPLOYMENT_STATE_FACTORY = "benchmark.deployment.state.factory";
+
   public BenchConfig(Config config) {
     super(config);
   }
@@ -52,5 +54,9 @@ public class BenchConfig extends AbstractConfig {
 
   public int getParallelism() {
     return getInt(BENCHMARK_PARALLELISM, 1);
+  }
+
+  public String getBenchmarkDeploymentStateFactory(){
+    return getString(BENCHMARK_DEPLOYMENT_STATE_FACTORY);
   }
 }

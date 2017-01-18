@@ -16,21 +16,13 @@
 
 package org.pathirage.fdbench.api;
 
-import org.pathirage.fdbench.metrics.api.MetricsReporter;
-
-import java.util.Collection;
-
-public interface BenchmarkTask extends Runnable {
-  String getTaskId();
-  String getBenchmarkName();
-  String getContainerId();
-
-  /**
-   * Register metrics provided by this benchmark task with all the reporters.
-   *
-   * @param reporters list of metrics reporters registered with the system
-   */
-  void registerMetrics(Collection<MetricsReporter> reporters);
-  void stop();
-  void setup();
+public class Constants {
+  public static final String FDBENCH_PACKAGE_PATH_ENV = "FDBENCH_PACKAGE_PATH";
+  public static final String FDBENCH_CONF_PATH_ENV = "FDBENCH_CONF_PATH";
+  public static final String FDBENCH_CONTAINER_ID_ENV = "FDBENCH_CONTAINER_ID";
+  public static final String FDBENCH_TASK_ID_ENV = "FDBENCH_TASK_ID";
+  public static final String FDBENCH_BENCH_NAME_ENV = "FDBENCH_BENCH_NAME";
+  public static final String FDBENCH_TASK_FACTORY_CLASS = "FDBENCH_TASK_FACTORY_CLASS";
+  public static final String FDBENCH_TOPIC  = "FDBENCH_TOPIC";
+  public static final String FDBENCH_PARTITION_ASSIGNMENT = "FDBENCH_PARTITION_ASSIGNMENT";
 }

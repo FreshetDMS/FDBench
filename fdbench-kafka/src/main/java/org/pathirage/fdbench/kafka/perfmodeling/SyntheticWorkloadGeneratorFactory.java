@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.yarn;
+package org.pathirage.fdbench.kafka.perfmodeling;
 
-public class Constants {
-  static final String FDBENCH_PACKAGE_PATH_ENV = "FDBENCH_PACKAGE_PATH";
-  static final String FDBENCH_CONF_PATH_ENV = "FDBENCH_CONF_PATH";
-  static final String FDBENCH_CONTAINER_ID_ENV = "FDBENCH_CONTAINER_ID";
-  static final String FDBENCH_TASK_ID_ENV = "FDBENCH_TASK_ID";
-  static final String FDBENCH_BENCH_NAME_ENV = "FDBENCH_BENCH_NAME";
-  static final String FDBENCH_TASK_FACTORY_CLASS = "FDBENCH_TASK_FACTORY_CLASS";
+import com.typesafe.config.Config;
+import org.pathirage.fdbench.api.Benchmark;
+import org.pathirage.fdbench.api.BenchmarkFactory;
+
+public class SyntheticWorkloadGeneratorFactory implements BenchmarkFactory {
+  @Override
+  public Benchmark getBenchmark(int parallelism, Config rawConfig) {
+    return new SyntheticWorkloadGenerator(new SyntheticWorkloadGeneratorConfig(rawConfig), parallelism);
+  }
 }

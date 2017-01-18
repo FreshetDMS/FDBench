@@ -89,6 +89,11 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
     }
   }
 
+  @Override
+  public void setup() {
+
+  }
+
   private void runFullThrottle() {
     long stopAfter = System.currentTimeMillis() + taskDuration.toMillis();
     long before, latency;

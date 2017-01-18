@@ -5,8 +5,9 @@ ec2:
   hadoop_security_group: hadoopsg
   key: thesisexperiments
   zookeeper_instance_type: c3.xlarge
-  kafka_instance_type: r3.2xlarge
-  hadoop_instance_type: c3.xlarge
+  kafka_instance_type: r4.xlarge
+  hadoop_master_instance_type: c3.xlarge
+  hadoop_slave_instance_type: c3.large
   image: ami-9abea4fb
   region: us-west-2
   kafka_security_group: kafka

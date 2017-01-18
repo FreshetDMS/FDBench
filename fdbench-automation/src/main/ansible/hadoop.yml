@@ -45,7 +45,7 @@
       ec2:
         key_name: "{{ ec2.key }}"
         group: "{{ ec2.hadoop_security_group }}"
-        instance_type: "{{ ec2.hadoop_instance_type }}"
+        instance_type: "{{ ec2.hadoop_master_instance_type }}"
         image: "{{ ec2.image }}"
         wait: yes
         region: "{{ ec2.region }}"
@@ -97,7 +97,7 @@
       ec2:
         key_name: "{{ ec2.key }}"
         group: "{{ ec2.hadoop_security_group }}"
-        instance_type: "{{ ec2.hadoop_instance_type }}"
+        instance_type: "{{ ec2.hadoop_slave_instance_type }}"
         image: "{{ ec2.image }}"
         wait: yes
         region: "{{ ec2.region }}"
