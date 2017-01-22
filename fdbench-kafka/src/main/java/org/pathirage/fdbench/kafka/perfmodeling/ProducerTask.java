@@ -103,7 +103,7 @@ public class ProducerTask extends KafkaBenchmarkTask {
 
       i++;
 
-      if (i % 1000 == 0) {
+      if (i % 100000 == 0) {
         log.info(String.format("Sent %s messages.", i));
       }
     }
