@@ -51,6 +51,7 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
 
   private void init() {
     for (String topic : workloadGeneratorConfig.getProduceTopics()) {
+      log.info("Topic: " + topic);
       SyntheticWorkloadGeneratorConfig.TopicConfig tc = workloadGeneratorConfig.getProduceTopicConfig(topic);
       totalTasks += tc.getPublishers();
       topics.add(tc);
@@ -86,7 +87,7 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
       }
 
       currentTopicPartitionAssignment = Lists.partition(
-          IntStream.rangeClosed(1, current.getPartitions()).boxed().collect(Collectors.toList()),
+          IntStream.range(0, current.getPartitions()).boxed().collect(Collectors.toList()),
           current.getPartitions() / currentTopicsTasks);
     }
     List<Integer> partitionAssignment = currentTopicPartitionAssignment.get(taskOfCurrentTopic);
@@ -104,11 +105,11 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
   private String getTaskFactory(SyntheticWorkloadGeneratorConfig.TopicConfig.Type type) {
     switch (type) {
       case CONSUME:
-        return "";
+        return "org.pathirage.fdbench.kafka.perfmodeling.ConsumerTaskFactory";
       case PRODUCE:
-        return "";
+        return "org.pathirage.fdbench.kafka.perfmodeling.ProducerTaskFactory";
       case REPLAY:
-        return "";
+        return "org.pathirage.fdbench.kafka.perfmodeling.ReplayTaskFactory";
       default:
         throw new RuntimeException("Unsupported task type: " + type);
     }

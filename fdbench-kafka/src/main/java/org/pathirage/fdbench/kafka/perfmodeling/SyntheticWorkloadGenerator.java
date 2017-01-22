@@ -37,7 +37,7 @@ public class SyntheticWorkloadGenerator extends KafkaBenchmark {
 
   @Override
   public Class<? extends BenchmarkTaskFactory> getTaskFactoryClass() {
-    return PublisherTaskFactory.class;
+    return ProducerTaskFactory.class;
   }
 
   @Override
@@ -129,11 +129,11 @@ public class SyntheticWorkloadGenerator extends KafkaBenchmark {
     }
 
     for (String topic : consumerTopics) {
-      requiredTasks += workloadGeneratorConfig.getProduceTopicConfig(topic).getConsumers();
+      requiredTasks += workloadGeneratorConfig.getConsumerTopicConfig(topic).getConsumers();
     }
 
     for (String topic : replayTopics) {
-      requiredTasks += workloadGeneratorConfig.getProduceTopicConfig(topic).getConsumers();
+      requiredTasks += workloadGeneratorConfig.getReplayTopicConfig(topic).getConsumers();
     }
 
     if (requiredTasks != new BenchConfig(workloadGeneratorConfig.getRawConfig()).getParallelism()) {

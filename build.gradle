@@ -49,6 +49,7 @@ project(':fdbench-core') {
     compile "com.googlecode.objectify:objectify:$objectifyVersion"
     compile "com.typesafe:config:$typesafeConfigVersion"
     compile "commons-cli:commons-cli:$commonsCLIVersion"
+    compile "com.beust:jcommander:$jCommanderVersion"
     compile "org.apache.commons:commons-lang3:$commonsLangVersion"
     compile "com.google.code.gson:gson:$gsonVersion"
     compile "com.google.guava:guava:$guavaVersion"
@@ -204,6 +205,11 @@ project(':fdbench-yarn') {
     into('lib') {
       from jar
     }
+
+    into('examples') {
+      from 'src/main/resources/examples'
+      expand([projectDir: project.projectDir])
+    }
   }
 
   task testConsumerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
@@ -243,6 +249,10 @@ project(':fdbench-yarn') {
       args(['application', '-kill', project.getProperties().get('app')])
     }
   }
+}
+
+task printVersion() {
+  print(project.version)
 }
 
 class JavaExecWithEnv extends JavaExec {

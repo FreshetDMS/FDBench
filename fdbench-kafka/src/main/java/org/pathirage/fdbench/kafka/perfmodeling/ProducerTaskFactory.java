@@ -21,9 +21,9 @@ import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 
-public class PublisherTaskFactory implements BenchmarkTaskFactory {
+public class ProducerTaskFactory implements BenchmarkTaskFactory {
   @Override
   public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config, MetricsRegistry metricsRegistry) {
-    return new PublisherTask(taskId, benchmarkName, containerID, metricsRegistry, new SyntheticWorkloadGeneratorConfig(config));
+    return new ProducerTask(taskId, benchmarkName, containerID, metricsRegistry, new SyntheticWorkloadGeneratorConfig(config));
   }
 }

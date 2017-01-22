@@ -16,6 +16,7 @@
 
 package org.pathirage.fdbench;
 
+import com.beust.jcommander.Parameter;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.*;

@@ -23,12 +23,16 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Properties;
 import java.util.Random;
 
 public abstract class KafkaBenchmarkTask implements BenchmarkTask {
+  private static final Logger log = LoggerFactory.getLogger(KafkaBenchmark.class);
+
   private Random random = new Random(System.currentTimeMillis());
 
   final String taskId;
@@ -46,11 +50,11 @@ public abstract class KafkaBenchmarkTask implements BenchmarkTask {
     this.metricsRegistry = metricsRegistry;
     this.config = config;
     this.taskType = taskType;
-    this.messageSizeDist = new LogNormalDistribution(126, 26);
+    this.messageSizeDist = new LogNormalDistribution(0, 0.4);
   }
 
   private AbstractRealDistribution getMessageSizeDist(){
-    return new LogNormalDistribution(126, 26);
+    return messageSizeDist;
   }
 
   @Override
@@ -76,7 +80,12 @@ public abstract class KafkaBenchmarkTask implements BenchmarkTask {
   }
 
   protected byte[] generateRandomMessage() {
-    byte[] payload = new byte[(int) messageSizeDist.sample()];
+    int msgSize = (int) messageSizeDist.sample() + 100;
+
+    if (msgSize > 100000) {
+      log.info("Abnormal message size: " + msgSize);
+    }
+    byte[] payload = new byte[msgSize];
 
     for (int i = 0; i < payload.length; i++) {
       payload[i] = (byte) (random.nextInt(26) + 65);
@@ -92,6 +101,8 @@ public abstract class KafkaBenchmarkTask implements BenchmarkTask {
     producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, getKeySerializerClass());
     producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, getValueSerializerClass());
     producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, getTaskType() + "-producer-" + getTaskId());
+
+    log.info("Created Kafka producer config with brokers: " + getBrokers());
 
     return producerProps;
   }

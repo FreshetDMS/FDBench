@@ -41,10 +41,12 @@ public class MetricsReporterConfig extends AbstractConfig {
   }
 
   public List<String> getMetricsReporters() {
-    String reporters = getString(METRICS_REPORTERS);
+    if (hasPath(METRICS_REPORTERS)) {
+      String reporters = getString(METRICS_REPORTERS);
 
-    if (reporters != null && !reporters.isEmpty()) {
-      return Lists.newArrayList(reporters.split(","));
+      if (reporters != null && !reporters.isEmpty()) {
+        return Lists.newArrayList(reporters.split(","));
+      }
     }
 
     return Collections.emptyList();

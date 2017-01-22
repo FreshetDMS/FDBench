@@ -15,5 +15,5 @@ ext {
   commonsCLIVersion = "1.3.1"
   hdrHistogramVersion = "2.1.8"
   samzaVersion = "0.10.0"
-  yarnVersion = "2.7.1"
+  yarnVersion = "2.7.3"
 }

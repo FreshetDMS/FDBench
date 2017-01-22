@@ -87,13 +87,13 @@ public class FDMessagingBenchContainer {
 
   private void setupBenchmark() {
     try {
-      log.info(String.format("[%s] Loading benchTask factory %s.", containerId, benchConfig.getBenchmarkFactoryClass()));
+      log.info(String.format("[%s] Loading benchTask factory %s.", containerId, taskFactoryClass));
       BenchmarkTaskFactory benchTaskFactory = Utils.instantiate(taskFactoryClass, BenchmarkTaskFactory.class);
       log.info(String.format("[%s] Creating benchTask instance.", containerId));
       this.benchTask = benchTaskFactory.getTask(benchName, taskId, containerId, rawConfig, metricsRegistry);
       this.benchTask.setup();
     } catch (Exception e) {
-      throw new FDBenchException(String.format("[%s] Couldn't load benchTask factory.", containerId), e);
+      throw new FDBenchException(String.format("[%s] Couldn't load benchTask factory %s.", containerId, taskFactoryClass), e);
     }
   }
 

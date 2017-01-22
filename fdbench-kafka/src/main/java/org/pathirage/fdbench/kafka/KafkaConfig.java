@@ -33,11 +33,11 @@ public abstract class KafkaConfig extends AbstractConfig {
   }
 
   public String getZKConnectionString() {
-    return getString(KAFKA_ZK_CONNECT);
+    return getString(KAFKA_ZK_CONNECT, "localhost:2181");
   }
 
   public String getBrokers() {
-    return getString(KAFKA_BROKERS);
+    return getString(KAFKA_BROKERS, "localhost:9092");
   }
 
   public String getKeySerializerClass() {

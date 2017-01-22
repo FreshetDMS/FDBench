@@ -78,6 +78,10 @@ public abstract class AbstractConfig {
     return config.getConfig(path);
   }
 
+  public boolean hasPath(String path) {
+    return config.hasPath(path);
+  }
+
   public Config getRawConfig() {
     return config;
   }

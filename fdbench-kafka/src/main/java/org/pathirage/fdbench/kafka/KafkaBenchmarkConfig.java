@@ -58,7 +58,7 @@ public abstract class KafkaBenchmarkConfig extends KafkaConfig {
   }
 
   public int getDurationSeconds() {
-    return getInt(DURATION, 120);
+    return getInt(DURATION, 60);
   }
 
   public int getRecordLimit() {

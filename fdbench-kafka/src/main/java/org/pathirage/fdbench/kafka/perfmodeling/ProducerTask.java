@@ -22,7 +22,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
-import org.pathirage.fdbench.kafka.Constants;
+import org.pathirage.fdbench.api.Constants;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.kafka.Utils;
@@ -31,14 +31,20 @@ import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.LockSupport;
+import java.util.stream.Collectors;
 
 /**
  * Generates message of a given size distribution according to the poisson inter-event arrival time distribution for a
  * given message rate.
  */
-public class PublisherTask extends KafkaBenchmarkTask {
-  private static final Logger log = LoggerFactory.getLogger(PublisherTask.class);
+public class ProducerTask extends KafkaBenchmarkTask {
+  private static final Logger log = LoggerFactory.getLogger(ProducerTask.class);
 
   private static final String LOAD_GENERATOR = "kafka-load-generator";
 
@@ -47,13 +53,18 @@ public class PublisherTask extends KafkaBenchmarkTask {
   private final Counter messagesSent;
 
   private KafkaProducer<byte[], byte[]> producer;
+  private List<Integer> partitionAssignment;
 
-  public PublisherTask(String taskId, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, KafkaBenchmarkConfig config) {
+  public ProducerTask(String taskId, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, KafkaBenchmarkConfig config) {
     super(taskId, "load-generator-task", benchmarkName, containerId, metricsRegistry, config);
     this.elapsedTime = metricsRegistry.<Long>newGauge(LOAD_GENERATOR, "elapsed-time", 0L);
-    this.latency = metricsRegistry.newHistogram(LOAD_GENERATOR, "produce-latency", Constants.MAX_RECORDABLE_LATENCY, Constants.SIGNIFICANT_VALUE_DIGITS);
+    this.latency = metricsRegistry.newHistogram(LOAD_GENERATOR, "produce-latency", org.pathirage.fdbench.kafka.Constants.MAX_RECORDABLE_LATENCY, org.pathirage.fdbench.kafka.Constants.SIGNIFICANT_VALUE_DIGITS);
     this.messagesSent = metricsRegistry.newCounter(LOAD_GENERATOR, "messages-sent-or-consumed");
     this.producer = new KafkaProducer<byte[], byte[]>(getProducerProperties());
+    this.partitionAssignment = Arrays.asList(
+        System.getenv(Constants.FDBENCH_PARTITION_ASSIGNMENT).split(","))
+        .stream()
+        .map((s) -> Integer.valueOf(s)).collect(Collectors.toList());
   }
 
   @Override
@@ -64,11 +75,18 @@ public class PublisherTask extends KafkaBenchmarkTask {
   }
 
   @Override
+  public String getTopic() {
+    return System.getenv(Constants.FDBENCH_TOPIC).trim();
+  }
+
+  @Override
   public void run() {
     log.info("Starting producer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() +
-        " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS) + " of topic: " + getTopic() +
-        " and the record rate: " + getMessageRate() + " and average message size: " + getMessageSize());
+        " with partition assignment: " + System.getenv(Constants.FDBENCH_PARTITION_ASSIGNMENT) + " of topic: " + getTopic());
+    log.info("The record rate: " + getMessageRate() + ", average message size: " + getMessageSize() +
+        ", benchmark duration: " + getBenchmarkDuration());
 
+    int i = 0;
     long startTime = System.currentTimeMillis();
     while (true && (System.currentTimeMillis() - startTime) < getBenchmarkDuration() * 1000) {
       long interval = (long) Utils.poissonRandomInterArrivalDelay((1 / getMessageRate()) * 1000000000);
@@ -76,9 +94,27 @@ public class PublisherTask extends KafkaBenchmarkTask {
       // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
       LockSupport.parkNanos(interval);
       long sendStartNanos = System.nanoTime();
-      // TODO: Support static partitioning and message size distribution
-      producer.send(new ProducerRecord<byte[], byte[]>(getTopic(), generateRandomMessage()),
+      byte[] msg = generateRandomMessage();
+      producer.send(new ProducerRecord<byte[], byte[]>(getTopic(),
+              partitionAssignment.get(ThreadLocalRandom.current().nextInt(partitionAssignment.size())),
+              msgToKey(msg),
+              msg),
           new ProduceCompletionCallback(startTime, sendStartNanos));
+
+      i++;
+
+      if (i % 1000 == 0) {
+        log.info(String.format("Sent %s messages.", i));
+      }
+    }
+  }
+
+  private byte[] msgToKey(byte[] msg) {
+    try {
+      MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+      return messageDigest.digest(msg);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
     }
   }
 

@@ -24,45 +24,39 @@ import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 import java.util.*;
 
 public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
+  private static final String PRODUCE_TOPICS = "workload.produce";
+  private static final String CONSUME_TOPICS = "workload.consume";
+  private static final String REPLAY_TOPICS = "workload.replay";
   public SyntheticWorkloadGeneratorConfig(Config rawConfig) {
     super(rawConfig);
   }
 
   public Set<String> getProduceTopics() {
-    Config topicConfig = getRawConfig().atPath("workload.produce");
-    Set<Map.Entry<String, ConfigValue>> topicConfigEntries = topicConfig.entrySet();
-    Set<String> topics = new HashSet<>();
-
-    for (Map.Entry<String, ConfigValue> e : topicConfigEntries) {
-      // This can return incorrect topic list if we decided to add extra configurations under workload.produce
-      topics.add(e.getKey());
-    }
-
-    return topics;
+      return getTopics(PRODUCE_TOPICS);
   }
 
   public Set<String> getConsumeTopics() {
-    Config topicConfig = getRawConfig().atPath("workload.consume");
-    Set<Map.Entry<String, ConfigValue>> topicConfigEntries = topicConfig.entrySet();
-    Set<String> topics = new HashSet<>();
-    for (Map.Entry<String, ConfigValue> e : topicConfigEntries) {
-      // This can return incorrect topic list if we decided to add extra configurations under workload.produce
-      topics.add(e.getKey());
-    }
-
-    return topics;
+    return getTopics(CONSUME_TOPICS);
   }
 
   public Set<String> getReplayTopics() {
-    Config topicConfig = getRawConfig().atPath("workload.replay");
-    Set<Map.Entry<String, ConfigValue>> topicConfigEntries = topicConfig.entrySet();
-    Set<String> topics = new HashSet<>();
-    for (Map.Entry<String, ConfigValue> e : topicConfigEntries) {
-      // This can return incorrect topic list if we decided to add extra configurations under workload.produce
-      topics.add(e.getKey());
+    return getTopics(REPLAY_TOPICS);
+  }
+
+  private Set<String> getTopics(String path) {
+    if (hasPath(path)) {
+      Config topicConfig = getConfig(path);
+      Set<Map.Entry<String, ConfigValue>> topicConfigEntries = topicConfig.root().entrySet();
+      Set<String> topics = new HashSet<>();
+      for (Map.Entry<String, ConfigValue> e : topicConfigEntries) {
+        // This can return incorrect topic list if we decided to add extra configurations under workload.produce
+        topics.add(e.getKey());
+      }
+
+      return topics;
     }
 
-    return topics;
+    return Collections.emptySet();
   }
 
   public TopicConfig getProduceTopicConfig(String topic) {
@@ -70,11 +64,11 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
   }
 
   public TopicConfig getConsumerTopicConfig(String topic) {
-    return new TopicConfig(topic, TopicConfig.Type.CONSUME, getConfig(String.format("workload.consume.%", topic)));
+    return new TopicConfig(topic, TopicConfig.Type.CONSUME, getConfig(String.format("workload.consume.%s", topic)));
   }
 
   public TopicConfig getReplayTopicConfig(String topic) {
-    return new TopicConfig(topic, TopicConfig.Type.REPLAY, getConfig(String.format("workload.replay.%", topic)));
+    return new TopicConfig(topic, TopicConfig.Type.REPLAY, getConfig(String.format("workload.replay.%s", topic)));
   }
 
   public static class TopicConfig extends AbstractConfig {
