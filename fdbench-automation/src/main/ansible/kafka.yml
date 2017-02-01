@@ -103,6 +103,7 @@
   roles:
     - makefs
     - jdk
+    - perf
 
 - name: Install and start Kafka
   hosts: kafkanodes

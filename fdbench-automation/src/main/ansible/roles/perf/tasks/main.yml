@@ -1,0 +1,13 @@
+---
+- name: Installing perf command
+  apt: pkg=linux-tools-common state=present
+
+
+- name: Installing git
+  apt: pkg=git state=present
+
+- name: Cloning perf-tools
+  git:
+    repo: https://github.com/brendangregg/perf-tools
+    depth: 1
+    dest: /home/ubuntu/perf-tools
