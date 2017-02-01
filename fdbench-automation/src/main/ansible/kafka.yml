@@ -72,7 +72,7 @@
         volumes:
           - device_name: /dev/sdb
             volume_type: io1
-            iops: 1000
+            iops: 100
             volume_size: 100
             delete_on_termination: true
       register: kafkainstances

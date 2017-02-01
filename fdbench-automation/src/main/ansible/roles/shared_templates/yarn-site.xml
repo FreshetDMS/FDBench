@@ -73,4 +73,8 @@
         <name>yarn.nodemanager.remote-app-log-dir</name>
         <value>/home/{{ hadoop.user }}/yarn-data/applogs</value>
     </property>
+    <property>
+        <name>yarn.nodemanager.delete.debug-delay-sec</name>
+        <value>600</value>
+    </property>
 </configuration>

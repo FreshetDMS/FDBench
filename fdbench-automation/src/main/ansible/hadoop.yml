@@ -30,6 +30,10 @@
             from_port: 10000
             to_port: 10500
             cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 0
+            to_port: 65535
+            cidr_ip: 172.16.0.0/12
         rules_egress:
           - proto: tcp
             from_port: 0
