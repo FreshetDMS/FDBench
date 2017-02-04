@@ -273,7 +273,8 @@ EOF
   sshpass -p vagrant scp -o StrictHostKeyChecking=no $KAFKA_DEP_SCRIPT vagrant@KAFKA_IP:
 
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
-    echo "$ZK_IP" > ~/.zkip
+    echo $ZK_IP | tee ~/.zkip
+    echo $KAFKA_IP | tee ~/.kafkaip
     mkdir -p ~/.scripts
     mv ~/configureandstartkafka.sh ~/.scripts
     chmod +x ~/.scripts/configureandstartkafka.sh
@@ -282,7 +283,8 @@ EOF
     mkdir -p ~/.downloads
     mv kafka_2.11-0.10.1.0.tgz ~/.downloads
     mkdir -p ~/kafka
-    tar xzf ~/.downloads/kafka_2.11-0.10.1.0.tgz -C ~/kafka
+    tar xzf ~/.downloads/kafka_2.11-0.10.1.0.tgz -C ~/
+    mv ~/kafka_2.11-0.10.1.0 ~/kafka
     git clone --depth 1 https://github.com/brendangregg/perf-tools
     sudo mkfs.ext4 /dev/vdb
     sudo mkdir /mnt/data
@@ -302,7 +304,8 @@ EOF
     mkdir -p ~/.downloads
     mv zookeeper-3.4.6.tar.gz ~/.downloads
     mkdir -p ~/zk
-    tar xzf ~/.downloads/zookeeper-3.4.6.tar.gz -C ~/zk
+    tar xzf ~/.downloads/zookeeper-3.4.6.tar.gz -C ~/
+    mv ~/zookeeper-3.4.6.tar ~/zk
     git clone --depth 1 https://github.com/brendangregg/perf-tools
 EOF
 

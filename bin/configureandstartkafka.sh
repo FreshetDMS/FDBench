@@ -4,7 +4,7 @@ ZK_IP=$(<~/.zkip)
 KAFKA_IP=$(<~/.kafkaip)
 
 
-cat > ~/kafka/config/server.properties << EOF
+cat > ~/kafka/config/server.properties << "EOF"
 broker.id=0
 delete.topic.enable=true
 
