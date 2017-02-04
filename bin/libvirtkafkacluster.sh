@@ -283,7 +283,7 @@ EOF
     mkdir -p ~/.downloads
     mv kafka_2.11-0.10.1.0.tgz ~/.downloads
     mkdir -p ~/kafka
-    tar xzf ~/.downloads/kafka_2.11-0.10.1.0.tgz
+    tar xzf ~/.downloads/kafka_2.11-0.10.1.0.tgz -C ~/.downloads
     mv ~/.downloads/kafka_2.11-0.10.1.0 ~/kafka
     git clone --depth 1 https://github.com/brendangregg/perf-tools
     sudo mkfs.ext4 /dev/vdb
@@ -304,7 +304,7 @@ EOF
     mkdir -p ~/.downloads
     mv zookeeper-3.4.6.tar.gz ~/.downloads
     mkdir -p ~/zk
-    tar xzf ~/.downloads/zookeeper-3.4.6.tar.gz
+    tar xzf ~/.downloads/zookeeper-3.4.6.tar.gz -C ~/.downloads
     mv ~/.downloads/zookeeper-3.4.6 ~/zk
     git clone --depth 1 https://github.com/brendangregg/perf-tools
 EOF
