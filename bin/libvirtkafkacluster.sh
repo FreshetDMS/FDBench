@@ -37,6 +37,8 @@ KAFKA_DATA_IMAGE="$KAFKA_VM_HOME/data.qcow2"
 ZK_IMAGE="$ZK_VM_HOME/os.img"
 KAFKA_DOMAIN_XML="$KAFKA_VM_HOME/domain.xml"
 ZK_DOMAIN_XML="$ZK_VM_HOME/domain.xml"
+KAFKA_IP_FILE="$KAFKA_VM_HOME/ip"
+ZK_IP_FILE="$ZK_VM_HOME/ip"
 
 
 BASE_IMAGE_NAME="$( basename "${BASE_IMAGE}" )"
@@ -85,8 +87,8 @@ if [ "$COMMAND" == "destroy" ]; then
 elif test -z "$COMMAND"; then
   echo
   echo "  Usage.."
-  echo "  $ kafkalibvirt.sh destroy"
-  echo "  $ kafkalibvirt.sh provision <iops> <iops_size> <max_iops>"
+  echo "  $ libvirtkafkacluster.sh destroy"
+  echo "  $ libvirtkafkacluster.sh provision <iops> <iops_size> <max_iops>"
   exit 1
 elif [ "$COMMAND" == "provision" ]; then
   echo "Start provisioning single node Kafka cluster"
@@ -191,6 +193,8 @@ EOF
 
   KAFKA_IP="$(virsh domifaddr $KAFKA_DOMAIN_NAME | tail -2 | awk '{print $4}'| cut -d/ -f1)"
 
+  echo $KAFKA_IP > $KAFKA_IP_FILE
+
 # Creating kafka vm domain xml
   cat > "$ZK_DOMAIN_XML" << EOF
 <domain type='kvm'>
@@ -262,13 +266,17 @@ EOF
 
   ZK_IP="$(virsh domifaddr $ZK_DOMAIN_NAME | tail -2 | awk '{print $4}'| cut -d/ -f1)"
 
+  echo $ZK_IP > $ZK_IP_FILE
+
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
+    echo "$ZK_IP" > ~/.zkip
     sudo apt -y install linux-tools-common git
     wget http://www-us.apache.org/dist/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz
     mkdir -p ~/.downloads
     mv kafka_2.11-0.10.1.0.tgz ~/.downloads
     tar xzf ~/.downloads/kafka_2.11-0.10.1.0.tgz -C ~/kafka
     git clone --depth 1 https://github.com/brendangregg/perf-tools
+    df -h
 EOF
 
  sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
