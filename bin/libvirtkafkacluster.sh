@@ -273,6 +273,9 @@ EOF
   sshpass -p vagrant scp -o StrictHostKeyChecking=no $KAFKA_DEP_SCRIPT vagrant@$KAFKA_IP:
 
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
+    sudo add-apt-repository -y ppa:webupd8team/java
+    sudo apt-get update
+    sudo apt-get install oracle-java8-installer -y
     echo $ZK_IP | tee ~/.zkip
     echo $KAFKA_IP | tee ~/.kafkaip
     mkdir -p ~/.scripts
@@ -295,6 +298,9 @@ EOF
   sshpass -p vagrant scp -o StrictHostKeyChecking=no $ZK_DEP_SCRIPT vagrant@$ZK_IP:
 
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
+    sudo add-apt-repository -y ppa:webupd8team/java
+    sudo apt-get update
+    sudo apt-get install oracle-java8-installer -y
     mkdir -p ~/.scripts
     mv ~/configureandstartzk.sh ~/.scripts
     chmod +x ~/.scripts/configureandstartzk.sh
