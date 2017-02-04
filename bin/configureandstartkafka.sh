@@ -3,7 +3,6 @@
 ZK_IP=$(<~/.zkip)
 KAFKA_IP=$(<~/.kafkaip)
 
-# TODO: Format and attach secondary storage
 
 cat > ~/kafka/config/server.properties << EOF
 broker.id=0
@@ -20,7 +19,7 @@ num.io.threads=8
 socket.send.buffer.bytes=102400
 socket.receive.buffer.bytes=102400
 socket.request.max.bytes=104857600
-log.dirs=/tmp/kafka-logs
+log.dirs=/mnt/data
 num.partitions=1
 num.recovery.threads.per.data.dir=1
 

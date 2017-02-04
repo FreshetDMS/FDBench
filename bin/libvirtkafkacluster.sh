@@ -40,6 +40,8 @@ ZK_DOMAIN_XML="$ZK_VM_HOME/domain.xml"
 KAFKA_IP_FILE="$KAFKA_VM_HOME/ip"
 ZK_IP_FILE="$ZK_VM_HOME/ip"
 
+KAFKA_DEP_SCRIPT="$FDBENCH_ROOT_DIR/bin/configureandstartkafka.sh"
+ZK_DEP_SCRIPT="$FDBENCH_ROOT_DIR/bin/configureandstartzk.sh"
 
 BASE_IMAGE_NAME="$( basename "${BASE_IMAGE}" )"
 KAFKA_DOMAIN_NAME="kafka"
@@ -268,27 +270,51 @@ EOF
 
   echo $ZK_IP > $ZK_IP_FILE
 
+  sshpass -p vagrant scp -o StrictHostKeyChecking=no $KAFKA_DEP_SCRIPT vagrant@KAFKA_IP:
+
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
     echo "$ZK_IP" > ~/.zkip
+    mkdir -p ~/.scripts
+    mv ~/configureandstartkafka.sh ~/.scripts
+    chmod +x ~/.scripts/configureandstartkafka.sh
     sudo apt -y install linux-tools-common git
     wget http://www-us.apache.org/dist/kafka/0.10.1.0/kafka_2.11-0.10.1.0.tgz
     mkdir -p ~/.downloads
     mv kafka_2.11-0.10.1.0.tgz ~/.downloads
+    mkdir -p ~/kafka
     tar xzf ~/.downloads/kafka_2.11-0.10.1.0.tgz -C ~/kafka
     git clone --depth 1 https://github.com/brendangregg/perf-tools
-    df -h
+    sudo mkfs.ext4 /dev/vdb
+    sudo mkdir /mnt/data
+    sudo mount /dev/vdb /mnt/data
+    sudo chown vagrant:vagrant /mnt/data
+    ~/
 EOF
 
- sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
+  sshpass -p vagrant scp -o StrictHostKeyChecking=no $ZK_DEP_SCRIPT vagrant@ZK_IP:
+
+  sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
+    mkdir -p ~/.scripts
+    mv ~/configureandstartzk.sh ~/.scripts
+    chmod +x ~/.scripts/configureandstartzk.sh
     sudo apt -y install linux-tools-common git
     wget https://www.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
     mkdir -p ~/.downloads
     mv zookeeper-3.4.6.tar.gz ~/.downloads
+    mkdir -p ~/zk
     tar xzf ~/.downloads/zookeeper-3.4.6.tar.gz -C ~/zk
     git clone --depth 1 https://github.com/brendangregg/perf-tools
 EOF
 
+  sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
+    ~/.scripts/configureandstartzk.sh
+EOF
 
+  sleep 20
+
+  sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
+    ~/.scripts/configureandstartkafka.sh
+EOF
 else
 echo "Unknown command: $COMMAND. Exiting.."
 exit 1
