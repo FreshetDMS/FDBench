@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cat > ~/zk/config/zoo.cfg << "EOF"
+cat > ~/zk/conf/zoo.cfg << "EOF"
 tickTime=2000
 initLimit=10
 syncLimit=5
