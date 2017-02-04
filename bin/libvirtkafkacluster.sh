@@ -305,7 +305,7 @@ EOF
     mv zookeeper-3.4.6.tar.gz ~/.downloads
     mkdir -p ~/zk
     tar xzf ~/.downloads/zookeeper-3.4.6.tar.gz
-    mv ~/.downloads/zookeeper-3.4.6.tar ~/zk
+    mv ~/.downloads/zookeeper-3.4.6 ~/zk
     git clone --depth 1 https://github.com/brendangregg/perf-tools
 EOF
 
