@@ -270,7 +270,7 @@ EOF
 
   echo $ZK_IP > $ZK_IP_FILE
 
-  sshpass -p vagrant scp -o StrictHostKeyChecking=no $KAFKA_DEP_SCRIPT vagrant@KAFKA_IP:
+  sshpass -p vagrant scp -o StrictHostKeyChecking=no $KAFKA_DEP_SCRIPT vagrant@$KAFKA_IP:
 
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
     echo $ZK_IP | tee ~/.zkip
@@ -293,7 +293,7 @@ EOF
     ~/
 EOF
 
-  sshpass -p vagrant scp -o StrictHostKeyChecking=no $ZK_DEP_SCRIPT vagrant@ZK_IP:
+  sshpass -p vagrant scp -o StrictHostKeyChecking=no $ZK_DEP_SCRIPT vagrant@$ZK_IP:
 
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
     mkdir -p ~/.scripts
