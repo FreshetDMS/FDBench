@@ -39,4 +39,6 @@ EOF
 
 cd ~/kafka
 
+echo "Starting Kafka"
+
 nohup ./bin/kafka-server-start.sh config/server.properties &

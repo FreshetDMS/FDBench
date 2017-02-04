@@ -10,4 +10,6 @@ EOF
 
 cd ~/zk
 
+echo "Starting Zookeeper"
+
 nohup ./bin/zkServer.sh start &
