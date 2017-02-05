@@ -275,6 +275,8 @@ EOF
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$KAFKA_IP << EOF
     sudo add-apt-repository -y ppa:webupd8team/java
     sudo apt-get update
+    echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+    echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
     sudo apt-get install oracle-java8-installer -y
     echo $ZK_IP | tee ~/.zkip
     echo $KAFKA_IP | tee ~/.kafkaip
@@ -300,6 +302,8 @@ EOF
   sshpass -p vagrant ssh -T -o StrictHostKeyChecking=no vagrant@$ZK_IP << EOF
     sudo add-apt-repository -y ppa:webupd8team/java
     sudo apt-get update
+    echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+    echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections
     sudo apt-get install oracle-java8-installer -y
     mkdir -p ~/.scripts
     mv ~/configureandstartzk.sh ~/.scripts
