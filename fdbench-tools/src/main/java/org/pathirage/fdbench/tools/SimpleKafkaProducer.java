@@ -18,9 +18,8 @@ package org.pathirage.fdbench.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.kafka.clients.producer.*;
 
 import java.util.Properties;
 import java.util.Random;
@@ -28,6 +27,7 @@ import java.util.Random;
 public class SimpleKafkaProducer {
 
   private static Random random = new Random(System.currentTimeMillis());
+  private static DescriptiveStatistics statistics = new DescriptiveStatistics();
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -45,13 +45,14 @@ public class SimpleKafkaProducer {
       // This is not a high accuracy sleep. But will work for microsecond sleep times
       // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
       waitNanos(interval);
-      kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)));
+      long sendStartNanos = System.nanoTime();
+      kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)), new ProduceCompletionCallback(startTime, sendStartNanos));
       i++;
-      if (i % 1000 == 0) {
-        System.out.println("Sent " + i + " messages!");
-      }
     }
 
+    System.out.println("\nStats:");
+    System.out.println("\tMean Response Time: " + statistics.getMean() / 1000000000);
+    System.out.println("\tSDV Response Time: " + statistics.getStandardDeviation() / 1000000000);
     System.exit(0);
   }
 
@@ -103,5 +104,24 @@ public class SimpleKafkaProducer {
 
     @Parameter(names = {"--topic", "-t"})
     public String topic = "test";
+  }
+
+  public static class ProduceCompletionCallback implements Callback {
+    private final long startNs;
+    private final long sendStartNanos;
+
+    public ProduceCompletionCallback(long startNs, long sendStartNanos) {
+      this.startNs = startNs;
+      this.sendStartNanos = sendStartNanos;
+    }
+
+    @Override
+    public void onCompletion(RecordMetadata metadata, Exception exception) {
+      long now = System.nanoTime();
+      long l = now - sendStartNanos;
+      if (exception == null) {
+        statistics.addValue(l); // Since this is workload generation, corrected histogram is not possible.
+      }
+    }
   }
 }

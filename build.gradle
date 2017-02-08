@@ -139,6 +139,7 @@ project(':fdbench-tools') {
     compile "com.typesafe:config:$typesafeConfigVersion"
     compile "com.beust:jcommander:$jCommanderVersion"
     compile "org.apache.commons:commons-lang3:$commonsLangVersion"
+    compile "org.apache.commons:commons-math3:$commonsMath3Version"
     compile "com.google.code.gson:gson:$gsonVersion"
     compile "com.google.guava:guava:$guavaVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
