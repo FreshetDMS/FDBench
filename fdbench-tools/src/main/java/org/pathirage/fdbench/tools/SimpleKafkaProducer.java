@@ -28,6 +28,7 @@ public class SimpleKafkaProducer {
 
   private static Random random = new Random(System.currentTimeMillis());
   private static DescriptiveStatistics statistics = new DescriptiveStatistics();
+  private static long completedRequests = 0;
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -53,6 +54,7 @@ public class SimpleKafkaProducer {
     System.out.println("\nStats:");
     System.out.println("\tMean Response Time: " + statistics.getMean() / 1000000000);
     System.out.println("\tSDV Response Time: " + statistics.getStandardDeviation() / 1000000000);
+    System.out.println("\tAverage Requests/s: " + (completedRequests/ ((System.currentTimeMillis() - startTime)/1000)));
     System.exit(0);
   }
 
@@ -121,6 +123,7 @@ public class SimpleKafkaProducer {
       long l = now - sendStartNanos;
       if (exception == null) {
         statistics.addValue(l); // Since this is workload generation, corrected histogram is not possible.
+        completedRequests++;
       }
     }
   }
