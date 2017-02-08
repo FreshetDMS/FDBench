@@ -42,10 +42,17 @@ public class SimpleKafkaProducer {
     long startTime = System.currentTimeMillis();
     int i = 0;
     while ((System.currentTimeMillis() - startTime) < options.duration * 1000) {
-      long interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
-      // This is not a high accuracy sleep. But will work for microsecond sleep times
-      // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
-      waitNanos(interval);
+      if (!options.fullThrottle) {
+        long interval;
+        if (options.constantInterarrival) {
+          interval = 1000000000 / options.messageRate;
+        } else {
+          interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
+        }
+        // This is not a high accuracy sleep. But will work for microsecond sleep times
+        // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
+        waitNanos(interval);
+      }
       long sendStartNanos = System.nanoTime();
       kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)), new ProduceCompletionCallback(startTime, sendStartNanos));
       i++;
@@ -106,6 +113,12 @@ public class SimpleKafkaProducer {
 
     @Parameter(names = {"--topic", "-t"})
     public String topic = "test";
+
+    @Parameter(names = {"--full-throttle", "-f"})
+    public boolean fullThrottle = true;
+
+    @Parameter(names = {"--constant-interarrival", "-c"})
+    public boolean constantInterarrival = true;
   }
 
   public static class ProduceCompletionCallback implements Callback {
