@@ -45,7 +45,7 @@ public class SimpleKafkaProducer {
       long interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
       // This is not a high accuracy sleep. But will work for microsecond sleep times
       // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
-      LockSupport.parkNanos(interval);
+      waitNanos(interval);
       kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)));
       i++;
       if (i % 1000 == 0) {
@@ -54,6 +54,14 @@ public class SimpleKafkaProducer {
     }
 
     System.exit(0);
+  }
+
+  private static void waitNanos(long nanos){
+    long start = System.nanoTime();
+    long end=0;
+    do{
+      end = System.nanoTime();
+    }while(start + nanos >= end);
   }
 
   private static Properties getProducerProperties(String brokers) {
