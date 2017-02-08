@@ -117,8 +117,8 @@ elif [ "$COMMAND" == "provision" ]; then
 <domain type='kvm'>
   <name>$KAFKA_DOMAIN_NAME</name>
   <uuid>$KAFKA_DOMAIN_UUID</uuid>
-  <memory unit='KiB'>4194304</memory>
-  <currentMemory unit='KiB'>4194304</currentMemory>
+  <memory unit='KiB'>2097152</memory>
+  <currentMemory unit='KiB'>2097152</currentMemory>
   <vcpu placement='static'>2</vcpu>
   <resource>
     <partition>/machine</partition>
@@ -202,8 +202,8 @@ EOF
 <domain type='kvm'>
   <name>$ZK_DOMAIN_NAME</name>
   <uuid>$ZK_DOMAIN_UUID</uuid>
-  <memory unit='KiB'>4194304</memory>
-  <currentMemory unit='KiB'>4194304</currentMemory>
+  <memory unit='KiB'>1048576</memory>
+  <currentMemory unit='KiB'>1048576</currentMemory>
   <vcpu placement='static'>2</vcpu>
   <resource>
     <partition>/machine</partition>
