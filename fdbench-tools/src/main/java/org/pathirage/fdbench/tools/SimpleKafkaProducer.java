@@ -24,7 +24,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 import java.util.Random;
-import java.util.concurrent.locks.LockSupport;
 
 public class SimpleKafkaProducer {
 
@@ -45,7 +44,6 @@ public class SimpleKafkaProducer {
       long interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
       // This is not a high accuracy sleep. But will work for microsecond sleep times
       // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
-      System.out.println("Waiting for  " + interval / 1000000000 + "seconds");
       waitNanos(interval);
       kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)));
       i++;
@@ -57,12 +55,12 @@ public class SimpleKafkaProducer {
     System.exit(0);
   }
 
-  private static void waitNanos(long nanos){
+  private static void waitNanos(long nanos) {
     long start = System.nanoTime();
-    long end=0;
-    do{
+    long end = 0;
+    do {
       end = System.nanoTime();
-    }while(start + nanos >= end);
+    } while (start + nanos >= end);
   }
 
   private static Properties getProducerProperties(String brokers) {
@@ -87,7 +85,7 @@ public class SimpleKafkaProducer {
   }
 
   private static double poissonRandomInterArrivalDelay(double L) {
-    return Math.log(1.0-Math.random())/-L;
+    return Math.log(1.0 - random.nextDouble()) / -L;
   }
 
   public static class Options {
