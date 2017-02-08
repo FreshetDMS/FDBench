@@ -34,6 +34,9 @@ public class SimpleKafkaProducer {
     Options options = new Options();
     new JCommander(options, args);
 
+    System.out.println(String.format("Starting produce with message-size: %s, brokers: %s, message-rate: %s, topic: %s, and duration: %s seconds",
+        options.messageSize, options.kafkaBrokers, options.messageRate, options.topic, options.duration));
+
     KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<byte[], byte[]>(getProducerProperties(options.kafkaBrokers));
 
     long startTime = System.currentTimeMillis();
