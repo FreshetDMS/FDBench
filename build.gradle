@@ -149,6 +149,24 @@ project(':fdbench-tools') {
     testCompile "junit:junit:$junitVersion"
   }
 
+  task tar(type: Tar) {
+    compression = Compression.GZIP
+    classifier = 'dist'
+
+    into('bin') {
+      from 'src/main/bash'
+      fileMode = 0755
+    }
+
+    into('lib') {
+      from configurations.runtime
+    }
+
+    into('lib') {
+      from jar
+    }
+  }
+
   task plotResults(type: FDBenchThroughputResultPlotterTask) {
     tableName "fdbench-producer-metrics-0802"
     benchmarkName "fdbench-producer-throughput-13"

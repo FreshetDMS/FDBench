@@ -16,29 +16,40 @@
 
 package org.pathirage.fdbench.tools;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.locks.LockSupport;
 
 public class SimpleKafkaProducer {
 
   private static Random random = new Random(System.currentTimeMillis());
 
   public static void main(String[] args) {
-    KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<byte[], byte[]>(getProducerProperties());
+    Options options = new Options();
+    new JCommander(options, args);
 
-    for (int i = 0; i < 100000; i++) {
-      kafkaProducer.send(new ProducerRecord<byte[], byte[]>("test1", generateRandomMessage(200)));
+    KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<byte[], byte[]>(getProducerProperties(options.kafkaBrokers));
+
+    long startTime = System.currentTimeMillis();
+    while (true && (System.currentTimeMillis() - startTime) < options.duration * 1000) {
+      long interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
+      // This is not a high accuracy sleep. But will work for microsecond sleep times
+      // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
+      LockSupport.parkNanos(interval);
+      kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)));
     }
   }
 
-  private static Properties getProducerProperties() {
+  private static Properties getProducerProperties(String brokers) {
     Properties producerProps = new Properties();
 
-    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "Milindas-iMac:9092");
+    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
     producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
     producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
     producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, "simple-producer");
@@ -54,5 +65,26 @@ public class SimpleKafkaProducer {
     }
 
     return payload;
+  }
+
+  private static double poissonRandomInterArrivalDelay(double L) {
+    return Math.log(1.0-Math.random())/-L;
+  }
+
+  public static class Options {
+    @Parameter(names = {"--msg-size", "-m"})
+    public int messageSize = 100;
+
+    @Parameter(names = {"--brokers", "-b"})
+    public String kafkaBrokers;
+
+    @Parameter(names = {"--msg-rate", "-r"})
+    public int messageRate = 100;
+
+    @Parameter(names = {"--duration", "-d"})
+    public int duration = 120;
+
+    @Parameter(names = {"--topic", "-t"})
+    public String topic = "test";
   }
 }
