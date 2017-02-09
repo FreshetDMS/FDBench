@@ -18,6 +18,7 @@ package org.pathirage.fdbench.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.HdrHistogram.Histogram;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.kafka.clients.producer.*;
 
@@ -28,6 +29,7 @@ public class SimpleKafkaProducer {
 
   private static Random random = new Random(System.currentTimeMillis());
   private static DescriptiveStatistics statistics = new DescriptiveStatistics();
+  private static Histogram latency = new Histogram(300000000000L, 5);
   private static long completedRequests = 0;
 
   public static void main(String[] args) {
@@ -61,7 +63,13 @@ public class SimpleKafkaProducer {
     System.out.println("\nStats:");
     System.out.println("\tMean Response Time: " + statistics.getMean() / 1000000000);
     System.out.println("\tSDV Response Time: " + statistics.getStandardDeviation() / 1000000000);
-    System.out.println("\tAverage Requests/s: " + (completedRequests/ ((System.currentTimeMillis() - startTime)/1000)));
+    System.out.println("\tAverage Requests/s: " + (completedRequests / ((System.currentTimeMillis() - startTime) / 1000)));
+    System.out.println("\nHistogram:");
+    System.out.println("\t50th Percentile: " + latency.getValueAtPercentile(50.0f));
+    System.out.println("\t75th Percentile: " + latency.getValueAtPercentile(75.0f));
+    System.out.println("\t90th Percentile: " + latency.getValueAtPercentile(90.0f));
+    System.out.println("\t99th Percentile: " + latency.getValueAtPercentile(99.0f));
+    System.out.println("\t99.99th Percentile: " + latency.getValueAtPercentile(99.99f));
     System.exit(0);
   }
 
@@ -128,10 +136,14 @@ public class SimpleKafkaProducer {
   public static class ProduceCompletionCallback implements Callback {
     private final long startNs;
     private final long sendStartNanos;
+    private final long expectedInterval;
+    private final boolean constantInterval;
 
-    public ProduceCompletionCallback(long startNs, long sendStartNanos) {
+    public ProduceCompletionCallback(long startNs, long sendStartNanos, long expectedInterval, boolean constantInterval) {
       this.startNs = startNs;
       this.sendStartNanos = sendStartNanos;
+      this.expectedInterval = expectedInterval;
+      this.constantInterval = constantInterval;
     }
 
     @Override
@@ -140,6 +152,11 @@ public class SimpleKafkaProducer {
       long l = now - sendStartNanos;
       if (exception == null) {
         statistics.addValue(l); // Since this is workload generation, corrected histogram is not possible.
+        if (constantInterval) {
+          latency.recordValueWithExpectedInterval(l, expectedInterval);
+        } else {
+          latency.recordValue(l);
+        }
         completedRequests++;
       }
     }
