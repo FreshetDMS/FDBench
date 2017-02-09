@@ -44,8 +44,8 @@ public class SimpleKafkaProducer {
     long startTime = System.currentTimeMillis();
     int i = 0;
     while ((System.currentTimeMillis() - startTime) < options.duration * 1000) {
+      long interval = 0L;
       if (!options.fullThrottle) {
-        long interval;
         if (options.constantInterarrival) {
           interval = 1000000000 / options.messageRate;
         } else {
@@ -56,7 +56,7 @@ public class SimpleKafkaProducer {
         waitNanos(interval);
       }
       long sendStartNanos = System.nanoTime();
-      kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)), new ProduceCompletionCallback(startTime, sendStartNanos));
+      kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)), new ProduceCompletionCallback(startTime, sendStartNanos, interval, options.constantInterarrival && !options.fullThrottle));
       i++;
     }
 
