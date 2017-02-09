@@ -1,4 +1,54 @@
 ---
+- name: Create Zookeeper EC2 security group
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Create security group
+      ec2_group:
+        name: "{{ ec2.zookeeper_security_group }}"
+        description: EC2 security group for Hadoop
+        region: "{{ ec2.region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 0
+            to_port: 65535
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: tcp
+            from_port: 0
+            to_port: 65535
+            cidr_ip: 0.0.0.0/0
+
+- name: Create Kafka EC2 security group
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Create security group
+      ec2_group:
+        name: "{{ ec2.kafka_security_group }}"
+        description: EC2 security group for Hadoop
+        region: "{{ ec2.region }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 0
+            to_port: 65535
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: tcp
+            from_port: 0
+            to_port: 65535
+            cidr_ip: 0.0.0.0/0
+
 - name: Create EC2 instances for Zookeeper
   hosts: localhost
   connection: local
@@ -33,6 +83,19 @@
       shell: "{{ ssh_known_hosts_command}} {{ item.item.public_dns_name }} >> {{ ssh_known_hosts_file }}"
       with_items: "{{ z_ssh_known_host_results.results }}"
       when: item.stdout == ""
+    - name: Adding ec2 instance as host for running python 2 install
+      add_host:
+        group: zk_ec2_hosts
+        name: "{{ item.public_dns_name }}"
+        ansible_host: "{{ item.public_ip }}"
+        ansible_port: 22
+        ansible_user: ubuntu
+        ansible_private_key_file: "{{ ec2.key_file }}"
+      with_items: "{{ zookeeperinstances.instances }}"
+    - name: Installing python
+      delegate_to: "{{ item }}"
+      raw: test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
+      with_items: "{{ groups['zk_ec2_hosts'] }}"
 
 - name: Install JDK on Zookeeper instances
   hosts: zookeepernodes
@@ -93,6 +156,19 @@
       shell: "{{ ssh_known_hosts_command}} {{ item.item.public_dns_name }} >> {{ ssh_known_hosts_file }}"
       with_items: "{{ k_ssh_known_host_results.results }}"
       when: item.stdout == ""
+    - name: Adding ec2 instance as host for running python 2 install
+      add_host:
+        group: kafka_ec2_hosts
+        name: "{{ item.public_dns_name }}"
+        ansible_host: "{{ item.public_ip }}"
+        ansible_port: 22
+        ansible_user: ubuntu
+        ansible_private_key_file: "{{ ec2.key_file }}"
+      with_items: "{{ kafkainstances.instances }}"
+    - name: Installing python
+      delegate_to: "{{ item }}"
+      raw: test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
+      with_items: "{{ groups['kafka_ec2_hosts'] }}"
 
 - name: Configure file system and install JDK on Kafka instances
   hosts: kafkanodes

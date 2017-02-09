@@ -3,12 +3,12 @@
 # ---------------------------
 ec2:
   hadoop_security_group: hadoopsg
-  key: thesisexperiments
+  key: bench-keypair
   zookeeper_instance_type: c3.xlarge
-  kafka_instance_type: c4.2xlarge
+  kafka_instance_type: c4.xlarge
   hadoop_master_instance_type: c3.xlarge
   hadoop_slave_instance_type: c3.xlarge
-  image: ami-9abea4fb
+  image: ami-7c803d1c
   region: us-west-2
   kafka_security_group: kafka
   zookeeper_security_group: zookeeper
@@ -18,6 +18,7 @@ ec2:
   zk_spot_price: 0.5
   kafka_spot_price: 0.8
   hadoop_spot_price: 0.5
+  key_file: "/Users/mpathira/Downloads/bench-keypair.pem.txt"
 
 # ---------------------------
 # SSH
@@ -40,7 +41,7 @@ influxdb_host: mugo.cs.indiana.edu
 #  JAVA
 #----------------------------
 java_home: /usr/local/java/jdk
-jdk_archive_url: http://download.oracle.com/otn-pub/java/jdk/8u111-b14/jdk-8u111-linux-x64.tar.gz
+jdk_archive_url: http://download.oracle.com/otn-pub/java/jdk/8u121-b13/jdk-8u121-linux-x64.tar.gz
 jdk_archive_filename: jdk-8u111-linux-x64.tar.gz
 jdk_version: jdk1.8.0_111
 

@@ -10,4 +10,4 @@
     ignore_errors: yes
 
   - name: Mount EBS volume at /mnt
-    command: mount -t ext4 -o defaults,noatime,data=writeback /dev/xvdb /mnt
+    command: mount /dev/xvdb /mnt
