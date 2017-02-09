@@ -37,7 +37,7 @@ public class SimpleKafkaProducer {
     System.out.println(String.format("Starting produce with message-size: %s, brokers: %s, message-rate: %s, topic: %s, and duration: %s seconds",
         options.messageSize, options.kafkaBrokers, options.messageRate, options.topic, options.duration));
 
-    KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<byte[], byte[]>(getProducerProperties(options.kafkaBrokers));
+    KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<byte[], byte[]>(getProducerProperties(options.kafkaBrokers, options.batchSize));
 
     long startTime = System.currentTimeMillis();
     int i = 0;
@@ -73,13 +73,14 @@ public class SimpleKafkaProducer {
     } while (start + nanos >= end);
   }
 
-  private static Properties getProducerProperties(String brokers) {
+  private static Properties getProducerProperties(String brokers, int batchSize) {
     Properties producerProps = new Properties();
 
     producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
     producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
     producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
     producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, "simple-producer");
+    producerProps.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
 
     return producerProps;
   }
@@ -119,6 +120,9 @@ public class SimpleKafkaProducer {
 
     @Parameter(names = {"--constant-interarrival", "-c"})
     public boolean constantInterarrival = false;
+
+    @Parameter(names = {"--batch-size", "-bs"})
+    public int batchSize = 1024;
   }
 
   public static class ProduceCompletionCallback implements Callback {
