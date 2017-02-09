@@ -115,10 +115,10 @@ public class SimpleKafkaProducer {
     public String topic = "test";
 
     @Parameter(names = {"--full-throttle", "-f"})
-    public boolean fullThrottle = true;
+    public boolean fullThrottle = false;
 
     @Parameter(names = {"--constant-interarrival", "-c"})
-    public boolean constantInterarrival = true;
+    public boolean constantInterarrival = false;
   }
 
   public static class ProduceCompletionCallback implements Callback {
