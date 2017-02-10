@@ -29,6 +29,7 @@ public class SimpleKafkaProducer {
 
   private static Random random = new Random(System.currentTimeMillis());
   private static DescriptiveStatistics statistics = new DescriptiveStatistics();
+  private static DescriptiveStatistics intervalStats = new DescriptiveStatistics();
   private static Histogram latency = new Histogram(300000000000L, 5);
   private static long completedRequests = 0;
 
@@ -51,6 +52,8 @@ public class SimpleKafkaProducer {
         } else {
           interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
         }
+
+        intervalStats.addValue(interval);
         // This is not a high accuracy sleep. But will work for microsecond sleep times
         // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
         waitNanos(interval);
@@ -60,6 +63,8 @@ public class SimpleKafkaProducer {
       i++;
     }
 
+    System.out.println("\nInterval Stats:");
+    System.out.println("\tMean Interval: " + intervalStats.getMean() / 1000000000);
     System.out.println("\nStats:");
     System.out.println("\tMean Response Time: " + statistics.getMean() / 1000000000);
     System.out.println("\tSDV Response Time: " + statistics.getStandardDeviation() / 1000000000);
