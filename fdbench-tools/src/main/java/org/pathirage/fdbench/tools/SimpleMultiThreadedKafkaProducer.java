@@ -19,59 +19,56 @@ package org.pathirage.fdbench.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import org.HdrHistogram.Histogram;
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.tools.ThroughputThrottler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class SimpleKafkaProducer {
-
+public class SimpleMultiThreadedKafkaProducer {
+  private static final Logger log = LoggerFactory.getLogger(SimpleMultiThreadedKafkaProducer.class);
   private static Random random = new Random(System.currentTimeMillis());
-  private static DescriptiveStatistics statistics = new DescriptiveStatistics();
-  private static DescriptiveStatistics intervalStats = new DescriptiveStatistics();
   private static Histogram latency = new Histogram(300000000000L, 5);
-  private static long completedRequests = 0;
+  private static AtomicLong totalMessagesSent = new AtomicLong(0);
+  private static AtomicLong totalBytesSent = new AtomicLong(0);
 
   public static void main(String[] args) {
     Options options = new Options();
     new JCommander(options, args);
 
-    System.out.println(String.format("Starting produce with message-size: %s, brokers: %s, message-rate: %s, topic: %s, and duration: %s seconds",
+    log.info(String.format("Starting produce with message-size: %s, brokers: %s, message-rate: %s, topic: %s, and duration: %s seconds",
         options.messageSize, options.kafkaBrokers, options.messageRate, options.topic, options.duration));
 
     KafkaProducer<byte[], byte[]> kafkaProducer = new KafkaProducer<byte[], byte[]>(getProducerProperties(options.kafkaBrokers, options.batchSize));
-
-    long startTime = System.currentTimeMillis();
+    byte[] payload = generateRandomMessage(options.messageSize);
+    ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(options.topic, payload);
+    long startMs = System.currentTimeMillis();
+    ThroughputThrottler throughputThrottler = new ThroughputThrottler(options.fullThrottle ? -1 : options.messageRate, startMs);
     int i = 0;
-    while ((System.currentTimeMillis() - startTime) < options.duration * 1000) {
-      long interval = 0L;
-      if (!options.fullThrottle) {
-        if (options.constantInterarrival) {
-          interval = 1000000000 / options.messageRate;
-        } else {
-          interval = (long) poissonRandomInterArrivalDelay((1 / options.messageRate) * 1000000000);
-        }
-
-        intervalStats.addValue(interval);
-        // This is not a high accuracy sleep. But will work for microsecond sleep times
-        // http://www.rationaljava.com/2015/10/measuring-microsecond-in-java.html
-        waitNanos(interval);
-      }
+    while ((System.currentTimeMillis() - startMs) < options.duration * 1000) {
       long sendStartNanos = System.nanoTime();
-      kafkaProducer.send(new ProducerRecord<byte[], byte[]>(options.topic, generateRandomMessage(options.messageSize)), new ProduceCompletionCallback(startTime, sendStartNanos, interval, options.constantInterarrival && !options.fullThrottle));
+      long sendStarMs = System.currentTimeMillis();
+      kafkaProducer.send(record, new ProduceCompletionCallback(sendStartNanos, payload.length));
       i++;
+      if (throughputThrottler.shouldThrottle(i, sendStarMs)) {
+        throughputThrottler.throttle();
+      }
     }
 
-    System.out.println("\nInterval Stats:");
-    System.out.println("\tMean Interval: " + intervalStats.getMean() / 1000000000);
+    kafkaProducer.close();
+    log.info("Benchmark completed.");
+
     System.out.println("\nStats:");
-    System.out.println("\tMean Response Time: " + statistics.getMean() / 1000000000);
-    System.out.println("\tSDV Response Time: " + statistics.getStandardDeviation() / 1000000000);
-    System.out.println("\tAverage Requests/s: " + (completedRequests / ((System.currentTimeMillis() - startTime) / 1000)));
-    System.out.println("\tTotal Requests Completed: " + completedRequests);
-    System.out.println("\tTotal Time (in seconds): " + ((System.currentTimeMillis() - startTime) / 1000));
-    System.out.println("\nHistogram:");
+    System.out.println("\tMean Response Time: " + latency.getMean() / 1000000000);
+    System.out.println("\tSDV Response Time: " + latency.getStdDeviation() / 1000000000);
+    System.out.println("\tAverage Requests/s: " + (totalMessagesSent.get() / ((System.currentTimeMillis() - startMs) / 1000)));
+    System.out.println("\tAverage bytes/s: " + (totalBytesSent.get() / ((System.currentTimeMillis() - startMs) / 1000)));
+    System.out.println("\tTotal Requests Completed: " + totalMessagesSent);
+    System.out.println("\tTotal Time (in seconds): " + ((System.currentTimeMillis() - startMs) / 1000));
+    System.out.println("\nLatency Histogram:");
     System.out.println("\t50th Percentile: " + latency.getValueAtPercentile(50.0f));
     System.out.println("\t75th Percentile: " + latency.getValueAtPercentile(75.0f));
     System.out.println("\t90th Percentile: " + latency.getValueAtPercentile(90.0f));
@@ -133,38 +130,28 @@ public class SimpleKafkaProducer {
     @Parameter(names = {"--full-throttle", "-f"})
     public boolean fullThrottle = false;
 
-    @Parameter(names = {"--constant-interarrival", "-c"})
-    public boolean constantInterarrival = false;
-
     @Parameter(names = {"--batch-size", "-bs"})
     public int batchSize = 1024;
   }
 
   public static class ProduceCompletionCallback implements Callback {
-    private final long startNs;
     private final long sendStartNanos;
-    private final long expectedInterval;
-    private final boolean constantInterval;
+    private final int payloadLength;
 
-    public ProduceCompletionCallback(long startNs, long sendStartNanos, long expectedInterval, boolean constantInterval) {
-      this.startNs = startNs;
+    public ProduceCompletionCallback(long sendStartNanos, int payloadLength) {
       this.sendStartNanos = sendStartNanos;
-      this.expectedInterval = expectedInterval;
-      this.constantInterval = constantInterval;
+      this.payloadLength = payloadLength;
     }
 
     @Override
     public void onCompletion(RecordMetadata metadata, Exception exception) {
       long now = System.nanoTime();
       long l = now - sendStartNanos;
-      if (exception == null) {
-        statistics.addValue(l); // Since this is workload generation, corrected histogram is not possible.
-        if (constantInterval) {
-          latency.recordValueWithExpectedInterval(l, expectedInterval);
-        } else {
-          latency.recordValue(l);
-        }
-        completedRequests++;
+      latency.recordValue(l);
+      totalMessagesSent.incrementAndGet();
+      totalBytesSent.addAndGet(payloadLength);
+      if (exception != null) {
+        exception.printStackTrace();
       }
     }
   }
