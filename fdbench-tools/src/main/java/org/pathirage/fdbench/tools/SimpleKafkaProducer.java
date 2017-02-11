@@ -28,8 +28,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class SimpleMultiThreadedKafkaProducer {
-  private static final Logger log = LoggerFactory.getLogger(SimpleMultiThreadedKafkaProducer.class);
+public class SimpleKafkaProducer {
+  private static final Logger log = LoggerFactory.getLogger(SimpleKafkaProducer.class);
   private static Random random = new Random(System.currentTimeMillis());
   private static Histogram latency = new Histogram(300000000000L, 5);
   private static AtomicLong totalMessagesSent = new AtomicLong(0);
