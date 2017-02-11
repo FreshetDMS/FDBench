@@ -69,6 +69,8 @@ public class SimpleKafkaProducer {
     System.out.println("\tMean Response Time: " + statistics.getMean() / 1000000000);
     System.out.println("\tSDV Response Time: " + statistics.getStandardDeviation() / 1000000000);
     System.out.println("\tAverage Requests/s: " + (completedRequests / ((System.currentTimeMillis() - startTime) / 1000)));
+    System.out.println("\tTotal Requests Completed: " + completedRequests);
+    System.out.println("\tTotal Time (in seconds): " + ((System.currentTimeMillis() - startTime) / 1000));
     System.out.println("\nHistogram:");
     System.out.println("\t50th Percentile: " + latency.getValueAtPercentile(50.0f));
     System.out.println("\t75th Percentile: " + latency.getValueAtPercentile(75.0f));
