@@ -18,7 +18,6 @@ package org.pathirage.fdbench.kafka;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.kafka.common.PartitionInfo;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
@@ -26,11 +25,8 @@ import org.pathirage.fdbench.config.BenchConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.plaf.nimbus.State;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.IntStream;
 
 public abstract class KafkaBenchmark implements Benchmark {
@@ -99,10 +95,10 @@ public abstract class KafkaBenchmark implements Benchmark {
 
     Integer[] partitionAssignment = ArrayUtils.toObject(IntStream.range(start, end).toArray());
 
-    taskConfig.put(Constants.ENV_PARTITIONS, Joiner.on(",").join(partitionAssignment));
-    taskConfig.put(Constants.ENV_TOPIC, benchmarkConfig.getTopic());
-    taskConfig.put(Constants.ENV_BROKERS, benchmarkConfig.getBrokers());
-    taskConfig.put(Constants.ENV_ZK, benchmarkConfig.getZKConnectionString());
+    taskConfig.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_PARTITIONS, Joiner.on(",").join(partitionAssignment));
+    taskConfig.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC, benchmarkConfig.getTopic());
+    taskConfig.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_BROKERS, benchmarkConfig.getBrokers());
+    taskConfig.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_ZK, benchmarkConfig.getZKConnectionString());
 
     return taskConfig;
   }

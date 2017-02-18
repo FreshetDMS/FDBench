@@ -23,6 +23,4 @@ public class Constants {
   public static final String FDBENCH_TASK_ID_ENV = "FDBENCH_TASK_ID";
   public static final String FDBENCH_BENCH_NAME_ENV = "FDBENCH_BENCH_NAME";
   public static final String FDBENCH_TASK_FACTORY_CLASS = "FDBENCH_TASK_FACTORY_CLASS";
-  public static final String FDBENCH_TOPIC  = "FDBENCH_TOPIC";
-  public static final String FDBENCH_PARTITION_ASSIGNMENT = "FDBENCH_PARTITION_ASSIGNMENT";
 }

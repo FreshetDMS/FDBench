@@ -17,7 +17,6 @@
 package org.pathirage.fdbench.kafka.throughput;
 
 import com.typesafe.config.Config;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -25,7 +24,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
 import org.pathirage.fdbench.FDBenchException;
-import org.pathirage.fdbench.kafka.Constants;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.metrics.api.Histogram;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
@@ -54,13 +53,13 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
     this.messagesConsumed = metricsRegistry.newCounter(CONSUMER_THROUGHPUT_BENCH, "messages-consumed");
     this.bytesRead = metricsRegistry.newCounter(CONSUMER_THROUGHPUT_BENCH, "bytes-read");
     this.consumeLatency = metricsRegistry.newHistogram(CONSUMER_THROUGHPUT_BENCH, "consume-latency",
-        Constants.MAX_RECORDABLE_LATENCY,
-        Constants.SIGNIFICANT_VALUE_DIGITS);
+        KafkaBenchmarkConstants.MAX_RECORDABLE_LATENCY,
+        KafkaBenchmarkConstants.SIGNIFICANT_VALUE_DIGITS);
     this.partitionAssignment = getPartitionAssignment();
   }
 
   private List<String> getPartitionAssignment() {
-    String assignedPartitions = System.getenv(Constants.ENV_PARTITIONS);
+    String assignedPartitions = System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_PARTITIONS);
     if (assignedPartitions == null || assignedPartitions.isEmpty()) {
       throw new FDBenchException("Cannot find partition assignment.");
     }
@@ -81,7 +80,7 @@ public class ConsumerThroughputTask extends KafkaBenchmarkTask {
 
   @Override
   public void run() {
-    log.info("Starting consumer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() + " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS));
+    log.info("Starting consumer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() + " with partition assignment: " + System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_PARTITIONS));
     // Assign topic partitions
     List<TopicPartition> assignedPartitions = new ArrayList<TopicPartition>();
 

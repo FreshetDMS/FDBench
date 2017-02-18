@@ -27,12 +27,13 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
   private static final String PRODUCE_TOPICS = "workload.produce";
   private static final String CONSUME_TOPICS = "workload.consume";
   private static final String REPLAY_TOPICS = "workload.replay";
+
   public SyntheticWorkloadGeneratorConfig(Config rawConfig) {
     super(rawConfig);
   }
 
   public Set<String> getProduceTopics() {
-      return getTopics(PRODUCE_TOPICS);
+    return getTopics(PRODUCE_TOPICS);
   }
 
   public Set<String> getConsumeTopics() {
@@ -104,28 +105,115 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
       return getInt("replication-factor", 1);
     }
 
-    public int getTasks() {
-      return getInt("tasks", 1);
-    }
-
-    public int getPublishers() {
-      return getInt("tasks", 1);
-    }
-
-    public int getConsumers() {
-      return getInt("tasks", 1);
-    }
-
-    public int getMessageRate() {
-      return getInt("msg-rate", 1000);
-    }
-
     public MessageSizeConfig getMessageSizeConfig() {
       return new MessageSizeConfig(getConfig("msg-size"));
     }
 
+    public List<ConsumerGroupConfig> getConsumerGroups() {
+      if (hasPath("consumers")) {
+        List<ConsumerGroupConfig> consumerGroups = new ArrayList<>();
+        Config consumers = getConfig("consumers");
+        Set<Map.Entry<String, ConfigValue>> consumerEntries = consumers.root().entrySet();
+
+        for (Map.Entry<String, ConfigValue> c : consumerEntries) {
+          consumerGroups.add(new ConsumerGroupConfig(c.getKey(), (Config) c.getValue().unwrapped(), false));
+        }
+
+        return consumerGroups;
+      }
+      return Collections.emptyList();
+    }
+
+    public List<ProducerGroupConfig> getProducerGroups() {
+      if (hasPath("producers")) {
+        List<ProducerGroupConfig> producerGroups = new ArrayList<>();
+        Config producers = getConfig("producers");
+        Set<Map.Entry<String, ConfigValue>> producerEntries = producers.root().entrySet();
+
+        for (Map.Entry<String, ConfigValue> c : producerEntries) {
+          producerGroups.add(new ProducerGroupConfig(c.getKey(), (Config) c.getValue().unwrapped()));
+        }
+
+        return producerGroups;
+      }
+      return Collections.emptyList();
+    }
+
+    public List<ConsumerGroupConfig> getReplayGroups() {
+      if (hasPath("replays")) {
+        List<ConsumerGroupConfig> replayGroups = new ArrayList<>();
+        Config replays = getConfig("replays");
+        Set<Map.Entry<String, ConfigValue>> replayEntries = replays.root().entrySet();
+
+        for (Map.Entry<String, ConfigValue> c : replayEntries) {
+          replayGroups.add(new ConsumerGroupConfig(c.getKey(), (Config) c.getValue().unwrapped(), true));
+        }
+
+        return replayGroups;
+      }
+      return Collections.emptyList();
+    }
+  }
+
+  public abstract static class WorkerGroupConfig extends AbstractConfig {
+    private static final String CONFIG_TASKS = "tasks";
+    private static final String CONFIG_DELAY = "delay";
+    private static final String CONFIG_RATE = "rate";
+
+    private final Config config;
+    private final String name;
+
+    public WorkerGroupConfig(String name, Config config) {
+      super(config);
+      this.name = name;
+      this.config = config;
+    }
+
+    public int getTaskCount() {
+      return getInt(CONFIG_TASKS, 1);
+    }
+
+    public int getDelaySecs() {
+      return getInt(CONFIG_DELAY, 0);
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public int getMessageRate() {
+      return getInt(CONFIG_RATE, 1000);
+    }
+
+    public abstract TopicConfig.Type getGroupType();
+  }
+
+  public static class ProducerGroupConfig extends WorkerGroupConfig {
+    public ProducerGroupConfig(String name, Config config) {
+      super(name, config);
+    }
+
+    @Override
+    public TopicConfig.Type getGroupType() {
+      return TopicConfig.Type.PRODUCE;
+    }
+  }
+
+  public static class ConsumerGroupConfig extends WorkerGroupConfig {
+    private final boolean replay;
+
+    public ConsumerGroupConfig(String name, Config config, boolean replay) {
+      super(name, config);
+      this.replay = replay;
+    }
+
     public MessageProcessingConfig getMessageProcessingConfig() {
       return new MessageProcessingConfig(getConfig("msg-processing"));
+    }
+
+    @Override
+    public TopicConfig.Type getGroupType() {
+      return replay ? TopicConfig.Type.REPLAY : TopicConfig.Type.CONSUME;
     }
   }
 

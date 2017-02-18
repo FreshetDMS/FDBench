@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka.perfmodeling;
+package org.pathirage.fdbench.kafka;
 
-public class ReplayTaskFactory {
+public class KafkaBenchmarkConstants {
+  public static final String ENV_KAFKA_BENCH_PARTITIONS = "KAFKA_BENCH_PARTITIONS";
+  public static final String ENV_KAFKA_BENCH_TOPIC = "KAFKA_BENCH_TOPIC";
+  public static final String ENV_KAFKA_BENCH_BROKERS = "KAFKA_BENCH_BROKERS";
+  public static final String ENV_KAFKA_BENCH_ZK = "KAFKA_BENCH_ZK";
+
+  public static final long MAX_RECORDABLE_LATENCY = 300000000000L;
+  public static final int SIGNIFICANT_VALUE_DIGITS = 5;
 }

@@ -23,7 +23,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
-import org.pathirage.fdbench.kafka.Constants;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.kafka.NSThroughputThrottler;
 import org.pathirage.fdbench.metrics.api.Histogram;
@@ -44,17 +44,17 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
   private final KafkaProducer<byte[], byte[]> producer;
 
   public ProducerThroughputTask(String taskId, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, Config rawConfig) {
-    super(taskId, "kafka-producer-throughput", benchmarkName, containerId, metricsRegistry, new ThroughputBenchmarkConfig(rawConfig));
+    super(taskId, PRODUCER_THROUGHPUT_BENCH, benchmarkName, containerId, metricsRegistry, new ThroughputBenchmarkConfig(rawConfig));
     this.producer = new KafkaProducer<byte[], byte[]>(getProducerProperties());
     this.elapsedTime = metricsRegistry.<Long>newGauge(PRODUCER_THROUGHPUT_BENCH, "elapsed-time", 0L);
     this.successTotal = metricsRegistry.newCounter(PRODUCER_THROUGHPUT_BENCH, "success-total");
     this.errorTotal = metricsRegistry.newCounter(PRODUCER_THROUGHPUT_BENCH, "error-total");
     this.produceLatency = metricsRegistry.newHistogram(PRODUCER_THROUGHPUT_BENCH, "produce-latency",
-        Constants.MAX_RECORDABLE_LATENCY,
-        Constants.SIGNIFICANT_VALUE_DIGITS);
+        KafkaBenchmarkConstants.MAX_RECORDABLE_LATENCY,
+        KafkaBenchmarkConstants.SIGNIFICANT_VALUE_DIGITS);
     this.errorLatency = metricsRegistry.newHistogram(PRODUCER_THROUGHPUT_BENCH, "produce-error-latency",
-        Constants.MAX_RECORDABLE_LATENCY,
-        Constants.SIGNIFICANT_VALUE_DIGITS);
+        KafkaBenchmarkConstants.MAX_RECORDABLE_LATENCY,
+        KafkaBenchmarkConstants.SIGNIFICANT_VALUE_DIGITS);
   }
 
   @Override
@@ -72,7 +72,7 @@ public class ProducerThroughputTask extends KafkaBenchmarkTask {
   @Override
   public void run() {
     log.info("Starting producer throughput benchmark task " + getTaskId() + " in container: " + getContainerId() +
-        " with partition assignment: " + System.getenv(Constants.ENV_PARTITIONS) + " of topic: " + getTopic() +
+        " with partition assignment: " + System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_PARTITIONS) + " of topic: " + getTopic() +
         " and the record limit: " + getRecordLimit());
     ProducerRecord<byte[], byte[]> record = new ProducerRecord<byte[], byte[]>(getTopic(), generateRandomMessage());
     ThroughputBenchmarkConfig c = (ThroughputBenchmarkConfig) getConfig();

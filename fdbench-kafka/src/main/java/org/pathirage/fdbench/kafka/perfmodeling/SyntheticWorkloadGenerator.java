@@ -24,6 +24,7 @@ import org.pathirage.fdbench.api.Constants;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.kafka.KafkaBenchmark;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 
 import java.util.*;
 
@@ -72,17 +73,15 @@ public class SyntheticWorkloadGenerator extends KafkaBenchmark {
 
   @Override
   public Map<String, String> configureTask(int taskId, BenchmarkDeploymentState deploymentState) {
-    // Tasks can read other configurations from config file. They just need to know the topic.
-    Map<String, String> taskConfig = new HashMap<>();
-
     SyntheticWorkloadGeneratorDeploymentState.TaskDeploymentConfig deploymentConfig =
         ((SyntheticWorkloadGeneratorDeploymentState) deploymentState).nextTaskDeploymentConfig();
 
-    taskConfig.put(Constants.FDBENCH_PARTITION_ASSIGNMENT, Joiner.on(",").join(deploymentConfig.getPartitions()));
-    taskConfig.put(Constants.FDBENCH_TOPIC, deploymentConfig.getConfig().getName());
-    taskConfig.put(Constants.FDBENCH_TASK_FACTORY_CLASS, deploymentConfig.getTaskFactoryClass());
+    Map<String, String> env = new HashMap<>();
+    env.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_BROKERS, workloadGeneratorConfig.getBrokers());
+    env.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_ZK, workloadGeneratorConfig.getZKConnectionString());
+    env.putAll(deploymentConfig.getTaskEnvironment());
 
-    return taskConfig;
+    return env;
   }
 
   private boolean areProduceTopicsExists() {
@@ -125,15 +124,27 @@ public class SyntheticWorkloadGenerator extends KafkaBenchmark {
     Set<String> replayTopics = workloadGeneratorConfig.getReplayTopics();
 
     for (String topic : produceTopics) {
-      requiredTasks += workloadGeneratorConfig.getProduceTopicConfig(topic).getPublishers();
+      List<SyntheticWorkloadGeneratorConfig.ProducerGroupConfig> producerGroups =
+          workloadGeneratorConfig.getProduceTopicConfig(topic).getProducerGroups();
+      for (SyntheticWorkloadGeneratorConfig.ProducerGroupConfig p : producerGroups) {
+        requiredTasks += p.getTaskCount();
+      }
     }
 
     for (String topic : consumerTopics) {
-      requiredTasks += workloadGeneratorConfig.getConsumerTopicConfig(topic).getConsumers();
+      List<SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig> consumerGroups =
+          workloadGeneratorConfig.getConsumerTopicConfig(topic).getConsumerGroups();
+      for (SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig c : consumerGroups) {
+        requiredTasks += c.getTaskCount();
+      }
     }
 
     for (String topic : replayTopics) {
-      requiredTasks += workloadGeneratorConfig.getReplayTopicConfig(topic).getConsumers();
+      List<SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig> consumerGroups =
+          workloadGeneratorConfig.getReplayTopicConfig(topic).getConsumerGroups();
+      for (SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig c : consumerGroups) {
+        requiredTasks += c.getTaskCount();
+      }
     }
 
     if (requiredTasks != new BenchConfig(workloadGeneratorConfig.getRawConfig()).getParallelism()) {

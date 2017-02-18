@@ -17,14 +17,12 @@
 package org.pathirage.fdbench.kafka.e2elatency;
 
 import com.typesafe.config.Config;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.samza.metrics.Counter;
-import org.pathirage.fdbench.kafka.Constants;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.metrics.api.Histogram;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
@@ -33,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Collections;
-import java.util.Properties;
 
 public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
   private static final Logger log = LoggerFactory.getLogger(E2ELatencyBenchTask.class);
@@ -106,7 +103,7 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
       before = System.nanoTime();
 
       try {
-        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(Constants.ENV_TOPIC), generateRandomMessage())).get();
+        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), generateRandomMessage())).get();
         ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
         if (records.isEmpty()) {
           String errMsg = "Didn't receive a response";
@@ -137,7 +134,7 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
       before = System.nanoTime();
 
       try {
-        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(Constants.ENV_TOPIC), generateRandomMessage())).get();
+        producer.send(new ProducerRecord<byte[], byte[]>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), generateRandomMessage())).get();
         ConsumerRecords<byte[], byte[]> records = consumer.poll(30000);
         if (records.isEmpty()) {
           String errMsg = "Didn't receive a response";
@@ -165,8 +162,8 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
 
   @Override
   public void run() {
-    log.info("Subscribing to topic " + System.getenv(Constants.ENV_TOPIC));
-    consumer.subscribe(Collections.singletonList(System.getenv(Constants.ENV_TOPIC)));
+    log.info("Subscribing to topic " + System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC));
+    consumer.subscribe(Collections.singletonList(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC)));
 
     if (requestRate <= 0) {
       runFullThrottle();
