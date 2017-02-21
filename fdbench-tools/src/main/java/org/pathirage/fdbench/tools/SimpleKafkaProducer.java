@@ -24,12 +24,21 @@ import org.apache.kafka.tools.ThroughputThrottler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SimpleKafkaProducer {
   private static final Logger log = LoggerFactory.getLogger(SimpleKafkaProducer.class);
+  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
+
   private static Random random = new Random(System.currentTimeMillis());
   private static Histogram latency = new Histogram(300000000000L, 5);
   private static AtomicLong totalMessagesSent = new AtomicLong(0);
@@ -74,6 +83,19 @@ public class SimpleKafkaProducer {
     System.out.println("\t90th Percentile: " + latency.getValueAtPercentile(90.0f));
     System.out.println("\t99th Percentile: " + latency.getValueAtPercentile(99.0f));
     System.out.println("\t99.99th Percentile: " + latency.getValueAtPercentile(99.99f));
+
+    Path latencyHistogram = Paths.get(sdf.format(new Date()) + ".csv");
+
+    try (BufferedWriter bw = Files.newBufferedWriter(latencyHistogram)) {
+     for (double p : org.pathirage.fdbench.metrics.api.Histogram.LOGARITHMIC_PERCENTILES){
+       bw.write(String.format("%3.4f,%d%n", p, latency.getValueAtPercentile(p)));
+     }
+    } catch (IOException e) {
+      System.out.println("Couldn't write the output.");
+      e.printStackTrace();
+      System.exit(-1);
+    }
+
     System.exit(0);
   }
 

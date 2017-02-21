@@ -134,6 +134,7 @@ project(':fdbench-datagen') {
 
 project(':fdbench-tools') {
   dependencies {
+    compile project(':fdbench-api')
     compile "com.google.guava:guava:$guavaVersion"
     compile "com.googlecode.objectify:objectify:$objectifyVersion"
     compile "com.typesafe:config:$typesafeConfigVersion"
