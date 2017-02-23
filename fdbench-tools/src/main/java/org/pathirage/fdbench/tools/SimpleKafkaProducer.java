@@ -153,7 +153,7 @@ public class SimpleKafkaProducer {
     public boolean fullThrottle = false;
 
     @Parameter(names = {"--batch-size", "-bs"})
-    public int batchSize = 1024;
+    public int batchSize = 16384;
   }
 
   public static class ProduceCompletionCallback implements Callback {

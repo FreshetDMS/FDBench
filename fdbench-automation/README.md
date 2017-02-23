@@ -32,3 +32,21 @@ This module contains set of Ansible roles, playbooks and modules for automating 
 * Wrap yarn-ec2 as an Ansible library
 * Deploy latest Kafka on EC2
 * Run some experiments to figure out things needed for the paper
+
+## Client Instance Setup
+
+```
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install oracle-java8-installer
+sudo apt-get install git
+git clone https://github.com/FreshetDMS/FDBench.git
+cd FDBench/
+git checkout automation
+./gradlew :fdbench-tools:tar
+cd fdbench-tools/
+cd build/distributions/
+tar xzf fdbench-tools-0.1-SNAPSHOT-dist.tgz
+cd bin/
+./run-class.sh org.pathirage.fdbench.tools.SimpleKafkaProducer -b ec2-54-191-194-64.us-west-2.compute.amazonaws.com:9092 -t test1 -r 2000 -d 60
+```

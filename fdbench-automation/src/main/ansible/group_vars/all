@@ -5,11 +5,11 @@ ec2:
   hadoop_security_group: hadoopsg
   key: bench-keypair
   zookeeper_instance_type: c3.xlarge
-  kafka_instance_type: m4.2xlarge
+  kafka_instance_type: m4.xlarge
   hadoop_master_instance_type: c3.xlarge
   hadoop_slave_instance_type: c3.xlarge
   image: ami-7c803d1c
-  region: us-west-2
+  region:
   kafka_security_group: kafka
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
@@ -19,9 +19,10 @@ ec2:
   kafka_spot_price: 0.8
   hadoop_spot_price: 0.5
   key_file: "/Users/mpathira/Downloads/bench-keypair.pem.txt"
+  kafka_ebs_size: 500
+  kafka_ebs_type: io1
   kafka_ebs_iops: 200
-  kafka_ebs_size: 1300
-  kafka_ebs_type: st1
+
 
 # ---------------------------
 # SSH
