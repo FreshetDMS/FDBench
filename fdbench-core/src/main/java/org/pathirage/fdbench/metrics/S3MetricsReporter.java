@@ -45,8 +45,8 @@ public class S3MetricsReporter extends AbstractMetricsSnapshotReporter implement
   private final AmazonS3Client s3Client;
   private final String bucketName;
 
-  public S3MetricsReporter(String name, String jobName, String containerName, int interval, S3MetricsReporterFactory.S3MetricsReporterConfig config) {
-    super(name, jobName, containerName, interval, Executors.newScheduledThreadPool(1, new ThreadFactory() {
+  public S3MetricsReporter(String name, String jobName, String containerName, S3MetricsReporterFactory.S3MetricsReporterConfig config) {
+    super(name, jobName, containerName, config.getReportingInterval(), Executors.newScheduledThreadPool(1, new ThreadFactory() {
       @Override
       public Thread newThread(Runnable r) {
         Thread thread = new Thread(r);

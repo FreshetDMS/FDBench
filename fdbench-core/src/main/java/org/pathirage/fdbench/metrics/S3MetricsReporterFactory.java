@@ -18,13 +18,16 @@ package org.pathirage.fdbench.metrics;
 
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.config.AbstractConfig;
+import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
 
 public class S3MetricsReporterFactory implements MetricsReporterFactory {
   @Override
   public MetricsReporter getMetricsReporter(String name, String containerName, Config config) {
-    return null;
+    return new S3MetricsReporter(name, new BenchConfig(config).getName(), containerName,
+        new S3MetricsReporterConfig(new MetricsReporterConfig(config).getReporterConfig(name)));
   }
 
   public static class S3MetricsReporterConfig extends AbstractConfig{
