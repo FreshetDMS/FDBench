@@ -25,6 +25,7 @@ import org.pathirage.fdbench.config.BenchConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -35,6 +36,7 @@ public abstract class KafkaBenchmark implements Benchmark {
   private final KafkaBenchmarkConfig benchmarkConfig;
   protected final KafkaAdmin kafkaAdmin;
   private final int parallelism;
+  private Date startTime;
 
   public KafkaBenchmark(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
     this.benchmarkConfig = benchmarkConfig;

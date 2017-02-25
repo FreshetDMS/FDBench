@@ -19,6 +19,8 @@ package org.pathirage.fdbench.config;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 
+import java.util.List;
+
 public abstract class AbstractConfig {
   final Config config;
 
@@ -72,6 +74,10 @@ public abstract class AbstractConfig {
     } catch (ConfigException.Missing e) {
       return defaultValue;
     }
+  }
+
+  public List<String> getStringList(String path) {
+    return config.getStringList(path);
   }
 
   public Config getConfig(String path) {

@@ -16,9 +16,12 @@
 
 package org.pathirage.fdbench.metrics;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -42,7 +45,7 @@ public class S3MetricsReporter extends AbstractMetricsSnapshotReporter implement
 
   private static final String CONTENT_TYPE = "application/json";
 
-  private final AmazonS3Client s3Client;
+  private final AmazonS3 s3Client;
   private final String bucketName;
 
   public S3MetricsReporter(String name, String jobName, String containerName, S3MetricsReporterFactory.S3MetricsReporterConfig config) {
@@ -56,8 +59,10 @@ public class S3MetricsReporter extends AbstractMetricsSnapshotReporter implement
       }
     }));
 
-    s3Client = new AmazonS3Client(new BasicAWSCredentials(config.getAWSAccessKeyId(), config.getAWSAccessKeySecret()));
-    s3Client.withRegion(Regions.fromName(config.getAWSRegion()));
+    AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+    builder.setRegion(config.getAWSRegion());
+    builder.setCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(config.getAWSAccessKeyId(), config.getAWSAccessKeySecret())));
+    s3Client = builder.build();
     bucketName = String.format("%s-%s", config.getS3BucketNamePrefix(), jobName);
   }
 

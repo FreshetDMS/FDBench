@@ -36,7 +36,7 @@ subprojects { project ->
   status = rootProject.status
   dependencyManagement {
     imports {
-      mavenBom 'com.amazonaws:aws-java-sdk-bom:1.10.47'
+      mavenBom 'com.amazonaws:aws-java-sdk-bom:1.11.96'
     }
   }
 }
@@ -57,6 +57,7 @@ project(':fdbench-core') {
     compile "org.apache.samza:samza-core_2.10:$samzaVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
     compile "com.amazonaws:aws-java-sdk-dynamodb"
+    compile "com.amazonaws:aws-java-sdk-cloudwatch"
     testCompile "junit:junit:$junitVersion"
   }
 }
