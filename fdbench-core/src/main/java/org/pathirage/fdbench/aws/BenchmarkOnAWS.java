@@ -29,16 +29,22 @@ import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.api.Benchmark;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public abstract class BenchmarkAWSClusters implements Benchmark {
+public abstract class BenchmarkOnAWS implements Benchmark {
+  private static final Logger log = LoggerFactory.getLogger(BenchmarkOnAWS.class);
+
+  private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
 
   private final int tenMinutes = 10 * 60;
   private final int oneMinute = 60;
@@ -49,11 +55,11 @@ public abstract class BenchmarkAWSClusters implements Benchmark {
   private final AmazonS3 s3Client;
   private final String bucketName;
 
-  protected BenchmarkAWSClusters(Config rawConfig) {
+  protected BenchmarkOnAWS(Config rawConfig) {
     this.config = new AWSConfiguration(rawConfig);
-    this.cloudWatch = getCloudWatchClient();
-    this.s3Client = getS3Client();
-    this.bucketName = getBucketName();
+    this.cloudWatch = config.isAWSBench() ? getCloudWatchClient() : null;
+    this.s3Client = config.isAWSBench() ? getS3Client() : null;
+    this.bucketName = config.isAWSBench() ? getBucketName() : null;
   }
 
   private AmazonCloudWatch getCloudWatchClient() {
@@ -78,7 +84,9 @@ public abstract class BenchmarkAWSClusters implements Benchmark {
 
   @Override
   public void teardown() {
-    getAndReportCloudWatchMetrics();
+    if (config.isAWSBench()) {
+      getAndReportCloudWatchMetrics();
+    }
   }
 
   private void getAndReportCloudWatchMetrics() {
@@ -123,12 +131,14 @@ public abstract class BenchmarkAWSClusters implements Benchmark {
   }
 
   private String metricsFileKey() {
-    return "cloudwatch-metrics.txt";
+    return String.format("cloudwatch-metrics-%s.txt", formatter.format(new Date()));
   }
 
-  private String getBucketName() {
-    return null;
+  private String getBucketName(){
+    return config.getS3BucketPrefix() + "-" + getBenchName();
   }
+
+  protected abstract String getBenchName();
 
   private void createBucket(String bucketName) {
     if (!s3Client.doesBucketExist(bucketName)) {

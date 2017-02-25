@@ -21,6 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
+import org.pathirage.fdbench.aws.BenchmarkOnAWS;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,6 @@ public abstract class KafkaBenchmark implements Benchmark {
   private final KafkaBenchmarkConfig benchmarkConfig;
   protected final KafkaAdmin kafkaAdmin;
   private final int parallelism;
-  private Date startTime;
 
   public KafkaBenchmark(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
     this.benchmarkConfig = benchmarkConfig;

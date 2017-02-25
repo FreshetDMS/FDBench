@@ -21,19 +21,24 @@ import com.google.common.collect.Sets;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.api.Constants;
+import org.pathirage.fdbench.aws.BenchmarkOnAWS;
 import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.kafka.KafkaAdmin;
 import org.pathirage.fdbench.kafka.KafkaBenchmark;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 
 import java.util.*;
 
-public class SyntheticWorkloadGenerator extends KafkaBenchmark {
+public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
   private final SyntheticWorkloadGeneratorConfig workloadGeneratorConfig;
-
+  private final KafkaAdmin kafkaAdmin;
+  private final String benchName;
   public SyntheticWorkloadGenerator(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
-    super(benchmarkConfig, parallelism);
+    super(benchmarkConfig.getRawConfig());
     workloadGeneratorConfig = (SyntheticWorkloadGeneratorConfig) benchmarkConfig;
+    benchName = new BenchConfig(benchmarkConfig.getRawConfig()).getName();
+    kafkaAdmin = new KafkaAdmin(benchName, benchmarkConfig.getBrokers(), benchmarkConfig.getZKConnectionString());
   }
 
   @Override
@@ -41,13 +46,10 @@ public class SyntheticWorkloadGenerator extends KafkaBenchmark {
     return ProducerTaskFactory.class;
   }
 
-  @Override
-  public boolean isValidPartitionCountAndParallelism(int partitionCount, int parallelism) {
-    return true;
-  }
 
   @Override
   public void setup() {
+    super.setup();
     validateTaskAllocation();
 
     if (areProduceTopicsExists()) {
@@ -69,6 +71,12 @@ public class SyntheticWorkloadGenerator extends KafkaBenchmark {
   @Override
   public void teardown() {
     super.teardown();
+    // TODO: Delete topics if needed
+  }
+
+  @Override
+  protected String getBenchName() {
+    return benchName;
   }
 
   @Override

@@ -22,6 +22,7 @@ import org.pathirage.fdbench.config.AbstractConfig;
 import java.util.List;
 
 public class AWSConfiguration extends AbstractConfig {
+  private static final String AWS_BENCH = "aws.bench";
   private static final String AWS_ACCESS_KEY_ID = "aws.access.key.id";
   private static final String AWS_ACCESS_KEY_SECRET = "aws.access.key.secret";
   private static final String AWS_REGION = "aws.region";
@@ -31,6 +32,10 @@ public class AWSConfiguration extends AbstractConfig {
 
   public AWSConfiguration(Config config) {
     super(config);
+  }
+
+  public boolean isAWSBench(){
+    return getBool(AWS_BENCH, false);
   }
 
   public String getAWSAccessKeyId() {
