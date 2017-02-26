@@ -11,6 +11,9 @@
 - name: Creating a Symbolic Link in {{ common['install_base_path'] }}/hadoop.
   file: src={{ common.install_base_path }}/hadoop-{{ hadoop.version }} path={{ common.soft_link_base_path }}/hadoop state=link owner={{ hadoop.user }} group={{ hadoop.group }}
 
+- name: Setup JAVA_HOME
+  lineinfile: dest=/home/{{ hadoop.user }}/.bashrc regexp="JAVA_HOME" line="export JAVA_HOME=/usr/lib/jvm/java-8-oracle"
+
 - name: Setup HADOOP_HOME
   lineinfile: dest=/home/{{ hadoop.user }}/.bashrc regexp="HADOOP_HOME" line="export HADOOP_HOME={{ common.soft_link_base_path }}/hadoop"
 

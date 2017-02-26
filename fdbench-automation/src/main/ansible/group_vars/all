@@ -23,6 +23,8 @@ ec2:
   kafka_ebs_type: io1
   kafka_ebs_iops: 200
 
+java_home_dir: "/usr/lib/jvm/java-8-oracle"
+
 
 # ---------------------------
 # SSH

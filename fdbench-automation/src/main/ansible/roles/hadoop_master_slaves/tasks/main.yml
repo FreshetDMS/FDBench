@@ -1,0 +1,5 @@
+---
+- name: Copy slaves file
+  template: src={{ item }} dest={{ common.soft_link_base_path }}/hadoop/etc/hadoop/{{ item }} owner={{ hadoop.user }} group={{ hadoop.group }}
+  with_items:
+    - slaves

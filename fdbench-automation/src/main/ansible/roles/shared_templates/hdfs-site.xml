@@ -29,12 +29,12 @@
     </property>
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>/home/{{ hadoop.user }}/hadoop-data/hdfs/datanode</value>
+        <value>file:///home/{{ hadoop.user }}/hadoop-data/hdfs/datanode</value>
         <final>true</final>
     </property>
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>/home/{{ hadoop.user }}/hadoop-data/hdfs/namenode</value>
+        <value>file:///home/{{ hadoop.user }}/hadoop-data/hdfs/namenode</value>
         <final>true</final>
     </property>
     <property>

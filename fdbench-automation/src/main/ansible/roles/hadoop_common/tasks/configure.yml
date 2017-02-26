@@ -10,3 +10,5 @@
     - yarn-site.xml
     - capacity-scheduler.xml
     - log4j.properties
+    - hadoop-env.sh
+    - yarn-env.sh
