@@ -176,7 +176,7 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
 
       switch (workerGroupConfig.getGroupType()) {
         case PRODUCE:
-          // TODO: Complete produce task specific configurations
+          env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_SIZE_MEAN, Integer.toString(config.getMessageSizeConfig().mean()));
           break;
         case CONSUME:
         case REPLAY:

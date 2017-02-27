@@ -17,6 +17,7 @@
 package org.pathirage.fdbench.kafka.perfmodeling;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValue;
 import org.pathirage.fdbench.config.AbstractConfig;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
@@ -116,7 +117,7 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
         Set<Map.Entry<String, ConfigValue>> consumerEntries = consumers.root().entrySet();
 
         for (Map.Entry<String, ConfigValue> c : consumerEntries) {
-          consumerGroups.add(new ConsumerGroupConfig(c.getKey(), (Config) c.getValue().unwrapped(), false));
+          consumerGroups.add(new ConsumerGroupConfig(c.getKey(), ((ConfigObject)c.getValue()).toConfig(), false));
         }
 
         return consumerGroups;
@@ -131,7 +132,7 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
         Set<Map.Entry<String, ConfigValue>> producerEntries = producers.root().entrySet();
 
         for (Map.Entry<String, ConfigValue> c : producerEntries) {
-          producerGroups.add(new ProducerGroupConfig(c.getKey(), (Config) c.getValue().unwrapped()));
+          producerGroups.add(new ProducerGroupConfig(c.getKey(),  ((ConfigObject)c.getValue()).toConfig()));
         }
 
         return producerGroups;
@@ -146,7 +147,7 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
         Set<Map.Entry<String, ConfigValue>> replayEntries = replays.root().entrySet();
 
         for (Map.Entry<String, ConfigValue> c : replayEntries) {
-          replayGroups.add(new ConsumerGroupConfig(c.getKey(), (Config) c.getValue().unwrapped(), true));
+          replayGroups.add(new ConsumerGroupConfig(c.getKey(), ((ConfigObject)c.getValue()).toConfig(), true));
         }
 
         return replayGroups;

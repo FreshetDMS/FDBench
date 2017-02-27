@@ -303,7 +303,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
           .withPeriod(oneMinute)
           .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
           .withMetricName("VolumeWriteBytes")
-          .withStatistics("Average", "Sum")
+          .withStatistics("Average", "Sum", "SampleCount")
           .withEndTime(new Date());
       results.add(cloudWatch.getMetricStatistics(request));
     }
@@ -339,7 +339,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
           .withPeriod(oneMinute)
           .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
           .withMetricName("VolumeReadBytes")
-          .withStatistics("Average", "Sum")
+          .withStatistics("Average", "Sum", "SampleCount")
           .withEndTime(new Date());
       results.add(cloudWatch.getMetricStatistics(request));
     }

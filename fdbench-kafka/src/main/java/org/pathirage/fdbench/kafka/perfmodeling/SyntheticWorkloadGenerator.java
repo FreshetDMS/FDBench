@@ -52,7 +52,7 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
     super.setup();
     validateTaskAllocation();
 
-    if (areProduceTopicsExists()) {
+    if (!workloadGeneratorConfig.isReuseTopic() &&  areProduceTopicsExists()) {
       throw new RuntimeException("Some produce topics already exists. Existing topics: " + Joiner.on(", ").join(kafkaAdmin.listTopics()));
     }
 
@@ -114,7 +114,9 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
 
   private void createTopics(List<SyntheticWorkloadGeneratorConfig.TopicConfig> topics) {
     for (SyntheticWorkloadGeneratorConfig.TopicConfig tc : topics) {
-      kafkaAdmin.createTopic(tc.getName(), tc.getPartitions(), tc.getReplicationFactor());
+      if (!kafkaAdmin.isTopicExists(tc.getName())) {
+        kafkaAdmin.createTopic(tc.getName(), tc.getPartitions(), tc.getReplicationFactor());
+      }
     }
   }
 
@@ -156,7 +158,7 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
     }
 
     if (requiredTasks != new BenchConfig(workloadGeneratorConfig.getRawConfig()).getParallelism()) {
-      throw new RuntimeException("Number of required tasks and allocated tasks does not match.");
+      throw new RuntimeException(String.format("Number of required tasks [%s] and allocated tasks [%s] does not match.", requiredTasks, new BenchConfig(workloadGeneratorConfig.getRawConfig()).getParallelism()));
     }
   }
 }
