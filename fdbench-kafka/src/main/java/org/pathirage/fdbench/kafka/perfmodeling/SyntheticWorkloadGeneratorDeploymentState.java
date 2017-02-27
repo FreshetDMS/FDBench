@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import org.apache.commons.math3.util.Pair;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
+import org.pathirage.fdbench.api.Constants;
 import org.pathirage.fdbench.kafka.KafkaBenchmark;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 import org.slf4j.Logger;
@@ -41,7 +42,6 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
   private int totalTasks = 0;
   private int configuredTaskCount = 0;
   private int currentWorkerGroupsTasks = 0;
-  private int configuredTasksForCurrentWorkerGroup = 0;
   private int taskOfCurrentWorkerGroup;
   private Pair<SyntheticWorkloadGeneratorConfig.WorkerGroupConfig,
       SyntheticWorkloadGeneratorConfig.TopicConfig> current = null;
@@ -95,10 +95,9 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
       throw new RuntimeException("No more tasks to deploy.");
     }
 
-    if (current == null || currentWorkerGroupsTasks == configuredTasksForCurrentWorkerGroup) {
+    if (current == null || currentWorkerGroupsTasks == taskOfCurrentWorkerGroup) {
       current = workerGroups.pop();
       currentWorkerGroupsTasks = current.getFirst().getTaskCount();
-      configuredTasksForCurrentWorkerGroup = 0;
       taskOfCurrentWorkerGroup = 0;
       int topicPartitions = current.getSecond().getPartitions();
       if (topicPartitions % currentWorkerGroupsTasks != 0) {
@@ -110,6 +109,7 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
           IntStream.range(0, topicPartitions).boxed().collect(Collectors.toList()),
           topicPartitions / currentWorkerGroupsTasks);
     }
+
     List<Integer> partitionAssignment = currentTopicPartitionAssignment.get(taskOfCurrentWorkerGroup);
     TaskDeploymentConfig deploymentConfig = new TaskDeploymentConfig(
         partitionAssignment.<Integer>toArray(new Integer[partitionAssignment.size()]),
@@ -177,16 +177,20 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
       switch (workerGroupConfig.getGroupType()) {
         case PRODUCE:
           env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_SIZE_MEAN, Integer.toString(config.getMessageSizeConfig().mean()));
+          env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, ProducerTaskFactory.class.getName());
           break;
         case CONSUME:
         case REPLAY:
           SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig consumerGroupConfig = (SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig)workerGroupConfig;
           env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_PROC_MEAN, Integer.toString(consumerGroupConfig.getMessageProcessingConfig().mean()));
           env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_PROC_STDEV, Integer.toString(consumerGroupConfig.getMessageProcessingConfig().std()));
+          env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, ConsumerTaskFactory.class.getName());
           break;
         default:
           break;
       }
+
+      log.info("Task environment:" + env.toString());
 
       return env;
     }
