@@ -56,6 +56,8 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
       throw new RuntimeException("Some produce topics already exists. Existing topics: " + Joiner.on(", ").join(kafkaAdmin.listTopics()));
     }
 
+    createTopics(getProduceTopicConfigs());
+
     Set<String> consumeTopics = getConsumeAndReplayTopicsNotInProduce();
     if (!consumeTopics.isEmpty()) {
       for (String topic : consumeTopics) {
@@ -64,8 +66,6 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
         }
       }
     }
-
-    createTopics(getProduceTopicConfigs());
   }
 
   @Override
