@@ -53,13 +53,11 @@ public abstract class BenchmarkOnAWS implements Benchmark {
   private Date startTime;
   private final AmazonCloudWatch cloudWatch;
   private final AmazonS3 s3Client;
-  private final String bucketName;
 
   protected BenchmarkOnAWS(Config rawConfig) {
     this.config = new AWSConfiguration(rawConfig);
     this.cloudWatch = config.isAWSBench() ? getCloudWatchClient() : null;
     this.s3Client = config.isAWSBench() ? getS3Client() : null;
-    this.bucketName = config.isAWSBench() ? getBucketName() : null;
   }
 
   private AmazonCloudWatch getCloudWatchClient() {
@@ -126,8 +124,8 @@ public abstract class BenchmarkOnAWS implements Benchmark {
       }
     }
 
-    createBucket(bucketName);
-    s3Client.putObject(new PutObjectRequest(bucketName, metricsFileKey(), tempFile.toFile()));
+    createBucket(getBucketName());
+    s3Client.putObject(new PutObjectRequest(getBucketName(), metricsFileKey(), tempFile.toFile()));
   }
 
   private String metricsFileKey() {

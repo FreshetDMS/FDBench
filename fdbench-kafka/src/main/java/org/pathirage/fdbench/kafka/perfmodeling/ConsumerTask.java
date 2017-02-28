@@ -109,6 +109,7 @@ public class ConsumerTask extends KafkaBenchmarkTask {
 
   @Override
   public void run() {
+    // TODO: Simulate processing time
     if (delay > 0) {
       try {
         Thread.sleep(delay * 1000);
@@ -138,6 +139,10 @@ public class ConsumerTask extends KafkaBenchmarkTask {
         }
 
         elapsedTime.set(System.currentTimeMillis() - startTime);
+      }
+
+      if (messagesConsumed.getCount() % 100000 == 0){
+        log.info(String.format("Consumed %s messages.", messagesConsumed.getCount()));
       }
     }
 
