@@ -1,0 +1,87 @@
+{
+  "brokers": [
+    {
+      "id": "broker-id",
+      "start": {
+        "timestamp": 1020202200,
+        "topic-metrics": {
+          "bytes-in-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "bytes-out-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "msgs-in-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "total-fetchreqs-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "total-producereqs-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          }
+        }
+      },
+      "end": {
+        "timestamp": 1020202200,
+        "topic-metrics": {
+          "bytes-in-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "bytes-out-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "msgs-in-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "total-fetchreqs-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          },
+          "total-producereqs-persec": {
+            "count": 0,
+            "mean-rate": 0,
+            "fivemin-rate": 0,
+            "onemin-rate": 0,
+            "fifteenmin-rate": 0
+          }
+        }
+      }
+    }
+  ]
+}

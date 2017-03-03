@@ -16,29 +16,71 @@
 
 package org.pathirage.fdbench.kafka.perfmodeling;
 
+import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import org.apache.zookeeper.ZooKeeper;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
-import org.pathirage.fdbench.api.Constants;
 import org.pathirage.fdbench.aws.BenchmarkOnAWS;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.kafka.KafkaAdmin;
-import org.pathirage.fdbench.kafka.KafkaBenchmark;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.management.*;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
+  private static final Logger logger = LoggerFactory.getLogger(SyntheticWorkloadGenerator.class);
+  private static final String METRIC_BYTES_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesInPerSec";
+  private static final String METRIC_BYTES_OUT_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=BytesOutPerSec";
+  private static final String MSGS_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=MessagesInPerSec";
+  private static final String TOTAL_FETCH_REQS_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=TotalFetchRequestsPerSec";
+  private static final String TOTAL_PRODUCE_REQS_IN_PER_SEC = "kafka.server:type=BrokerTopicMetrics,name=TotalProduceRequestsPerSec";
+
   private final SyntheticWorkloadGeneratorConfig workloadGeneratorConfig;
   private final KafkaAdmin kafkaAdmin;
   private final String benchName;
+  private final Gson gson = new Gson();
+  private Map<String, String> brokerJMXEndpoints;
+  private Map<String, BrokerMetricsSummary> brokerMetricsSummary = new HashMap<>();
+
   public SyntheticWorkloadGenerator(KafkaBenchmarkConfig benchmarkConfig, int parallelism) {
     super(benchmarkConfig.getRawConfig());
     workloadGeneratorConfig = (SyntheticWorkloadGeneratorConfig) benchmarkConfig;
     benchName = new BenchConfig(benchmarkConfig.getRawConfig()).getName();
     kafkaAdmin = new KafkaAdmin(benchName, benchmarkConfig.getBrokers(), benchmarkConfig.getZKConnectionString());
+    brokerJMXEndpoints = findBrokerJMXEndpoints();
+  }
+
+  private Map<String, String> findBrokerJMXEndpoints() {
+    try {
+      Map<String, String> jmxEndpoints = new HashMap<>();
+      ZooKeeper zk = new ZooKeeper(workloadGeneratorConfig.getZKConnectionString(), 10000, null);
+      List<String> ids = zk.getChildren("/brokers/ids", false);
+      for (String id : ids) {
+        String brokerInfo = new String(zk.getData("/brokers/ids/" + id, false, null));
+        Map brokerInfoMap = gson.fromJson(brokerInfo, Map.class);
+        jmxEndpoints.put(id, String.format("%s:%s", brokerInfoMap.get("host").toString(), ((Double)brokerInfoMap.get("jmx_port")).intValue()));
+      }
+
+      return jmxEndpoints;
+    } catch (Exception e) {
+      throw new RuntimeException("Couldn't get list broker info from zookeeper.", e);
+    }
   }
 
   @Override
@@ -52,7 +94,7 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
     super.setup();
     validateTaskAllocation();
 
-    if (!workloadGeneratorConfig.isReuseTopic() &&  areProduceTopicsExists()) {
+    if (!workloadGeneratorConfig.isReuseTopic() && areProduceTopicsExists()) {
       throw new RuntimeException("Some produce topics already exists. Existing topics: " + Joiner.on(", ").join(kafkaAdmin.listTopics()));
     }
 
@@ -77,6 +119,86 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
   @Override
   protected String getBenchName() {
     return benchName;
+  }
+
+  @Override
+  protected void setupHook() {
+    for (Map.Entry<String, String> e : brokerJMXEndpoints.entrySet()) {
+      BrokerMetricsSummary summary = new BrokerMetricsSummary(Integer.valueOf(e.getKey()));
+
+      try {
+        summary.setStart(getBrokerMetricsSnapshot(e.getKey(), e.getValue()));
+      } catch (Exception ex) {
+        logger.error("Could not retrieve broker metrics.", ex);
+        throw new RuntimeException("Could not retrieve broker metrics.", ex);
+      }
+
+      brokerMetricsSummary.put(e.getKey(), summary);
+    }
+  }
+
+  @Override
+  protected File teardownHook() {
+    for (Map.Entry<String, String> e : brokerJMXEndpoints.entrySet()) {
+      BrokerMetricsSummary summary = brokerMetricsSummary.get(e.getKey());
+
+      try {
+        summary.setEnd(getBrokerMetricsSnapshot(e.getKey(), e.getValue()));
+      } catch (Exception ex) {
+        logger.error("Could not retrieve broker metrics.", ex);
+        throw new RuntimeException("Could not retrieve broker metrics.", ex);
+      }
+    }
+
+
+    Brokers brokers = new Brokers();
+    brokers.setBrokers(Lists.newArrayList(brokerMetricsSummary.values()));
+    FileWriter fw = null;
+    try {
+      Path tmpDir = Files.createTempDirectory("broker-metrics");
+      Path brokerMetricsPath = Paths.get(tmpDir.toString(), "broker-metrics.json");
+      fw = new FileWriter(brokerMetricsPath.toFile());
+      Gson gson = new Gson();
+      gson.toJson(brokers, fw);
+      return brokerMetricsPath.toFile();
+    } catch (Exception e) {
+      throw new RuntimeException("Could not save broker metrics to file.", e);
+    } finally {
+      if (fw != null) {
+        try {
+          fw.close();
+        } catch (IOException e) {
+          logger.warn("File write close failed.", e);
+        }
+      }
+    }
+  }
+
+  private BrokerMetricsSummary.MetricsSnapshot getBrokerMetricsSnapshot(String brokerId, String brokerJMXEndpoint) throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+    BrokerMetricsSummary.MetricsSnapshot metricsSnapshot = new BrokerMetricsSummary.MetricsSnapshot(System.currentTimeMillis());
+    metricsSnapshot.setBytesInPerSec(getRates(brokerJMXEndpoint, METRIC_BYTES_IN_PER_SEC));
+    metricsSnapshot.setBytesOutPerSec(getRates(brokerJMXEndpoint, METRIC_BYTES_OUT_PER_SEC));
+    metricsSnapshot.setMsgsInPerSec(getRates(brokerJMXEndpoint, MSGS_IN_PER_SEC));
+    metricsSnapshot.setTotalFetchRequestsPerSec(getRates(brokerJMXEndpoint, TOTAL_FETCH_REQS_IN_PER_SEC));
+    metricsSnapshot.setTotalProduceRequestsPerSec(getRates(brokerJMXEndpoint, TOTAL_PRODUCE_REQS_IN_PER_SEC));
+
+    return metricsSnapshot;
+  }
+
+  private BrokerMetricsSummary.RateMetric getRates(String brokerJMXEndpoint, String objectName) throws IOException, MalformedObjectNameException, AttributeNotFoundException, MBeanException, ReflectionException, InstanceNotFoundException {
+    BrokerMetricsSummary.RateMetric rateMetric = new BrokerMetricsSummary.RateMetric();
+
+    JMXServiceURL u = new JMXServiceURL(String.format("service:jmx:rmi:///jndi/rmi://%s/jmxrmi", brokerJMXEndpoint));
+    try (JMXConnector c = JMXConnectorFactory.connect(u)) {
+      MBeanServerConnection mBeanServerConnection = c.getMBeanServerConnection();
+      rateMetric.setCount((Long) mBeanServerConnection.getAttribute(ObjectName.getInstance(objectName), "Count"));
+      rateMetric.setOneMinRate((double) mBeanServerConnection.getAttribute(ObjectName.getInstance(objectName), "OneMinuteRate"));
+      rateMetric.setOneMinRate((double) mBeanServerConnection.getAttribute(ObjectName.getInstance(objectName), "FifteenMinuteRate"));
+      rateMetric.setOneMinRate((double) mBeanServerConnection.getAttribute(ObjectName.getInstance(objectName), "FiveMinuteRate"));
+      rateMetric.setOneMinRate((double) mBeanServerConnection.getAttribute(ObjectName.getInstance(objectName), "MeanRate"));
+    }
+
+    return rateMetric;
   }
 
   @Override
@@ -159,6 +281,18 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
 
     if (requiredTasks != new BenchConfig(workloadGeneratorConfig.getRawConfig()).getParallelism()) {
       throw new RuntimeException(String.format("Number of required tasks [%s] and allocated tasks [%s] does not match.", requiredTasks, new BenchConfig(workloadGeneratorConfig.getRawConfig()).getParallelism()));
+    }
+  }
+
+  public static class Brokers {
+    private List<BrokerMetricsSummary> brokers;
+
+    public List<BrokerMetricsSummary> getBrokers() {
+      return brokers;
+    }
+
+    public void setBrokers(List<BrokerMetricsSummary> brokers) {
+      this.brokers = brokers;
     }
   }
 }

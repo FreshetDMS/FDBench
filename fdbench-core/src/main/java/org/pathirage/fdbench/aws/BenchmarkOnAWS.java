@@ -32,6 +32,7 @@ import org.pathirage.fdbench.api.Benchmark;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,16 +79,18 @@ public abstract class BenchmarkOnAWS implements Benchmark {
   @Override
   public void setup() {
     startTime = new Date();
+    setupHook();
   }
 
   @Override
   public void teardown() {
     if (config.isAWSBench()) {
-      getAndReportCloudWatchMetrics();
+      File additionalInfo = teardownHook();
+      getAndReportCloudWatchMetrics(additionalInfo);
     }
   }
 
-  private void getAndReportCloudWatchMetrics() {
+  private void getAndReportCloudWatchMetrics(File additionalInfo) {
     List<GetMetricStatisticsResult> metrics = new ArrayList<>();
 
     metrics.addAll(getCPUUtilizationMetrics());
@@ -126,6 +129,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
     createBucket(getBucketName());
     s3Client.putObject(new PutObjectRequest(getBucketName(), metricsFileKey(), tempFile.toFile()));
+    s3Client.putObject(new PutObjectRequest(getBucketName(), additionalInfo.getName(), additionalInfo));
   }
 
   private String metricsFileKey() {
@@ -137,6 +141,14 @@ public abstract class BenchmarkOnAWS implements Benchmark {
   }
 
   protected abstract String getBenchName();
+
+  /**
+   * Sub classes are open to implement setup and tear down hook to collect any additional information and hand them over
+   * as a file during teardown. This class will make sure that file get uploaded to S3 in the same bucket as cloudwatch
+   * metrics data.
+   */
+  protected abstract void setupHook();
+  protected abstract File teardownHook();
 
   private void createBucket(String bucketName) {
     if (!s3Client.doesBucketExist(bucketName)) {

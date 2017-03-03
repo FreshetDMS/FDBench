@@ -3,6 +3,9 @@
   - name: Lets wait to see if we have Port 2181 is avialable.
     wait_for: host="{{ groups['zookeepernodes'][0] }}" port=2181 delay=5 timeout=15
 
+  - name: Setup JMX_PORT
+    lineinfile: dest=/etc/environment regexp="JMX_PORT" line="JMX_PORT=10999"
+
   - name: Starting kafka server on port 9091/9092.
     command: bash "{{ common.soft_link_base_path }}"/kafka/config/kafka_server_starter.sh
     register: output
