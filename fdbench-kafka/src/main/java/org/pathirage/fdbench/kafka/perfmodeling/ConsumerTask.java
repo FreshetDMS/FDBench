@@ -107,9 +107,12 @@ public class ConsumerTask extends KafkaBenchmarkTask {
     return Integer.valueOf(System.getenv(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MESSAGE_RATE));
   }
 
+  protected int getPerMessageProcessingTime() {
+    return Integer.valueOf(System.getenv(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_PROC_MEAN));
+  }
+
   @Override
   public void run() {
-    // TODO: Simulate processing time
     if (delay > 0) {
       try {
         Thread.sleep(delay * 1000);
@@ -129,6 +132,9 @@ public class ConsumerTask extends KafkaBenchmarkTask {
       }
 
       for (ConsumerRecord<byte[], byte[]> r : records) {
+        // Simulating message processing; TODO: Make it possible to simulate different message processing time distributions
+        busyWait(getPerMessageProcessingTime());
+
         messagesConsumed.inc();
         if (r.key() != null) {
           bytesConsumed.inc(r.key().length);
@@ -141,11 +147,23 @@ public class ConsumerTask extends KafkaBenchmarkTask {
         elapsedTime.set(System.currentTimeMillis() - startTime);
       }
 
-      if (messagesConsumed.getCount() % 100000 == 0){
+      if (messagesConsumed.getCount() % 100000 == 0) {
         log.info(String.format("Consumed %s messages.", messagesConsumed.getCount()));
       }
     }
 
+  }
+
+  // Accuracy of nanoTime: https://shipilev.net/blog/2014/nanotrusting-nanotime/
+  private void busyWait(long nanoSeconds) {
+    if (nanoSeconds < 0) {
+      return;
+    }
+    long start = System.nanoTime();
+    long end = 0;
+    do {
+      end = System.nanoTime();
+    } while (start + nanoSeconds >= end);
   }
 
   @Override
