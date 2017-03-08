@@ -104,10 +104,17 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
         log.warn("Topic " + current.getSecond().getName() + " partitions (" + topicPartitions + " ) will not be " +
             "evenly divided across tasks (" + currentWorkerGroupsTasks + ")");
       }
-
-      currentTopicPartitionAssignment = Lists.partition(
-          IntStream.range(0, topicPartitions).boxed().collect(Collectors.toList()),
-          topicPartitions / currentWorkerGroupsTasks);
+      if (!current.getFirst().isUseAllPartitions()) {
+        currentTopicPartitionAssignment = Lists.partition(
+            IntStream.range(0, topicPartitions).boxed().collect(Collectors.toList()),
+            topicPartitions / currentWorkerGroupsTasks);
+      } else {
+        List<List<Integer>> partitionAssignment = new ArrayList<>();
+        for (int i = 0; i < currentWorkerGroupsTasks;i++){
+          partitionAssignment.add(IntStream.range(0, topicPartitions).boxed().collect(Collectors.toList()));
+        }
+        currentTopicPartitionAssignment = partitionAssignment;
+      }
     }
 
     List<Integer> partitionAssignment = currentTopicPartitionAssignment.get(taskOfCurrentWorkerGroup);

@@ -79,7 +79,9 @@ public abstract class BenchmarkOnAWS implements Benchmark {
   @Override
   public void setup() {
     startTime = new Date();
-    setupHook();
+    if (config.isAWSBench()) {
+      setupHook();
+    }
   }
 
   @Override

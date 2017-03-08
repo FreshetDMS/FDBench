@@ -160,6 +160,7 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
     private static final String CONFIG_TASKS = "tasks";
     private static final String CONFIG_DELAY = "delay";
     private static final String CONFIG_RATE = "rate";
+    private static final String CONFIG_USE_ALL_PARTITIONS = "use-all-partitions";
 
     private final Config config;
     private final String name;
@@ -184,6 +185,10 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
 
     public int getMessageRate() {
       return getInt(CONFIG_RATE, 1000);
+    }
+
+    public boolean isUseAllPartitions(){
+      return getBool(CONFIG_USE_ALL_PARTITIONS, false);
     }
 
     public abstract TopicConfig.Type getGroupType();
