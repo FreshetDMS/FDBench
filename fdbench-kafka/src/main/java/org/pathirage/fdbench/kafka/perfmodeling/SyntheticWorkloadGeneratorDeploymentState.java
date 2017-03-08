@@ -110,7 +110,7 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
             topicPartitions / currentWorkerGroupsTasks);
       } else {
         List<List<Integer>> partitionAssignment = new ArrayList<>();
-        for (int i = 0; i < currentWorkerGroupsTasks;i++){
+        for (int i = 0; i < currentWorkerGroupsTasks; i++) {
           partitionAssignment.add(IntStream.range(0, topicPartitions).boxed().collect(Collectors.toList()));
         }
         currentTopicPartitionAssignment = partitionAssignment;
@@ -188,7 +188,7 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
           break;
         case CONSUME:
         case REPLAY:
-          SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig consumerGroupConfig = (SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig)workerGroupConfig;
+          SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig consumerGroupConfig = (SyntheticWorkloadGeneratorConfig.ConsumerGroupConfig) workerGroupConfig;
           env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_PROC_MEAN, Integer.toString(consumerGroupConfig.getMessageProcessingConfig().mean()));
           env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_PROC_STDEV, Integer.toString(consumerGroupConfig.getMessageProcessingConfig().std()));
           env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, ConsumerTaskFactory.class.getName());

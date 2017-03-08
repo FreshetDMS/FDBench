@@ -5,7 +5,7 @@ ec2:
   hadoop_security_group: hadoopsg
   key: bench-keypair
   zookeeper_instance_type: c3.xlarge
-  kafka_instance_type: m4.10xlarge
+  kafka_instance_type: m4.2xlarge
   hadoop_master_instance_type: c3.xlarge
   hadoop_slave_instance_type: c3.xlarge
   image: ami-7c803d1c
@@ -14,7 +14,7 @@ ec2:
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
   zookeeper_instance_count: 1
-  hadoop_slave_count: 4
+  hadoop_slave_count: 3
   zk_spot_price: 0.5
   kafka_spot_price: 1.0
   hadoop_spot_price: 0.5

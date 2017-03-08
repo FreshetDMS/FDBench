@@ -20,6 +20,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
+import com.amazonaws.services.cloudwatch.model.Datapoint;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsResult;
@@ -27,6 +28,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CreateBucketRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.google.gson.*;
+import com.google.gson.stream.JsonWriter;
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.api.Benchmark;
 import org.slf4j.Logger;
@@ -38,9 +41,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public abstract class BenchmarkOnAWS implements Benchmark {
   private static final Logger log = LoggerFactory.getLogger(BenchmarkOnAWS.class);
@@ -92,30 +93,85 @@ public abstract class BenchmarkOnAWS implements Benchmark {
     }
   }
 
-  private void getAndReportCloudWatchMetrics(File additionalInfo) {
-    List<GetMetricStatisticsResult> metrics = new ArrayList<>();
+  private JsonArray metricStatisticsResultsToJson(List<GetMetricStatisticsResult> metricStatisticsResults) {
+    JsonArray metricsArray = new JsonArray();
+    for (GetMetricStatisticsResult metric : metricStatisticsResults) {
+      JsonObject metricObj = new JsonObject();
+      JsonArray dataPoints = new JsonArray();
+      metricObj.add("label", new JsonPrimitive(metric.getLabel()));
 
-    metrics.addAll(getCPUUtilizationMetrics());
-    metrics.addAll(getDiskReadBytesMetrics());
-    metrics.addAll(getDiskReadOpsMetrics());
-    metrics.addAll(getDiskWriteBytesMetrics());
-    metrics.addAll(getDiskWriteOpsMetrics());
-    metrics.addAll(getNetworkBytesInMetrics());
-    metrics.addAll(getNetworkBytesOutMetrics());
-    metrics.addAll(getEBSVolumeQueueLengthMetrics());
-    metrics.addAll(getEBSVolumeReadBytesMetrics());
-    metrics.addAll(getEBSVolumeReadOpsMetrics());
-    metrics.addAll(getEBSVolumeWriteBytesMetrics());
-    metrics.addAll(getEBSVolumeWriteOpsMetrics());
+      for (Datapoint dp : metric.getDatapoints()) {
+        JsonObject dataPoint = new JsonObject();
+        if (dp.getTimestamp() != null)
+          dataPoint.add("timestamp", new JsonPrimitive(dp.getTimestamp().getTime()));
+        if (dp.getSampleCount() != null)
+          dataPoint.add("sample-count", new JsonPrimitive(dp.getSampleCount()));
+        if (dp.getAverage() != null)
+          dataPoint.add("average", new JsonPrimitive(dp.getAverage()));
+        if (dp.getSum() != null)
+          dataPoint.add("sum", new JsonPrimitive(dp.getSum()));
+        if (dp.getMinimum() != null)
+          dataPoint.add("min", new JsonPrimitive(dp.getMinimum()));
+        if (dp.getMaximum() != null)
+          dataPoint.add("max", new JsonPrimitive(dp.getMaximum()));
+        if (dp.getUnit() != null)
+          dataPoint.add("unit", new JsonPrimitive(dp.getUnit()));
+        if (dp.getExtendedStatistics() != null) {
+          Map<String, Double> extStats = dp.getExtendedStatistics();
+          for (Map.Entry<String, Double> e : extStats.entrySet()) {
+            dataPoint.add(e.getKey(), new JsonPrimitive(e.getValue()));
+          }
+        }
+
+        dataPoints.add(dataPoint);
+      }
+
+      metricObj.add("data-points", dataPoints);
+
+      metricsArray.add(metricObj);
+    }
+
+    return metricsArray;
+  }
+
+  private void getAndReportCloudWatchMetrics(File additionalInfo) {
+
+    JsonObject metrics = new JsonObject();
+    JsonArray instances = new JsonArray();
+    JsonArray volumes = new JsonArray();
+
+    Map<String, List<GetMetricStatisticsResult>> instanceMetrics = getInstanceMetrics();
+    Map<String, List<GetMetricStatisticsResult>> volumeMetrics = getVolumeMetrics();
+
+    for (String instance : instanceMetrics.keySet()) {
+      JsonObject i = new JsonObject();
+
+      i.add("instance", new JsonPrimitive(instance));
+      i.add("metrics", metricStatisticsResultsToJson(instanceMetrics.get(instance)));
+
+      instances.add(i);
+    }
+
+    metrics.add("instances", instances);
+
+    for (String volume : volumeMetrics.keySet()) {
+      JsonObject v = new JsonObject();
+
+      v.add("volume", new JsonPrimitive(volume));
+      v.add("metrics", metricStatisticsResultsToJson(volumeMetrics.get(volume)));
+
+      volumes.add(v);
+    }
+
+    metrics.add("volumes", volumes);
 
     Path tempFile = null;
     FileWriter writer = null;
     try {
       tempFile = Files.createTempFile("cloudwatch-metrics", null);
       writer = new FileWriter(tempFile.toFile());
-      for (GetMetricStatisticsResult r : metrics) {
-        writer.write(String.format("%s%n", r.toString()));
-      }
+      Gson gson = new Gson();
+      gson.toJson(metrics, new JsonWriter(writer));
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
@@ -138,7 +194,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
     return String.format("cloudwatch-metrics-%s.txt", formatter.format(new Date()));
   }
 
-  private String getBucketName(){
+  private String getBucketName() {
     return config.getS3BucketPrefix() + "-" + getBenchName();
   }
 
@@ -150,6 +206,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
    * metrics data.
    */
   protected abstract void setupHook();
+
   protected abstract File teardownHook();
 
   private void createBucket(String bucketName) {
@@ -162,219 +219,187 @@ public abstract class BenchmarkOnAWS implements Benchmark {
     }
   }
 
-  private List<GetMetricStatisticsResult> getCPUUtilizationMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-    for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("CPUUtilization")
-          .withStatistics("Average")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
-  }
-
-  private List<GetMetricStatisticsResult> getNetworkBytesInMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
+  private Map<String, List<GetMetricStatisticsResult>> getInstanceMetrics() {
+    Map<String, List<GetMetricStatisticsResult>> instanceMetrics = new HashMap<>();
 
     for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("NetworkIn")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
+      List<GetMetricStatisticsResult> metrics = new ArrayList<>();
+
+      metrics.add(getCPUUtilizationMetrics(instanceId));
+      metrics.add(getNetworkBytesInMetrics(instanceId));
+      metrics.add(getNetworkBytesOutMetrics(instanceId));
+      metrics.add(getDiskReadBytesMetrics(instanceId));
+      metrics.add(getDiskReadOpsMetrics(instanceId));
+      metrics.add(getDiskWriteBytesMetrics(instanceId));
+      metrics.add(getDiskWriteOpsMetrics(instanceId));
+
+      instanceMetrics.put(instanceId, metrics);
     }
 
-    return results;
+    return instanceMetrics;
   }
 
-  private List<GetMetricStatisticsResult> getNetworkBytesOutMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("NetworkOut")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
-  }
-
-  private List<GetMetricStatisticsResult> getDiskWriteOpsMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("DiskWriteOps")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
-  }
-
-  private List<GetMetricStatisticsResult> getDiskReadOpsMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("DiskReadOps")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
-  }
-
-  private List<GetMetricStatisticsResult> getDiskWriteBytesMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("DiskWriteBytes")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
-  }
-
-  private List<GetMetricStatisticsResult> getDiskReadBytesMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String instanceId : config.getEC2Instances()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EC2")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
-          .withMetricName("DiskReadBytes")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
-  }
-
-  private List<GetMetricStatisticsResult> getEBSVolumeWriteOpsMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
+  private Map<String, List<GetMetricStatisticsResult>> getVolumeMetrics() {
+    Map<String, List<GetMetricStatisticsResult>> volumeMetrics = new HashMap<>();
     for (String volumeId : config.getEBSVolumes()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EBS")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
-          .withMetricName("VolumeWriteOps")
-          .withStatistics("Average")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
+      List<GetMetricStatisticsResult> metrics = new ArrayList<>();
+
+      metrics.add(getEBSVolumeQueueLengthMetrics(volumeId));
+      metrics.add(getEBSVolumeReadBytesMetrics(volumeId));
+      metrics.add(getEBSVolumeReadOpsMetrics(volumeId));
+      metrics.add(getEBSVolumeWriteBytesMetrics(volumeId));
+      metrics.add(getEBSVolumeWriteOpsMetrics(volumeId));
+
+      volumeMetrics.put(volumeId, metrics);
     }
 
-    return results;
+    return volumeMetrics;
   }
 
-  private List<GetMetricStatisticsResult> getEBSVolumeWriteBytesMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String volumeId : config.getEBSVolumes()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EBS")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
-          .withMetricName("VolumeWriteBytes")
-          .withStatistics("Average", "Sum", "SampleCount")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
+  private GetMetricStatisticsResult getCPUUtilizationMetrics(String instanceId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("CPUUtilization")
+        .withStatistics("Average")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
   }
 
-  private List<GetMetricStatisticsResult> getEBSVolumeReadOpsMetrics() {
+  private GetMetricStatisticsResult getNetworkBytesInMetrics(String instanceId) {
     List<GetMetricStatisticsResult> results = new ArrayList<>();
 
-    for (String volumeId : config.getEBSVolumes()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EBS")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
-          .withMetricName("VolumeReadOps")
-          .withStatistics("Average")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("NetworkIn")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
   }
 
-  private List<GetMetricStatisticsResult> getEBSVolumeReadBytesMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
-
-    for (String volumeId : config.getEBSVolumes()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EBS")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
-          .withMetricName("VolumeReadBytes")
-          .withStatistics("Average", "Sum", "SampleCount")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
-
-    return results;
+  private GetMetricStatisticsResult getNetworkBytesOutMetrics(String instanceId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("NetworkOut")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
   }
 
-  private List<GetMetricStatisticsResult> getEBSVolumeQueueLengthMetrics() {
-    List<GetMetricStatisticsResult> results = new ArrayList<>();
+  private GetMetricStatisticsResult getDiskWriteOpsMetrics(String instanceId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("DiskWriteOps")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
 
-    for (String volumeId : config.getEBSVolumes()) {
-      GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-          .withStartTime(new Date(startTime.getTime() - tenMinutes))
-          .withNamespace("AWS/EBS")
-          .withPeriod(oneMinute)
-          .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
-          .withMetricName("VolumeQueueLength")
-          .withStatistics("Average", "Sum")
-          .withEndTime(new Date());
-      results.add(cloudWatch.getMetricStatistics(request));
-    }
+  private GetMetricStatisticsResult getDiskReadOpsMetrics(String instanceId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("DiskReadOps")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
 
-    return results;
+  private GetMetricStatisticsResult getDiskWriteBytesMetrics(String instanceId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("DiskWriteBytes")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getDiskReadBytesMetrics(String instanceId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EC2")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
+        .withMetricName("DiskReadBytes")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeWriteOpsMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeWriteOps")
+        .withStatistics("Average")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeWriteBytesMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeWriteBytes")
+        .withStatistics("Average", "Sum", "SampleCount")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeReadOpsMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeReadOps")
+        .withStatistics("Average")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeReadBytesMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeReadBytes")
+        .withStatistics("Average", "Sum", "SampleCount")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeQueueLengthMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeQueueLength")
+        .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
   }
 }
 
