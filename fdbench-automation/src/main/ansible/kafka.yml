@@ -135,7 +135,7 @@
         volumes:
           - device_name: /dev/sdb
             volume_type: "{{ ec2.kafka_ebs_type }}"
-            iops: "{{ ec2.kafka_ebs_iops }}"
+#            iops: "{{ ec2.kafka_ebs_iops }}"
             volume_size: "{{ ec2.kafka_ebs_size }}"
             delete_on_termination: true
       register: kafkainstances

@@ -47,7 +47,6 @@ public class ProducerTask extends KafkaBenchmarkTask {
 
   private static final String PRODUCER_LOAD_GENERATOR = "kafka-producer-load-generator";
 
-
   private final Histogram latency;
   private final Gauge<Long> elapsedTime;
   private final Counter messagesSent;
@@ -68,7 +67,7 @@ public class ProducerTask extends KafkaBenchmarkTask {
     this.producer = new KafkaProducer<byte[], byte[]>(getProducerProperties());
     this.partitionAssignment = Arrays.stream(
         System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_PARTITIONS).split(","))
-        .map((s) -> Integer.valueOf(s)).collect(Collectors.toList());
+        .map((s) -> Integer.valueOf(s.trim())).collect(Collectors.toList());
     this.delay = Integer.valueOf(System.getenv(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_TASK_DELAY));
   }
 

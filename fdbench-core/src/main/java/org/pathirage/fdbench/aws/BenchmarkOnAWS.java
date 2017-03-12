@@ -249,6 +249,9 @@ public abstract class BenchmarkOnAWS implements Benchmark {
       metrics.add(getEBSVolumeReadOpsMetrics(volumeId));
       metrics.add(getEBSVolumeWriteBytesMetrics(volumeId));
       metrics.add(getEBSVolumeWriteOpsMetrics(volumeId));
+      metrics.add(getEBSVolumeTotalReadTimeMetrics(volumeId));
+      metrics.add(getEBSVolumeTotalWriteTimeMetrics(volumeId));
+      metrics.add(getEBSVolumeIdleTimeMetrics(volumeId));
 
       volumeMetrics.put(volumeId, metrics);
     }
@@ -398,6 +401,42 @@ public abstract class BenchmarkOnAWS implements Benchmark {
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeQueueLength")
         .withStatistics("Average", "Sum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeTotalReadTimeMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeTotalReadTime")
+        .withStatistics("Average", "Sum", "Minimum", "Maximum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeTotalWriteTimeMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeTotalWriteTime")
+        .withStatistics("Average", "Sum", "Minimum", "Maximum")
+        .withEndTime(new Date());
+    return cloudWatch.getMetricStatistics(request);
+  }
+
+  private GetMetricStatisticsResult getEBSVolumeIdleTimeMetrics(String volumeId) {
+    GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
+        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withNamespace("AWS/EBS")
+        .withPeriod(oneMinute)
+        .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
+        .withMetricName("VolumeIdleTime")
+        .withStatistics("Average", "Sum", "Minimum", "Maximum")
         .withEndTime(new Date());
     return cloudWatch.getMetricStatistics(request);
   }

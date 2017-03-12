@@ -1,3 +1,3 @@
 ---
 - name: Copying Kafka configuration file
-  template:  src=kafka.conf dest={{ kafka_conf_path }}
+  template:  src=kafka.conf dest={{ kafka_conf_path }}/cluster-{{ kafka_cluster_id }}.conf

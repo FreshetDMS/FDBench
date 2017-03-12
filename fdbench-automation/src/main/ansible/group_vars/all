@@ -14,14 +14,14 @@ ec2:
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
   zookeeper_instance_count: 1
-  hadoop_slave_count: 3
+  hadoop_slave_count: 7
   zk_spot_price: 0.5
-  kafka_spot_price: 1.0
+  kafka_spot_price: 0.5
   hadoop_spot_price: 0.5
   key_file: "/Users/mpathira/Downloads/bench-keypair.pem.txt"
-  kafka_ebs_size: 2000
-  kafka_ebs_type: io1
-  kafka_ebs_iops: 5000
+  kafka_ebs_size: 4000
+  kafka_ebs_type: gp2
+  kafka_ebs_iops: 6000
 
 java_home_dir: "/usr/lib/jvm/java-8-oracle"
 
@@ -37,6 +37,7 @@ ssh_known_hosts_file: "/Users/mpathira/.ssh/known_hosts"
 # ---------------------------
 hadoop_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/hadoop_conf
 kafka_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/kafka_conf
+kafka_cluster_id: 2
 
 # ---------------------------
 # Monitoring
@@ -91,6 +92,6 @@ hadoop:
   user: hadoop
   group: hadoop
   password: $6$rounds=656000$rwtkj/z6gExWauVP$cHQc7Un9.ZOdV3UA.keE4OncgT9Z4KSbCCm1q51D0dd1PBR4KXHOhN4pic773sWlZduzXSxw6Yzgm4HYhvbXU1
-  nm_mem_mb: 1024
+  nm_mem_mb: 6000
   nm_vcores: 3
   version: 2.7.3

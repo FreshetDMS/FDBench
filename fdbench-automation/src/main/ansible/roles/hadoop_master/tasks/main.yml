@@ -33,6 +33,13 @@
   args:
     executable: /bin/bash
 
+- name: Copy modified start-yarn.sh
+  copy:
+    src: "{{ role_path }}/sbin/start-yarn.sh"
+    dest: "{{ common.soft_link_base_path }}/hadoop/sbin/start-yarn.sh"
+    owner: "{{ hadoop.user }}"
+    group: "{{ hadoop.group }}"
+    mode: 0755
 
 - name: Start YARN services
   shell: "{{ common.soft_link_base_path }}/hadoop/sbin/start-yarn.sh"
@@ -42,6 +49,3 @@
 
 - name: Wait for resourcemanager to come up
   wait_for: host=localhost port=8088 delay=60 timeout=360 state=started
-
-- name: Wait for nodemanager to come up
-  wait_for: host=localhost port=8020 delay=60 timeout=360 state=started
