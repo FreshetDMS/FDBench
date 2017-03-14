@@ -60,7 +60,7 @@ public class ConsumerTask extends KafkaBenchmarkTask {
     this.bytesConsumed = metricsRegistry.newCounter(getGroup(), "bytes-consumed");
     this.partitionAssignment = Arrays.stream(
         System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_PARTITIONS).split(","))
-        .map((s) -> Integer.valueOf(s)).collect(Collectors.toList());
+        .map((s) -> Integer.valueOf(s.trim())).collect(Collectors.toList());
     this.delay = Integer.valueOf(System.getenv(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_TASK_DELAY));
     this.consumer = new KafkaConsumer<byte[], byte[]>(getConsumerProperties());
   }

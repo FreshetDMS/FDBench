@@ -14,7 +14,7 @@ ec2:
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
   zookeeper_instance_count: 1
-  hadoop_slave_count: 7
+  hadoop_slave_count: 5
   zk_spot_price: 0.5
   kafka_spot_price: 0.5
   hadoop_spot_price: 0.5
@@ -37,7 +37,7 @@ ssh_known_hosts_file: "/Users/mpathira/.ssh/known_hosts"
 # ---------------------------
 hadoop_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/hadoop_conf
 kafka_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/kafka_conf
-kafka_cluster_id: 2
+kafka_cluster_id: 1
 
 # ---------------------------
 # Monitoring

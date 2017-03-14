@@ -150,6 +150,7 @@ project(':fdbench-tools') {
     compile "org.apache.kafka:kafka-tools:$kafkaVersion"
     compile "org.apache.kafka:kafka_2.11:$kafkaVersion"
     compile "com.amazonaws:aws-java-sdk-dynamodb"
+    compile "com.amazonaws:aws-java-sdk-cloudwatch"
     compile "org.freemarker:freemarker:$freemakerVersion"
     testCompile "junit:junit:$junitVersion"
   }

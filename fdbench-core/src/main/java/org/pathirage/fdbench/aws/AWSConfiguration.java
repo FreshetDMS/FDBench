@@ -29,6 +29,7 @@ public class AWSConfiguration extends AbstractConfig {
   private static final String S3_BUCKET_PREFIX = "aws.s3.bucket.prefix";
   private static final String EBS_VOLUMES = "aws.ebs.volumes";
   private static final String EC2_INSTANCES = "aws.ec2.instances";
+  private static final String METRICS_PERIOD = "aws.metrics.period";
 
   public AWSConfiguration(Config config) {
     super(config);
@@ -60,5 +61,9 @@ public class AWSConfiguration extends AbstractConfig {
 
   public List<String> getEC2Instances() {
     return getStringList(EC2_INSTANCES);
+  }
+
+  public int getMetricsPeriod() {
+    return getInt(METRICS_PERIOD, 60);
   }
 }

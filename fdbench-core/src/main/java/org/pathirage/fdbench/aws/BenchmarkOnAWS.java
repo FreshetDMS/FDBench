@@ -48,11 +48,13 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
 
-  private final int tenMinutes = 10 * 60;
+  private final int fifteenMinutes = 15 * 60;
   private final int oneMinute = 60;
+  private final int period;
 
   private final AWSConfiguration config;
   private Date startTime;
+  private Date endTime;
   private final AmazonCloudWatch cloudWatch;
   private final AmazonS3 s3Client;
 
@@ -60,6 +62,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
     this.config = new AWSConfiguration(rawConfig);
     this.cloudWatch = config.isAWSBench() ? getCloudWatchClient() : null;
     this.s3Client = config.isAWSBench() ? getS3Client() : null;
+    this.period = config.getMetricsPeriod();
   }
 
   private AmazonCloudWatch getCloudWatchClient() {
@@ -87,7 +90,14 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   @Override
   public void teardown() {
+    endTime = new Date();
     if (config.isAWSBench()) {
+      // We have to wait until another metric reporting period is over to get all the metrics from cloudwatch.
+      try {
+        Thread.sleep(period * 1000);
+      } catch (InterruptedException e) {
+        log.warn("Sleep interrupted.", e);
+      }
       File additionalInfo = teardownHook();
       getAndReportCloudWatchMetrics(additionalInfo);
     }
@@ -164,13 +174,16 @@ public abstract class BenchmarkOnAWS implements Benchmark {
     }
 
     metrics.add("volumes", volumes);
+    metrics.add("timestamp", new JsonPrimitive(System.currentTimeMillis()));
+    metrics.add("start-time", new JsonPrimitive(startTime.getTime()));
+    metrics.add("end-time", new JsonPrimitive(endTime.getTime()));
 
     Path tempFile = null;
     FileWriter writer = null;
     try {
       tempFile = Files.createTempFile("cloudwatch-metrics", null);
       writer = new FileWriter(tempFile.toFile());
-      Gson gson = new Gson();
+      Gson gson = new GsonBuilder().setPrettyPrinting().create();
       gson.toJson(metrics, new JsonWriter(writer));
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -261,7 +274,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getCPUUtilizationMetrics(String instanceId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -275,7 +288,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
     List<GetMetricStatisticsResult> results = new ArrayList<>();
 
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -287,7 +300,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getNetworkBytesOutMetrics(String instanceId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -299,7 +312,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getDiskWriteOpsMetrics(String instanceId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -311,7 +324,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getDiskReadOpsMetrics(String instanceId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -323,7 +336,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getDiskWriteBytesMetrics(String instanceId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -335,7 +348,7 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getDiskReadBytesMetrics(String instanceId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EC2")
         .withPeriod(oneMinute)
         .withDimensions(new Dimension().withName("InstanceId").withValue(instanceId))
@@ -347,21 +360,21 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getEBSVolumeWriteOpsMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeWriteOps")
-        .withStatistics("Average")
+        .withStatistics("Average", "Sum")
         .withEndTime(new Date());
     return cloudWatch.getMetricStatistics(request);
   }
 
   private GetMetricStatisticsResult getEBSVolumeWriteBytesMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeWriteBytes")
         .withStatistics("Average", "Sum", "SampleCount")
@@ -371,21 +384,21 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getEBSVolumeReadOpsMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeReadOps")
-        .withStatistics("Average")
+        .withStatistics("Average", "Sum")
         .withEndTime(new Date());
     return cloudWatch.getMetricStatistics(request);
   }
 
   private GetMetricStatisticsResult getEBSVolumeReadBytesMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeReadBytes")
         .withStatistics("Average", "Sum", "SampleCount")
@@ -395,9 +408,9 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getEBSVolumeQueueLengthMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeQueueLength")
         .withStatistics("Average", "Sum")
@@ -407,36 +420,36 @@ public abstract class BenchmarkOnAWS implements Benchmark {
 
   private GetMetricStatisticsResult getEBSVolumeTotalReadTimeMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeTotalReadTime")
-        .withStatistics("Average", "Sum", "Minimum", "Maximum")
+        .withStatistics("Average")
         .withEndTime(new Date());
     return cloudWatch.getMetricStatistics(request);
   }
 
   private GetMetricStatisticsResult getEBSVolumeTotalWriteTimeMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeTotalWriteTime")
-        .withStatistics("Average", "Sum", "Minimum", "Maximum")
+        .withStatistics("Average")
         .withEndTime(new Date());
     return cloudWatch.getMetricStatistics(request);
   }
 
   private GetMetricStatisticsResult getEBSVolumeIdleTimeMetrics(String volumeId) {
     GetMetricStatisticsRequest request = new GetMetricStatisticsRequest()
-        .withStartTime(new Date(startTime.getTime() - tenMinutes))
+        .withStartTime(new Date(startTime.getTime() - fifteenMinutes))
         .withNamespace("AWS/EBS")
-        .withPeriod(oneMinute)
+        .withPeriod(period)
         .withDimensions(new Dimension().withName("VolumeId").withValue(volumeId))
         .withMetricName("VolumeIdleTime")
-        .withStatistics("Average", "Sum", "Minimum", "Maximum")
+        .withStatistics("Sum")
         .withEndTime(new Date());
     return cloudWatch.getMetricStatistics(request);
   }
