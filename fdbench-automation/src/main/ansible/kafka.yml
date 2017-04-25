@@ -132,15 +132,10 @@
         spot_price: "{{ ec2.kafka_spot_price }}"
         spot_wait_timeout: 600
         monitoring: yes
-        volumes:
-          - device_name: /dev/sdb
-            volume_type: "{{ ec2.kafka_ebs_type }}"
-#            iops: "{{ ec2.kafka_ebs_iops }}"
-            volume_size: "{{ ec2.kafka_ebs_size }}"
-            delete_on_termination: true
+        volumes: "{{ ec2.kafka_volumes + (ephemeral_volumes[ec2.kafka_instance_type]|default([])) }}"
       register: kafkainstances
     - name: Add new instances to a hosts group
-      add_host: name={{ item.1.public_dns_name }} groups=kafkanodes broker_id={{ item.0 + 1 }}
+      add_host: name={{ item.1.public_dns_name }} groups=kafkanodes broker_id={{ item.0 + 1 }} instance_volumes={{ ec2.kafka_volumes + (ephemeral_volumes[ec2.kafka_instance_type]|default([])) }}
       with_indexed_items: "{{ kafkainstances.instances }}"
     - name: Wait for SSH to come up
       wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=360 state=started

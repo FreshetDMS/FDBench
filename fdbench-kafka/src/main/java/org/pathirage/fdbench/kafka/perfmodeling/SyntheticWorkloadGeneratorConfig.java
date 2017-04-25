@@ -117,7 +117,7 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
         Set<Map.Entry<String, ConfigValue>> consumerEntries = consumers.root().entrySet();
 
         for (Map.Entry<String, ConfigValue> c : consumerEntries) {
-          consumerGroups.add(new ConsumerGroupConfig(c.getKey(), ((ConfigObject) c.getValue()).toConfig(), false));
+          consumerGroups.add(new ConsumerGroupConfig(c.getKey(), ((ConfigObject) c.getValue()).toConfig()));
         }
 
         return consumerGroups;
@@ -136,21 +136,6 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
         }
 
         return producerGroups;
-      }
-      return Collections.emptyList();
-    }
-
-    public List<ConsumerGroupConfig> getReplayGroups() {
-      if (hasPath("replays")) {
-        List<ConsumerGroupConfig> replayGroups = new ArrayList<>();
-        Config replays = getConfig("replays");
-        Set<Map.Entry<String, ConfigValue>> replayEntries = replays.root().entrySet();
-
-        for (Map.Entry<String, ConfigValue> c : replayEntries) {
-          replayGroups.add(new ConsumerGroupConfig(c.getKey(), ((ConfigObject) c.getValue()).toConfig(), true));
-        }
-
-        return replayGroups;
       }
       return Collections.emptyList();
     }
@@ -206,20 +191,23 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
   }
 
   public static class ConsumerGroupConfig extends WorkerGroupConfig {
-    private final boolean replay;
+    private static final String CONFIG_REPLAY = "replay";
 
-    public ConsumerGroupConfig(String name, Config config, boolean replay) {
+    public ConsumerGroupConfig(String name, Config config) {
       super(name, config);
-      this.replay = replay;
     }
 
     public MessageProcessingConfig getMessageProcessingConfig() {
       return new MessageProcessingConfig(getConfig("msg-processing"));
     }
 
+    public boolean isReplay() {
+      return getBool(CONFIG_REPLAY, false);
+    }
+
     @Override
     public TopicConfig.Type getGroupType() {
-      return replay ? TopicConfig.Type.REPLAY : TopicConfig.Type.CONSUME;
+      return isReplay() ? TopicConfig.Type.REPLAY : TopicConfig.Type.CONSUME;
     }
   }
 

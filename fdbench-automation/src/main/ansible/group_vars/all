@@ -5,11 +5,11 @@ ec2:
   hadoop_security_group: hadoopsg
   key: bench-keypair
   zookeeper_instance_type: c3.xlarge
-  kafka_instance_type: m4.2xlarge
+  kafka_instance_type: d2.2xlarge
   hadoop_master_instance_type: c3.xlarge
   hadoop_slave_instance_type: c3.xlarge
   image: ami-7c803d1c
-  region:
+  region: us-west-2
   kafka_security_group: kafka
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
@@ -19,9 +19,7 @@ ec2:
   kafka_spot_price: 0.5
   hadoop_spot_price: 0.5
   key_file: "/Users/mpathira/Downloads/bench-keypair.pem.txt"
-  kafka_ebs_size: 4000
-  kafka_ebs_type: gp2
-  kafka_ebs_iops: 6000
+  kafka_volumes: []
 
 java_home_dir: "/usr/lib/jvm/java-8-oracle"
 
@@ -95,3 +93,114 @@ hadoop:
   nm_mem_mb: 6000
   nm_vcores: 3
   version: 2.7.3
+
+one_ephemeral:
+  - { device_name: /dev/sdb, ephemeral: ephemeral0 }
+two_ephemeral:
+  - { device_name: /dev/sdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/sdc, ephemeral: ephemeral1 }
+three_ephemeral:
+  - { device_name: /dev/sdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/sdc, ephemeral: ephemeral1 }
+  - { device_name: /dev/sdd, ephemeral: ephemeral2 }
+four_ephemeral:
+  - { device_name: /dev/xvdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/xvdc, ephemeral: ephemeral1 }
+  - { device_name: /dev/xvdd, ephemeral: ephemeral2 }
+  - { device_name: /dev/xvde, ephemeral: ephemeral3 }
+six_ephemeral:
+  - { device_name: /dev/xvdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/xvdc, ephemeral: ephemeral1 }
+  - { device_name: /dev/xvdd, ephemeral: ephemeral2 }
+  - { device_name: /dev/xvde, ephemeral: ephemeral3 }
+  - { device_name: /dev/xvdf, ephemeral: ephemeral4 }
+  - { device_name: /dev/xvdg, ephemeral: ephemeral5 }
+eight_ephemeral:
+  - { device_name: /dev/xvdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/xvdc, ephemeral: ephemeral1 }
+  - { device_name: /dev/xvdd, ephemeral: ephemeral2 }
+  - { device_name: /dev/xvde, ephemeral: ephemeral3 }
+  - { device_name: /dev/xvdf, ephemeral: ephemeral4 }
+  - { device_name: /dev/xvdg, ephemeral: ephemeral5 }
+  - { device_name: /dev/xvdh, ephemeral: ephemeral6 }
+  - { device_name: /dev/xvdi, ephemeral: ephemeral7 }
+twelve_ephemeral:
+  - { device_name: /dev/xvdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/xvdc, ephemeral: ephemeral1 }
+  - { device_name: /dev/xvdd, ephemeral: ephemeral2 }
+  - { device_name: /dev/xvde, ephemeral: ephemeral3 }
+  - { device_name: /dev/xvdf, ephemeral: ephemeral4 }
+  - { device_name: /dev/xvdg, ephemeral: ephemeral5 }
+  - { device_name: /dev/xvdh, ephemeral: ephemeral6 }
+  - { device_name: /dev/xvdi, ephemeral: ephemeral7 }
+  - { device_name: /dev/xvdj, ephemeral: ephemeral8 }
+  - { device_name: /dev/xvdk, ephemeral: ephemeral9 }
+  - { device_name: /dev/xvdl, ephemeral: ephemeral10 }
+  - { device_name: /dev/xvdm, ephemeral: ephemeral11 }
+twenty_four_ephemeral:
+  - { device_name: /dev/sdb, ephemeral: ephemeral0 }
+  - { device_name: /dev/sdc, ephemeral: ephemeral1 }
+  - { device_name: /dev/sdd, ephemeral: ephemeral2 }
+  - { device_name: /dev/sde, ephemeral: ephemeral3 }
+  - { device_name: /dev/sdf, ephemeral: ephemeral4 }
+  - { device_name: /dev/sdg, ephemeral: ephemeral5 }
+  - { device_name: /dev/sdh, ephemeral: ephemeral6 }
+  - { device_name: /dev/sdi, ephemeral: ephemeral7 }
+  - { device_name: /dev/sdj, ephemeral: ephemeral8 }
+  - { device_name: /dev/sdk, ephemeral: ephemeral9 }
+  - { device_name: /dev/sdl, ephemeral: ephemeral10 }
+  - { device_name: /dev/sdm, ephemeral: ephemeral11 }
+  - { device_name: /dev/sdn, ephemeral: ephemeral12 }
+  - { device_name: /dev/sdo, ephemeral: ephemeral13 }
+  - { device_name: /dev/sdp, ephemeral: ephemeral14 }
+  - { device_name: /dev/sdq, ephemeral: ephemeral15 }
+  - { device_name: /dev/sdr, ephemeral: ephemeral16 }
+  - { device_name: /dev/sds, ephemeral: ephemeral17 }
+  - { device_name: /dev/sdt, ephemeral: ephemeral18 }
+  - { device_name: /dev/sdu, ephemeral: ephemeral19 }
+  - { device_name: /dev/sdv, ephemeral: ephemeral20 }
+  - { device_name: /dev/sdw, ephemeral: ephemeral21 }
+  - { device_name: /dev/sdx, ephemeral: ephemeral22 }
+  - { device_name: /dev/sdy, ephemeral: ephemeral23 }
+
+
+ephemeral_volumes:
+  c1.medium: "{{ one_ephemeral }}"
+  c1.xlarge: "{{ four_ephemeral }}"
+  c3.large: "{{ two_ephemeral }}"
+  c3.xlarge: "{{ two_ephemeral }}"
+  c3.2xlarge: "{{ two_ephemeral }}"
+  c3.4xlarge: "{{ two_ephemeral }}"
+  c3.8xlarge: "{{ two_ephemeral }}"
+  cc2.8xlarge: "{{ four_ephemeral }}"
+  cg1.4xlarge: "{{ two_ephemeral }}"
+  cr1.8xlarge: "{{ two_ephemeral }}"
+  d2.xlarge: "{{ three_ephemeral }}"
+  d2.2xlarge: "{{ six_ephemeral }}"
+  d2.4xlarge: "{{ twelve_ephemeral }}"
+  d2.8xlarge: "{{ twenty_four_ephemeral }}"
+  g2.2xlarge: "{{ one_ephemeral }}"
+  hi1.xlarge: "{{ two_ephemeral }}"
+  hs1.xlarge: "{{ twenty_four_ephemeral }}"
+  i2.xlarge: "{{ one_ephemeral }}"
+  i2.2xlarge: "{{ two_ephemeral }}"
+  i2.4xlarge: "{{ four_ephemeral }}"
+  i2.8xlarge: "{{ eight_ephemeral }}"
+  m1.small: "{{ one_ephemeral }}"
+  m1.medium: "{{ one_ephemeral }}"
+  m1.large: "{{ two_ephemeral }}"
+  m1.xlarge: "{{ four_ephemeral }}"
+  m2.xlarge: "{{ one_ephemeral }}"
+  m2.2xlarge: "{{ one_ephemeral }}"
+  m2.4xlarge: "{{ two_ephemeral }}"
+  m3.medium: "{{ one_ephemeral }}"
+  m3.large: "{{ one_ephemeral }}"
+  m3.xlarge: "{{ two_ephemeral }}"
+  m3.2xlarge: "{{ two_ephemeral }}"
+  r3.large: "{{ one_ephemeral }}"
+  r3.xlarge: "{{ one_ephemeral }}"
+  r3.2xlarge: "{{ one_ephemeral }}"
+  r3.4xlarge: "{{ one_ephemeral }}"
+  r3.8xlarge: "{{ two_ephemeral }}"
+  x1.16xlarge: "{{ one_ephemeral }}"
+  x1.32xlarge: "{{ two_ephemeral }}"

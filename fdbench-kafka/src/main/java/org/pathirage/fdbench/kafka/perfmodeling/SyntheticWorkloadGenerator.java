@@ -103,7 +103,7 @@ public class SyntheticWorkloadGenerator extends BenchmarkOnAWS {
     Set<String> consumeTopics = getConsumeAndReplayTopicsNotInProduce();
     if (!consumeTopics.isEmpty()) {
       for (String topic : consumeTopics) {
-        if (kafkaAdmin.isTopicExists(topic)) {
+        if (!kafkaAdmin.isTopicExists(topic)) {
           throw new RuntimeException("Consume topic " + topic + " should be there in Kafka.");
         }
       }
