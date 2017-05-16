@@ -65,6 +65,7 @@ project(':fdbench-core') {
 project(':fdbench-samza') {
   dependencies {
     compile project(':fdbench-core')
+    compile project(':fdbench-kafka')
     compile "com.google.guava:guava:$guavaVersion"
     compile "com.googlecode.objectify:objectify:$objectifyVersion"
     compile "com.typesafe:config:$typesafeConfigVersion"
