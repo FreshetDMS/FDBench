@@ -19,7 +19,7 @@ package org.pathirage.fdbench.kafka;
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.config.AbstractConfig;
 
-public abstract class KafkaConfig extends AbstractConfig {
+public class KafkaConfig extends AbstractConfig {
   private static final String KAFKA_ZK_CONNECT = "kafka.zookeeper.connect";
   private static final String KAFKA_BROKERS = "kafka.brokers";
   private static final String KAFKA_KEY_SERIALIZER_CLASS = "kafka.key.serializer.class";
