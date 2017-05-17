@@ -59,7 +59,7 @@ public class BenchConfig extends AbstractConfig {
   }
 
   public String getBenchmarkDeploymentStateFactory(){
-    return getString(BENCHMARK_DEPLOYMENT_STATE_FACTORY);
+    return getString(BENCHMARK_DEPLOYMENT_STATE_FACTORY, null);
   }
 
   public int getBenchmarkDuration() {

@@ -36,7 +36,7 @@ DOWNLOAD_CACHE_DIR=$HOME/.fdbench/download
 COMMAND=$1
 SYSTEM=$2
 
-DOWNLOAD_KAFKA=http://www-us.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
+DOWNLOAD_KAFKA=http://www-us.apache.org/dist/kafka/0.10.2.1/kafka_2.11-0.10.2.1.tgz
 DOWNLOAD_YARN=http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
 DOWNLOAD_ZOOKEEPER=http://www-eu.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
 
@@ -92,7 +92,7 @@ install_yarn() {
 
 install_kafka() {
   mkdir -p "$DEPLOY_ROOT_DIR"
-  install kafka $DOWNLOAD_KAFKA kafka_2.11-0.10.1.1
+  install kafka $DOWNLOAD_KAFKA kafka_2.11-0.10.2.1
   cp "$BASE_DIR/conf/server.properties" "$DEPLOY_ROOT_DIR/kafka/config/server.properties"
   # have to use SIGTERM since nohup on appears to ignore SIGINT
   # and Kafka switched to SIGINT in KAFKA-1031.

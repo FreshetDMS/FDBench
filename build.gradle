@@ -54,7 +54,7 @@ project(':fdbench-core') {
     compile "com.google.code.gson:gson:$gsonVersion"
     compile "com.google.guava:guava:$guavaVersion"
     compile "org.apache.samza:samza-api:$samzaVersion"
-    compile "org.apache.samza:samza-core_2.10:$samzaVersion"
+    compile "org.apache.samza:samza-core_2.11:$samzaVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
     compile "com.amazonaws:aws-java-sdk-dynamodb"
     compile "com.amazonaws:aws-java-sdk-cloudwatch"
@@ -63,6 +63,10 @@ project(':fdbench-core') {
 }
 
 project(':fdbench-samza') {
+  configurations {
+    explode
+  }
+
   dependencies {
     compile project(':fdbench-core')
     compile project(':fdbench-kafka')
@@ -75,17 +79,48 @@ project(':fdbench-samza') {
     compile "com.google.code.gson:gson:$gsonVersion"
     compile "com.google.guava:guava:$guavaVersion"
     compile "org.apache.samza:samza-api:$samzaVersion"
-    compile "org.apache.samza:samza-core_2.10:$samzaVersion"
-    compile "org.apache.samza:samza-yarn_2.10:$samzaVersion"
-    compile "org.apache.samza:samza-kafka_2.10:$samzaVersion"
-    compile "org.apache.samza:samza-kv-rocksdb_2.10:$samzaVersion"
-    compile "org.apache.samza:samza-autoscaling_2.10:$samzaVersion"
-    compile "org.apache.samza:samza-hdfs_2.10:$samzaVersion"
-    compile "org.apache.samza:samza-kv_2.10:$samzaVersion"
+    compile "org.apache.samza:samza-core_2.11:$samzaVersion"
+    compile "org.apache.samza:samza-yarn_2.11:$samzaVersion"
+    compile "org.apache.samza:samza-kafka_2.11:$samzaVersion"
+    compile "org.apache.samza:samza-kv-rocksdb_2.11:$samzaVersion"
+    compile "org.apache.samza:samza-autoscaling_2.11:$samzaVersion"
+    compile "org.apache.samza:samza-hdfs_2.11:$samzaVersion"
+    compile "org.apache.samza:samza-kv_2.11:$samzaVersion"
     compile "org.apache.kafka:connect-json:$kafkaVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
     compile "com.amazonaws:aws-java-sdk-dynamodb"
+    explode group: 'org.apache.samza', name: 'samza-shell',  ext: 'tgz', classifier: 'dist', version: "$samzaVersion"
     testCompile "junit:junit:$junitVersion"
+  }
+
+
+  // make the samza distribution .tgz file
+  task distTar(dependsOn: build, type: Tar) {
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+    into("config") {
+      from("src/main/config") {
+        include "samza-op-workload-gen.properties"
+
+        // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
+        filter { String line ->
+          line.replaceAll('[\$][{]basedir[}]', project.projectDir.toString()).replaceAll('[\$][{]project.artifactId[}]', project.name.toString()).replaceAll('/target/', '/build/distributions/').replaceAll('[\$][{]pom.version[}]', version)
+        }
+      }
+    }
+
+    into("bin") {
+      from {
+        configurations.explode.collect { tarTree(it) }
+      }
+    }
+
+    into("lib") {
+      from configurations.runtime
+      from configurations.runtime.artifacts.files
+    }
   }
 }
 
@@ -103,7 +138,7 @@ project(':fdbench-automation') {
 project(':fdbench-api') {
   dependencies {
     compile "org.apache.samza:samza-api:$samzaVersion"
-    compile "org.apache.samza:samza-core_2.10:$samzaVersion"
+    compile "org.apache.samza:samza-core_2.11:$samzaVersion"
     compile "com.typesafe:config:$typesafeConfigVersion"
     compile "org.hdrhistogram:HdrHistogram:$hdrHistogramVersion"
   }
@@ -209,6 +244,7 @@ project(':fdbench-yarn') {
   dependencies {
     compile project(':fdbench-core')
     compile project(':fdbench-kafka')
+    compile project(':fdbench-samza')
     compile "com.google.guava:guava:$guavaVersion"
     compile "org.apache.hadoop:hadoop-yarn-api:$yarnVersion"
     compile "org.apache.hadoop:hadoop-yarn-common:$yarnVersion"
