@@ -32,6 +32,8 @@ public class BenchConfig extends AbstractConfig {
 
   private static final String BENCHMARK_DEPLOYMENT_STATE_FACTORY = "benchmark.deployment.state.factory";
 
+  private static final String BENCHMARK_DURATION = "benchmark.duration";
+
   public BenchConfig(Config config) {
     super(config);
   }
@@ -58,5 +60,9 @@ public class BenchConfig extends AbstractConfig {
 
   public String getBenchmarkDeploymentStateFactory(){
     return getString(BENCHMARK_DEPLOYMENT_STATE_FACTORY);
+  }
+
+  public int getBenchmarkDuration() {
+    return getInt(BENCHMARK_DURATION, 5 * 60);
   }
 }

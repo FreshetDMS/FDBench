@@ -82,6 +82,7 @@ project(':fdbench-samza') {
     compile "org.apache.samza:samza-autoscaling_2.10:$samzaVersion"
     compile "org.apache.samza:samza-hdfs_2.10:$samzaVersion"
     compile "org.apache.samza:samza-kv_2.10:$samzaVersion"
+    compile "org.apache.kafka:connect-json:$kafkaVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
     compile "com.amazonaws:aws-java-sdk-dynamodb"
     testCompile "junit:junit:$junitVersion"
