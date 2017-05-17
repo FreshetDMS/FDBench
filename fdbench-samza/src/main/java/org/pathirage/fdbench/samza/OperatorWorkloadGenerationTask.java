@@ -18,6 +18,8 @@ package org.pathirage.fdbench.samza;
 
 import org.apache.samza.config.Config;
 import org.apache.samza.system.IncomingMessageEnvelope;
+import org.apache.samza.system.OutgoingMessageEnvelope;
+import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.*;
 
 /**
@@ -28,13 +30,47 @@ import org.apache.samza.task.*;
  *   - Empty
  */
 public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
+  private static final String SERVICE_TIME_DISTRIBUTION = "streaming.operator.workload.service.time.dist";
+  private static final String SERVICE_TIME_AVG = "streaming.operator.workload.service.time.avg";
+  private static final String RESULT_TOPIC = "streaming.operator.workload.result.topic";
+  private static final String RESULT_SYSTEM = "streaming.operator.workload.result.system";
+
+  private ServiceTimeDist serviceTimeDist;
+  private int serviceTimeAvgMicroSeconds;
+  private String resultTopic;
+  private String resultSystem;
+
   @Override
   public void init(Config config, TaskContext context) throws Exception {
-
+    serviceTimeDist = ServiceTimeDist.valueOf(config.get(SERVICE_TIME_DISTRIBUTION, "NOPROCESSING"));
+    serviceTimeAvgMicroSeconds = config.getInt(SERVICE_TIME_AVG, 100);
+    resultTopic = config.get(RESULT_TOPIC, "e2elatency-topic");
+    resultSystem = config.get(RESULT_SYSTEM, "kafka");
   }
 
   @Override
   public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
+    if (serviceTimeDist == ServiceTimeDist.CONSTANT) {
+      busyWaitMicros(serviceTimeAvgMicroSeconds);
+    } else if (serviceTimeDist == ServiceTimeDist.NOPROCESSING) {
+      // No processing
+    } else {
+      throw new RuntimeException("Not supported yet.");
+    }
 
+    collector.send(new OutgoingMessageEnvelope(new SystemStream(resultSystem, resultTopic), envelope.getKey(), envelope.getMessage()));
+  }
+
+  private static void busyWaitMicros(long micros){
+    long waitUntil = System.nanoTime() + (micros * 1_000);
+    while(waitUntil > System.nanoTime()){
+      ;
+    }
+  }
+
+  public static enum ServiceTimeDist {
+    CONSTANT,
+    EXPONENTIAL,
+    NOPROCESSING
   }
 }
