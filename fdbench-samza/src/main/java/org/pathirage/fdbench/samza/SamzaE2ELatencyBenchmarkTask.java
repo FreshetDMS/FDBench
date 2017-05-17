@@ -17,6 +17,8 @@
 package org.pathirage.fdbench.samza;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -43,6 +45,7 @@ import scala.Int;
 import java.util.Collection;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.*;
 
 public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
   private static final Logger log = LoggerFactory.getLogger(SamzaE2ELatencyBenchmarkTask.class);
@@ -62,6 +65,8 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
   private final Counter messagesConsumed;
   private final Counter errorCount;
   private final Integer benchmarkDuration;
+  private final ExecutorService executor = Executors.newFixedThreadPool(2);
+  private final CountDownLatch latch = new CountDownLatch(2);
 
   public SamzaE2ELatencyBenchmarkTask(String benchmarkName, String taskId, String containerId, Config config, MetricsRegistry metricsRegistry) {
     this.benchmarkName = benchmarkName;
@@ -125,32 +130,62 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
 
   @Override
   public void run() {
-    long stopAfter = System.currentTimeMillis() + benchmarkDuration * 1000;
+    executor.execute(() -> {
+        long stopAfter = System.currentTimeMillis() + benchmarkDuration * 1000;
 
-    while (true) {
-      if (System.currentTimeMillis() >= stopAfter) {
-        break;
-      }
+        while (true) {
+          if (System.currentTimeMillis() >= stopAfter) {
+            break;
+          }
 
-      try {
-        producer.send(new ProducerRecord<byte[], JsonNode>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), generateMessage())).get();
-        ConsumerRecords<byte[], JsonNode> records = consumer.poll(30000);
-
-        for (ConsumerRecord<byte[], JsonNode> record : records) {
-          // TODO: Calculate latency
+          try {
+            producer.send(new ProducerRecord<>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), generateMessage())).get();
+          } catch (Exception e) {
+            log.error("Error occurred.", e);
+            errorCount.inc();
+          }
         }
 
-      } catch (Exception e) {
-        log.error("Error occurred.", e);
-        errorCount.inc();
+        latch.countDown();
+      });
+
+    executor.execute(() -> {
+        while(true) {
+          ConsumerRecords<byte[], JsonNode> records = consumer.poll(30000);
+          long receivedAt = System.currentTimeMillis();
+          if (records.isEmpty()) {
+            log.warn("No messages for 30 seconds. Shutting down the consumer thread.");
+            break;
+          }
+
+          for (ConsumerRecord<byte[], JsonNode> record : records) {
+            JsonNode root = record.value();
+            long createdAt = root.get("created-at").asLong();
+            latency.recordValue(receivedAt - createdAt);
+          }
+        }
+
+        latch.countDown();
+      });
+
+    try {
+      latch.await(benchmarkDuration * 2, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      log.error("Waiting for producer and consumer to finish got interrupted.", e);
+    } finally {
+      if (executor != null && !executor.isTerminated()) {
+        executor.shutdownNow();
       }
     }
-
   }
 
   private JsonNode generateMessage() {
-    // TODO: Generate a message with timestamp
-    return null;
+    ObjectNode root = JsonNodeFactory.instance.objectNode();
+
+    root.put("payload", randomString.nextString());
+    root.put("created-at", System.currentTimeMillis());
+
+    return root;
   }
 
 
