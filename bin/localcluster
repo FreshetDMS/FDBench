@@ -92,7 +92,7 @@ install_yarn() {
 
 install_kafka() {
   mkdir -p "$DEPLOY_ROOT_DIR"
-  install kafka $DOWNLOAD_KAFKA kafka_2.11-0.10.1.1
+  install kafka $DOWNLOAD_KAFKA kafka_2.11-0.10.2.1
   cp "$BASE_DIR/conf/server.properties" "$DEPLOY_ROOT_DIR/kafka/config/server.properties"
   # have to use SIGTERM since nohup on appears to ignore SIGINT
   # and Kafka switched to SIGINT in KAFKA-1031.

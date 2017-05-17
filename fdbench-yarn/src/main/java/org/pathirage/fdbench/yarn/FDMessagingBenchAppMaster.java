@@ -84,8 +84,12 @@ public class FDMessagingBenchAppMaster implements AMRMClientAsync.CallbackHandle
       BenchmarkFactory benchmarkFactory = Utils.instantiate(benchConfig.getBenchmarkFactoryClass(), BenchmarkFactory.class);
       this.benchmark = benchmarkFactory.getBenchmark(benchConfig.getParallelism(), rawBenchConf);
 
-      BenchmarkDeploymentStateFactory deploymentStateFactory = Utils.instantiate(benchConfig.getBenchmarkDeploymentStateFactory(), BenchmarkDeploymentStateFactory.class);
-      this.deploymentState = deploymentStateFactory.getDeploymentState(rawBenchConf);
+      if (benchConfig.getBenchmarkDeploymentStateFactory() != null) {
+        BenchmarkDeploymentStateFactory deploymentStateFactory = Utils.instantiate(benchConfig.getBenchmarkDeploymentStateFactory(), BenchmarkDeploymentStateFactory.class);
+        this.deploymentState = deploymentStateFactory.getDeploymentState(rawBenchConf);
+      } else {
+        this.deploymentState = null;
+      }
     } catch (Exception e) {
       throw new FDBenchException("Error occurred during benchmark and deployment state creation.", e);
     }

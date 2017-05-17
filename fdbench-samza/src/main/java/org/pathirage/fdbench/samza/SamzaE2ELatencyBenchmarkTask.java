@@ -57,8 +57,9 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
   private final MetricsRegistry metricsRegistry;
   private final KafkaConfig kafkaConfig;
   private final RandomString randomString;
-  private final KafkaProducer<byte[], JsonNode> producer;
-  private final KafkaConsumer<byte[], JsonNode> consumer;
+  private final RandomString randomKey;
+  private final KafkaProducer<String, JsonNode> producer;
+  private final KafkaConsumer<String, JsonNode> consumer;
   private final Histogram latency;
   private final Gauge<Long> elapsedTime;
   private final Counter messagesSent;
@@ -76,8 +77,9 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
     this.metricsRegistry = metricsRegistry;
     this.kafkaConfig = new KafkaConfig(config);
     this.randomString = new RandomString(Integer.valueOf(System.getenv(SamzaE2ELatencyBenchmarkConstants.MESSAGE_SIZE)));
-    this.producer = new KafkaProducer<byte[], JsonNode>(getProducerProperties());
-    this.consumer = new KafkaConsumer<byte[], JsonNode>(getConsumerProperties());
+    this.randomKey = new RandomString(16);
+    this.producer = new KafkaProducer<String, JsonNode>(getProducerProperties());
+    this.consumer = new KafkaConsumer<String, JsonNode>(getConsumerProperties());
     this.elapsedTime = metricsRegistry.<Long>newGauge(getGroup(), "elapsed-time", 0L);
     this.latency = metricsRegistry.newHistogram(getGroup(), "produce-latency", KafkaBenchmarkConstants.MAX_RECORDABLE_LATENCY, KafkaBenchmarkConstants.SIGNIFICANT_VALUE_DIGITS);
     this.messagesSent = metricsRegistry.newCounter(getGroup(), "messages-sent");
@@ -139,7 +141,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
           }
 
           try {
-            producer.send(new ProducerRecord<>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), generateMessage())).get();
+            producer.send(new ProducerRecord<>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), randomKey.nextString(),  generateMessage())).get();
           } catch (Exception e) {
             log.error("Error occurred.", e);
             errorCount.inc();
@@ -151,14 +153,14 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
 
     executor.execute(() -> {
         while(true) {
-          ConsumerRecords<byte[], JsonNode> records = consumer.poll(30000);
+          ConsumerRecords<String, JsonNode> records = consumer.poll(30000);
           long receivedAt = System.currentTimeMillis();
           if (records.isEmpty()) {
             log.warn("No messages for 30 seconds. Shutting down the consumer thread.");
             break;
           }
 
-          for (ConsumerRecord<byte[], JsonNode> record : records) {
+          for (ConsumerRecord<String, JsonNode> record : records) {
             JsonNode root = record.value();
             long createdAt = root.get("created-at").asLong();
             latency.recordValue(receivedAt - createdAt);
@@ -193,7 +195,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
     Properties producerProps = new Properties();
 
     producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_BROKERS));
-    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
     producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.connect.json.JsonSerializer");
     producerProps.put(ProducerConfig.CLIENT_ID_CONFIG, benchmarkName + "-producer-" + getTaskId());
 
@@ -208,7 +210,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
     consumerProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
     consumerProps.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
     consumerProps.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
-    consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
     consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.connect.json.JsonDeserializer");
 
     return consumerProps;

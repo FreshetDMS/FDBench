@@ -50,6 +50,14 @@ public class FSMetricsSnapshotReporter extends AbstractMetricsSnapshotReporter i
     }));
     this.hostName = hostName;
     this.snapshotsDirectory = snapshotsDirectory;
+
+    if (snapshotsDirectory.toFile().exists() && !snapshotsDirectory.toFile().isDirectory()) {
+      throw new RuntimeException("Snapshot directory " + snapshotsDirectory.toString() + " exists and not a directory");
+    }
+
+    if (!snapshotsDirectory.toFile().exists()) {
+      snapshotsDirectory.toFile().mkdir();
+    }
   }
 
   @Override
