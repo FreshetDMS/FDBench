@@ -22,7 +22,10 @@ import org.apache.samza.task.*;
 
 /**
  * StreamTask for generating different types of query workloads including constant service times,
- * and exponential service times.
+ * and exponential service times. Support following workloads:
+ *   - Constant service time
+ *   - Exponential service time
+ *   - Empty
  */
 public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   @Override
