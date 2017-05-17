@@ -69,7 +69,7 @@ public class SamzaE2ELatencyBenchmark implements Benchmark {
     env.put(SamzaE2ELatencyBenchmarkConstants.RESULT_TOPIC, config.getResult().getName());
     env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_RATE, Integer.toString(config.getMessageRate()));
     env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_SIZE, Integer.toString(config.getPayloadSize()));
-    
+
     return env;
   }
 
