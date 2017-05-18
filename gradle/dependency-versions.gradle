@@ -1,5 +1,5 @@
 ext {
-  kafkaVersion = "0.10.2.0"
+  kafkaVersion = "0.10.0.1"
   guavaVersion = "20.0"
   objectifyVersion = "5.1.12"
   typesafeConfigVersion = "1.3.0"
