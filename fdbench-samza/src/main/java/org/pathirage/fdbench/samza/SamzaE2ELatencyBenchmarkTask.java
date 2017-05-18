@@ -42,9 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Int;
 
-import java.util.Collection;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.*;
 
 public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
@@ -133,42 +131,47 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
   @Override
   public void run() {
     executor.execute(() -> {
-        long stopAfter = System.currentTimeMillis() + benchmarkDuration * 1000;
+      long stopAfter = System.currentTimeMillis() + benchmarkDuration * 1000;
 
-        while (true) {
-          if (System.currentTimeMillis() >= stopAfter) {
-            break;
-          }
-
-          try {
-            producer.send(new ProducerRecord<>(System.getenv(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_TOPIC), randomKey.nextString(),  generateMessage())).get();
-          } catch (Exception e) {
-            log.error("Error occurred.", e);
-            errorCount.inc();
-          }
+      while (true) {
+        if (System.currentTimeMillis() >= stopAfter) {
+          break;
         }
 
-        latch.countDown();
-      });
+        try {
+          producer.send(new ProducerRecord<>(System.getenv(SamzaE2ELatencyBenchmarkConstants.SOURCE_TOPIC), randomKey.nextString(), generateMessage())).get();
+        } catch (Exception e) {
+          log.error("Error occurred.", e);
+          errorCount.inc();
+        }
+      }
+
+      latch.countDown();
+    });
 
     executor.execute(() -> {
-        while(true) {
-          ConsumerRecords<String, JsonNode> records = consumer.poll(30000);
-          long receivedAt = System.currentTimeMillis();
-          if (records.isEmpty()) {
-            log.warn("No messages for 30 seconds. Shutting down the consumer thread.");
-            break;
-          }
+      List<String> topics = new ArrayList<>();
+      topics.add(System.getenv(SamzaE2ELatencyBenchmarkConstants.RESULT_TOPIC));
 
-          for (ConsumerRecord<String, JsonNode> record : records) {
-            JsonNode root = record.value();
-            long createdAt = root.get("created-at").asLong();
-            latency.recordValue(receivedAt - createdAt);
-          }
+      consumer.subscribe(topics);
+
+      while (true) {
+        ConsumerRecords<String, JsonNode> records = consumer.poll(30000);
+        long receivedAt = System.currentTimeMillis();
+        if (records.isEmpty()) {
+          log.warn("No messages for 30 seconds. Shutting down the consumer thread.");
+          break;
         }
 
-        latch.countDown();
-      });
+        for (ConsumerRecord<String, JsonNode> record : records) {
+          JsonNode root = record.value();
+          long createdAt = root.get("created-at").asLong();
+          latency.recordValue(receivedAt - createdAt);
+        }
+      }
+
+      latch.countDown();
+    });
 
     try {
       latch.await(benchmarkDuration * 2, TimeUnit.SECONDS);

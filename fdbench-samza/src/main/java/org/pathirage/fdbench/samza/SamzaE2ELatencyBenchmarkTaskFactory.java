@@ -24,6 +24,6 @@ import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 public class SamzaE2ELatencyBenchmarkTaskFactory implements BenchmarkTaskFactory {
   @Override
   public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config, MetricsRegistry metricsRegistry) {
-    return null;
+    return new SamzaE2ELatencyBenchmarkTask(benchmarkName, taskId, containerID, config, metricsRegistry);
   }
 }

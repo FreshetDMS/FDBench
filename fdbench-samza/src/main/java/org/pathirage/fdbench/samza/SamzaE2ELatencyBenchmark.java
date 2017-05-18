@@ -56,7 +56,7 @@ public class SamzaE2ELatencyBenchmark implements Benchmark {
 
   @Override
   public Class<? extends BenchmarkTaskFactory> getTaskFactoryClass() {
-    return null;
+    return SamzaE2ELatencyBenchmarkTaskFactory.class;
   }
 
   @Override
