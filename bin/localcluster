@@ -52,6 +52,7 @@ bootstrap() {
 
 install_all() {
   $DIR/localcluster install fdbench
+  $DIR/localcluster install fdbenchsamza
   $DIR/localcluster install zookeeper
   $DIR/localcluster install yarn
   $DIR/localcluster install kafka
@@ -66,6 +67,16 @@ install_fdbench() {
   cp fdbench-yarn/build/distributions/fdbench-yarn-$FDBENCH_VERSION-dist.tgz $DEPLOY_ROOT_DIR/yarn-package
   mkdir -p $DEPLOY_ROOT_DIR/fdbench
   tar -xf fdbench-yarn/build/distributions/fdbench-yarn-$FDBENCH_VERSION-dist.tgz -C $DEPLOY_ROOT_DIR/fdbench
+}
+
+install_fdbenchsamza() {
+  cd $FDBENCH_ROOT_DIR
+  FDBENCH_VERSION="$(./gradlew -q printVersion)"
+  ./gradlew -q :fdbench-samza:distTar
+  mkdir -p $DEPLOY_ROOT_DIR/yarn-package
+  cp fdbench-samza/build/distributions/fdbench-samza-$FDBENCH_VERSION-dist.tar.gz $DEPLOY_ROOT_DIR/yarn-package
+  mkdir -p $DEPLOY_ROOT_DIR/fdbenchsamza
+  tar -xf fdbench-samza/build/distributions/fdbench-samza-$FDBENCH_VERSION-dist.tar.gz -C $DEPLOY_ROOT_DIR/fdbenchsamza
 }
 
 install_zookeeper() {
