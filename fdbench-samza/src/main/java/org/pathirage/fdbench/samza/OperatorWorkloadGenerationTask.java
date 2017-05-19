@@ -21,6 +21,8 @@ import org.apache.samza.system.IncomingMessageEnvelope;
 import org.apache.samza.system.OutgoingMessageEnvelope;
 import org.apache.samza.system.SystemStream;
 import org.apache.samza.task.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * StreamTask for generating different types of query workloads including constant service times,
@@ -30,6 +32,8 @@ import org.apache.samza.task.*;
  *   - Empty
  */
 public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
+  private static Logger log = LoggerFactory.getLogger(OperatorWorkloadGenerationTask.class);
+
   private static final String SERVICE_TIME_DISTRIBUTION = "streaming.operator.workload.service.time.dist";
   private static final String SERVICE_TIME_AVG = "streaming.operator.workload.service.time.avg";
   private static final String RESULT_TOPIC = "streaming.operator.workload.result.topic";
@@ -51,6 +55,7 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   @Override
   public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
     if (serviceTimeDist == ServiceTimeDist.CONSTANT) {
+      log.info("Going to busy wait for " + serviceTimeAvgMicroSeconds + " microseconds.");
       busyWaitMicros(serviceTimeAvgMicroSeconds);
     } else if (serviceTimeDist == ServiceTimeDist.NOPROCESSING) {
       // No processing

@@ -27,6 +27,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.tools.ThroughputThrottler;
 import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
 import org.pathirage.fdbench.api.BenchmarkTask;
@@ -130,9 +131,13 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
 
   @Override
   public void run() {
+    long currentTime = System.currentTimeMillis();
     executor.execute(() -> {
       long stopAfter = System.currentTimeMillis() + benchmarkDuration * 1000;
 
+      ThroughputThrottler throughputThrottler = new ThroughputThrottler(Long.valueOf(System.getenv(SamzaE2ELatencyBenchmarkConstants.MESSAGE_RATE)), System.currentTimeMillis());
+
+      long i = 0;
       while (true) {
         if (System.currentTimeMillis() >= stopAfter) {
           break;
@@ -140,9 +145,17 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
 
         try {
           producer.send(new ProducerRecord<>(System.getenv(SamzaE2ELatencyBenchmarkConstants.SOURCE_TOPIC), randomKey.nextString(), generateMessage())).get();
+          messagesSent.inc();
+          elapsedTime.set(System.currentTimeMillis() - currentTime);
         } catch (Exception e) {
           log.error("Error occurred.", e);
           errorCount.inc();
+        }
+
+        i++;
+
+        if (throughputThrottler.shouldThrottle(i, System.currentTimeMillis())) {
+          throughputThrottler.throttle();
         }
       }
 
@@ -166,7 +179,8 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
         for (ConsumerRecord<String, JsonNode> record : records) {
           JsonNode root = record.value();
           long createdAt = root.get("created-at").asLong();
-          latency.recordValue(receivedAt - createdAt);
+          latency.recordValue((receivedAt - createdAt) * 1000000);
+          messagesConsumed.inc();
         }
       }
 
