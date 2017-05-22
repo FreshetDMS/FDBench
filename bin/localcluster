@@ -62,11 +62,11 @@ install_fdbench() {
   # We need to build fdbench and setup libs, scripts, and etc. neccessary to run benchmark jobs
   cd $FDBENCH_ROOT_DIR
   FDBENCH_VERSION="$(./gradlew -q printVersion)"
-  ./gradlew -q :fdbench-yarn:tar
+  ./gradlew -q :fdbench-yarn:distTar
   mkdir -p $DEPLOY_ROOT_DIR/yarn-package
   cp fdbench-yarn/build/distributions/fdbench-yarn-$FDBENCH_VERSION-dist.tgz $DEPLOY_ROOT_DIR/yarn-package
   mkdir -p $DEPLOY_ROOT_DIR/fdbench
-  tar -xf fdbench-yarn/build/distributions/fdbench-yarn-$FDBENCH_VERSION-dist.tgz -C $DEPLOY_ROOT_DIR/fdbench
+  tar -xf fdbench-yarn/build/distributions/fdbench-yarn-$FDBENCH_VERSION-dist.tar.gz -C $DEPLOY_ROOT_DIR/fdbench
 }
 
 install_fdbenchsamza() {

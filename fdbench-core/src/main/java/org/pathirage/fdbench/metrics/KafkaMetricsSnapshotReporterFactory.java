@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Milinda Pathirage
+ * Copyright 2017 Milinda Pathirage
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,40 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.pathirage.fdbench.metrics;
 
 import com.typesafe.config.Config;
-import org.apache.samza.util.Util;
 import org.pathirage.fdbench.config.BenchConfig;
-import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
 
-import java.nio.file.Paths;
-
-public class FSMetricsSnapshotReporterFactory implements MetricsReporterFactory {
-
+public class KafkaMetricsSnapshotReporterFactory implements MetricsReporterFactory {
   @Override
   public MetricsReporter getMetricsReporter(String name, String containerName, Config config) {
-    FSMetricsSnapshotReporterConfig reporterConfig = new FSMetricsSnapshotReporterConfig(new MetricsReporterConfig(config).getReporterConfig(name));
-
-    return new FSMetricsSnapshotReporter(name, new BenchConfig(config).getName(), containerName,
-        Util.getLocalHost().getHostName(),
-        Paths.get(reporterConfig.getSnapshotsDirectory()),
-        reporterConfig.getReportingInterval());
+    return new KafkaMetricsSnapshotReporter(name, new BenchConfig(config).getName(), containerName, new KafkaMetricsSnapshotReporterConfig(config));
   }
 
-  private static class FSMetricsSnapshotReporterConfig extends AbstractMetricsReporterConfig {
-    private static final String SNAPSHOTS_DIR = "snapshots.directory";
+  public static class KafkaMetricsSnapshotReporterConfig extends AbstractMetricsReporterConfig {
+    private static final String KAFKA_ZK_CONNECT = "kafka.zookeeper";
+    private static final String KAFKA_BROKERS = "kafka.brokers";
 
-    private FSMetricsSnapshotReporterConfig(Config config) {
+    public KafkaMetricsSnapshotReporterConfig(Config config) {
       super(config);
     }
 
-    private String getSnapshotsDirectory() {
-      return getString(SNAPSHOTS_DIR);
+    public String getKafkaBrokers() {
+      return getString(KAFKA_BROKERS, "localhost:9092");
     }
 
+    public String getKafkaZkConnect() {
+      return getString(KAFKA_ZK_CONNECT, "localhost:2181");
+    }
   }
 }

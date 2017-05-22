@@ -17,7 +17,6 @@
 package org.pathirage.fdbench.metrics;
 
 import com.typesafe.config.Config;
-import org.pathirage.fdbench.config.AbstractConfig;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
@@ -30,8 +29,7 @@ public class S3MetricsReporterFactory implements MetricsReporterFactory {
         new S3MetricsReporterConfig(new MetricsReporterConfig(config).getReporterConfig(name)));
   }
 
-  public static class S3MetricsReporterConfig extends AbstractConfig{
-    private static final String REPORTING_INTERVAL = "reporting.interval";
+  public static class S3MetricsReporterConfig extends AbstractMetricsReporterConfig {
     private static final String AWS_ACCESS_KEY_ID = "aws.access.key.id";
     private static final String AWS_ACCESS_KEY_SECRET = "aws.access.key.secret";
     private static final String AWS_REGION = "aws.region";
@@ -39,10 +37,6 @@ public class S3MetricsReporterFactory implements MetricsReporterFactory {
 
     public S3MetricsReporterConfig(Config config) {
       super(config);
-    }
-
-    public int getReportingInterval() {
-      return getInt(REPORTING_INTERVAL, 60);
     }
 
     public String getAWSAccessKeyId() {
@@ -53,7 +47,7 @@ public class S3MetricsReporterFactory implements MetricsReporterFactory {
       return getString(AWS_ACCESS_KEY_SECRET);
     }
 
-    public String getAWSRegion(){
+    public String getAWSRegion() {
       return getString(AWS_REGION, "us-west-2");
     }
 

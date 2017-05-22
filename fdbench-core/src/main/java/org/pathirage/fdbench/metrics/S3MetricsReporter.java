@@ -54,7 +54,7 @@ public class S3MetricsReporter extends AbstractMetricsSnapshotReporter implement
       public Thread newThread(Runnable r) {
         Thread thread = new Thread(r);
         thread.setDaemon(true);
-        thread.setName("FDBenchMessaging-S3MetricsReporter");
+        thread.setName("FDBench-S3MetricsReporter");
         return thread;
       }
     }));

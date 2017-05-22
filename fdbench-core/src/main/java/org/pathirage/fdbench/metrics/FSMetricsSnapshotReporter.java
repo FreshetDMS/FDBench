@@ -44,7 +44,7 @@ public class FSMetricsSnapshotReporter extends AbstractMetricsSnapshotReporter i
       public Thread newThread(Runnable r) {
         Thread thread = new Thread(r);
         thread.setDaemon(true);
-        thread.setName("FDBenchMessaging-FSMetricsSnapshotReporter");
+        thread.setName("FDBench-FSMetricsSnapshotReporter");
         return thread;
       }
     }));

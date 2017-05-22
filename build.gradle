@@ -56,6 +56,8 @@ project(':fdbench-core') {
     compile "org.apache.samza:samza-api:$samzaVersion"
     compile "org.apache.samza:samza-core_2.11:$samzaVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
+    compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+    compile "org.apache.kafka:connect-json:$kafkaVersion"
     compile "com.amazonaws:aws-java-sdk-dynamodb"
     compile "com.amazonaws:aws-java-sdk-cloudwatch"
     testCompile "junit:junit:$junitVersion"
@@ -253,9 +255,20 @@ project(':fdbench-yarn') {
     compile "org.apache.hadoop:hadoop-hdfs:$yarnVersion"
   }
 
-  task tar(type: Tar) {
-    compression = Compression.GZIP
-    classifier = 'dist'
+  task distTar(dependsOn: build, type: Tar) {
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+    into("config") {
+      from("src/main/config") {
+        include "samzae2elatency-bench.conf"
+
+        // expand the Maven tokens with Gradle equivalents.  Also change 'target' (Maven) to 'build/distributions' (Gradle)
+        filter { String line ->
+          line.replaceAll('[\$][{]basedir[}]', project.projectDir.toString()).replaceAll('[\$][{]project.artifactId[}]', project.name.toString()).replaceAll('/target/', '/build/distributions/').replaceAll('[\$][{]pom.version[}]', version)
+        }
+      }
+    }
 
     into('bin') {
       from 'src/main/bash'
@@ -276,7 +289,7 @@ project(':fdbench-yarn') {
     }
   }
 
-  task testConsumerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
+  task testConsumerThroughput(type: FDBenchRunnerTask, dependsOn: [distTar]) {
     benchmark "fdbench-consumer-throughput"
     benchmarkDesc "Measuring consumer throughput"
     configFile "consumer-throughput.conf"
@@ -288,7 +301,7 @@ project(':fdbench-yarn') {
     maxRecords 100000000
   }
 
-  task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [tar]) {
+  task testProducerThroughput(type: FDBenchRunnerTask, dependsOn: [distTar]) {
     benchmark "fdbench-producer-throughput"
     benchmarkDesc "Measuring producer throughput"
     configFile "producer-throughput.conf"
