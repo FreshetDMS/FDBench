@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench;
+package org.pathirage.fdbench.utils;
+
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+
+import java.util.Properties;
 
 public class Utils {
   public static <T> T instantiate(final String className, final Class<T> type) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
@@ -46,5 +50,16 @@ public class Utils {
 
   public interface ExponentialBackOffFunction {
     boolean execute();
+  }
+
+  public static Properties getConsumerProperties(String brokers, String groupId) {
+    Properties props = new Properties();
+
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+
+    return props;
   }
 }

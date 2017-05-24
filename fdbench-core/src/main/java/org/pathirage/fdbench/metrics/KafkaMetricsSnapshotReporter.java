@@ -17,11 +17,10 @@ package org.pathirage.fdbench.metrics;
 
 import com.google.gson.Gson;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.samza.SamzaException;
 import org.apache.samza.util.Util;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.slf4j.Logger;
@@ -31,7 +30,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class KafkaMetricsSnapshotReporter extends AbstractMetricsSnapshotReporter {
   private static final Logger log = LoggerFactory.getLogger(KafkaMetricsSnapshotReporter.class);
@@ -40,10 +41,11 @@ public class KafkaMetricsSnapshotReporter extends AbstractMetricsSnapshotReporte
   private final String metricsSnapshotTopic;
   private final String containerName;
   private final KafkaProducer<byte[], String> producer;
+  private final AtomicReference<SamzaException> producerException = new AtomicReference<>();
 
   public KafkaMetricsSnapshotReporter(String name, String jobName, String containerName, KafkaMetricsSnapshotReporterFactory.KafkaMetricsSnapshotReporterConfig config) {
     super(name, jobName, containerName, config.getReportingInterval(),
-        Executors.newScheduledThreadPool(1, new ThreadFactory() {
+        Executors.newScheduledThreadPool(2, new ThreadFactory() {
           @Override
           public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
@@ -59,13 +61,15 @@ public class KafkaMetricsSnapshotReporter extends AbstractMetricsSnapshotReporte
     this.producer = new KafkaProducer<byte[], String>(getProducerProperties());
   }
 
+  private void createMetricsTopic(String topic) {
+
+  }
+
   @Override
   public void run() {
-    log.info("Starting to publish metrics.");
-
     for (Pair<String, MetricsRegistry> registry : registries) {
-      log.info("Flushing metrics for " + registry.getValue());
-
+      log.info("Flushing metrics of " + registry.getValue());
+      long start = System.currentTimeMillis();
       Map<String, Map<String, Object>> metricsEvent = metricRegistryToMap(registry.getValue());
 
       long recordingTime = System.currentTimeMillis();
@@ -80,9 +84,29 @@ public class KafkaMetricsSnapshotReporter extends AbstractMetricsSnapshotReporte
       metricsSnapshot.put("body", metricsEvent);
 
       Gson gson = new Gson();
+      Future<RecordMetadata> future = producer.send(
+          new ProducerRecord<byte[], String>(metricsSnapshotTopic, gson.toJson(metricsSnapshot)),
+          new Callback() {
+            @Override
+            public void onCompletion(RecordMetadata metadata, Exception exception) {
+              if (exception != null) {
+                producerException.compareAndSet(null, new SamzaException(exception));
+                log.error("Unable to send metrics to Kafka.");
+              }
+            }
+          });
 
-      producer.send(new ProducerRecord<byte[], String>(metricsSnapshotTopic, gson.toJson(metricsSnapshot)));
+      while (!future.isDone() && producerException.get() == null) {
+        try {
+          future.get();
+        } catch (Exception e) {
+          log.error("Error occurred while waiting for producer.", e);
+        }
+      }
+
+      log.info("Flushed metrics of " + registry.getValue() + ". Took " + (System.currentTimeMillis() - start) + " milliseconds.");
     }
+
   }
 
   @Override

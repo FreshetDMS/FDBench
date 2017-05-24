@@ -20,7 +20,7 @@ import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.config.BenchConfig;
-import org.pathirage.fdbench.kafka.KafkaAdmin;
+import org.pathirage.fdbench.utils.kafka.KafkaAdmin;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 
 import java.util.HashMap;

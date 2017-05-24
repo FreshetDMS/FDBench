@@ -167,12 +167,12 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
       topics.add(System.getenv(SamzaE2ELatencyBenchmarkConstants.RESULT_TOPIC));
 
       consumer.subscribe(topics);
-
+      long startedAt = System.currentTimeMillis();
       while (true) {
         ConsumerRecords<String, JsonNode> records = consumer.poll(30000);
         long receivedAt = System.currentTimeMillis();
-        if (records.isEmpty()) {
-          log.warn("No messages for 30 seconds. Shutting down the consumer thread.");
+        if (records.isEmpty() && receivedAt - startedAt > 60000) {
+          log.warn("No messages for 60 seconds. Shutting down the consumer thread.");
           break;
         }
 

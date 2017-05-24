@@ -23,6 +23,7 @@ import org.I0Itec.zkclient.ZkConnection;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.PartitionInfo;
+import org.pathirage.fdbench.utils.kafka.ZKStringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

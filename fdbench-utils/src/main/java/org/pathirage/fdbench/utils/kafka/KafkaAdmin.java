@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.pathirage.fdbench.kafka;
+package org.pathirage.fdbench.utils.kafka;
 
-import kafka.admin.AdminClient;
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
 import kafka.utils.ZkUtils;
@@ -25,6 +24,7 @@ import org.I0Itec.zkclient.ZkConnection;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.pathirage.fdbench.FDBenchException;
+import org.pathirage.fdbench.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.collection.Map;
@@ -78,7 +78,7 @@ public class KafkaAdmin {
 
   public void createTopic(String topic, int partitions, int replicationFactor) {
     AdminUtils.createTopic(kafkaZKUtils, topic, partitions, replicationFactor, new Properties(), RackAwareMode.Disabled$.MODULE$);
-    org.pathirage.fdbench.Utils.executeUntilSuccessOrTimeout(() -> {
+    Utils.executeUntilSuccessOrTimeout(() -> {
       return consumer.listTopics().containsKey(topic);
     }, System.currentTimeMillis(), 30 * 1000);
   }

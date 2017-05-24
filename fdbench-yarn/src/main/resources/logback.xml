@@ -9,7 +9,7 @@
     </appender>
 
     <logger name="org.pathirage.fdbench.metrics.DynamoDBMetricsSnapshotReporter" level="DEBUG" />
-    <logger name="org.pathirage.fdbench.kafka.KafkaAdmin" level="DEBUG"/>
+    <logger name="org.pathirage.fdbench.utils.kafka.KafkaAdmin" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

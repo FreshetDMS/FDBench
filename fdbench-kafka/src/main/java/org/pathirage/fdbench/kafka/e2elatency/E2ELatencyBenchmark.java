@@ -16,21 +16,11 @@
 
 package org.pathirage.fdbench.kafka.e2elatency;
 
-import com.google.common.base.Joiner;
 import com.typesafe.config.Config;
-import org.apache.commons.lang3.ArrayUtils;
-import org.pathirage.fdbench.FDBenchException;
-import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
-import org.pathirage.fdbench.kafka.KafkaAdmin;
 import org.pathirage.fdbench.kafka.KafkaBenchmark;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.IntStream;
 
 /**
  * This benchmark measure the end-to-end latency of Kafka.

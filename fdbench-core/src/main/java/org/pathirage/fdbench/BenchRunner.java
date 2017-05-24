@@ -16,13 +16,13 @@
 
 package org.pathirage.fdbench;
 
-import com.beust.jcommander.Parameter;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.cli.*;
 import org.pathirage.fdbench.api.BenchmarkJob;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.api.BenchmarkJobFactory;
+import org.pathirage.fdbench.utils.Utils;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
