@@ -15,6 +15,7 @@
  */
 package org.pathirage.fdbench.metrics;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.kafka.clients.consumer.*;
@@ -41,7 +42,16 @@ public class KafkaMetricsSnapshotConsumerCLI {
   private KafkaConsumer<byte[], JsonNode> metricsSnapshotConsumer;
 
   public static void main(String[] args) {
+    KafkaMetricsSnapshotConsumerCLI cli = new KafkaMetricsSnapshotConsumerCLI();
+    JCommander.newBuilder()
+        .addObject(cli)
+        .build()
+        .parse(args);
 
+    cli.init();
+    cli.run();
+
+    System.exit(0);
   }
 
   public void init() {
@@ -49,19 +59,6 @@ public class KafkaMetricsSnapshotConsumerCLI {
   }
 
   public void run() {
-    Thread mainThread = Thread.currentThread();
-    Runtime.getRuntime().addShutdownHook(new Thread(
-        () -> {
-          if (metricsSnapshotConsumer != null) {
-            metricsSnapshotConsumer.close();
-            try {
-              mainThread.join();
-            } catch (InterruptedException e) {
-
-            }
-          }
-        }));
-
     List<String> metricsToExtract = Arrays.asList(metrics.split("\\s*,\\s*"));
 
     while (true) {
@@ -69,8 +66,27 @@ public class KafkaMetricsSnapshotConsumerCLI {
 
       for (ConsumerRecord<byte[], JsonNode> record : records) {
         JsonNode root = record.value();
+        System.out.println("Received a metrics snapshot..");
+        for (String metricPath : metricsToExtract) {
+          List<String> pathComponents = Arrays.asList(metricPath.split("\\s*.\\s*"));
+          JsonNode field = root;
 
-        
+          for (String pathComponent : pathComponents) {
+            if (!field.isMissingNode()) {
+              field = field.path(pathComponent);
+            }
+          }
+
+          if (!field.isMissingNode()) {
+            if (field.isDouble()) {
+              System.out.println(String.format("%s: %s", metricPath, field.doubleValue()));
+            } else if (field.isFloat()) {
+              System.out.println(String.format("%s: %s", metricPath, field.floatValue()));
+            } else if (field.isInt()) {
+              System.out.println(String.format("%s: %s", metricPath, field.intValue()));
+            }
+          }
+        }
       }
     }
   }

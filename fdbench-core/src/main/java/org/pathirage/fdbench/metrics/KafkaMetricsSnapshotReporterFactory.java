@@ -17,13 +17,15 @@ package org.pathirage.fdbench.metrics;
 
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.config.MetricsReporterConfig;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.pathirage.fdbench.metrics.api.MetricsReporterFactory;
 
 public class KafkaMetricsSnapshotReporterFactory implements MetricsReporterFactory {
   @Override
   public MetricsReporter getMetricsReporter(String name, String containerName, Config config) {
-    return new KafkaMetricsSnapshotReporter(name, new BenchConfig(config).getName(), containerName, new KafkaMetricsSnapshotReporterConfig(config));
+    return new KafkaMetricsSnapshotReporter(name, new BenchConfig(config).getName(), containerName,
+        new KafkaMetricsSnapshotReporterConfig(new MetricsReporterConfig(config).getReporterConfig(name)));
   }
 
   public static class KafkaMetricsSnapshotReporterConfig extends AbstractMetricsReporterConfig {

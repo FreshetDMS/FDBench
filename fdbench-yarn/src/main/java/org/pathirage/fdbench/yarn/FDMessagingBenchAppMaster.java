@@ -31,7 +31,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 import org.pathirage.fdbench.FDBenchException;
-import org.pathirage.fdbench.Utils;
+import org.pathirage.fdbench.utils.Utils;
 import org.pathirage.fdbench.api.*;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.yarn.config.YarnConfig;

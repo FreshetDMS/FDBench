@@ -62,6 +62,24 @@ project(':fdbench-core') {
     compile "com.amazonaws:aws-java-sdk-cloudwatch"
     testCompile "junit:junit:$junitVersion"
   }
+
+  // make the samza distribution .tgz file
+  task distTar(dependsOn: build, type: Tar) {
+    destinationDir(new File(project.buildDir, "/distributions"))
+    compression(Compression.GZIP)
+    classifier('dist')
+    extension('tar.gz')
+
+    into("bin") {
+      from 'src/main/bash'
+      fileMode = 0755
+    }
+
+    into("lib") {
+      from configurations.runtime
+      from configurations.runtime.artifacts.files
+    }
+  }
 }
 
 project(':fdbench-samza') {
@@ -150,6 +168,10 @@ project(':fdbench-utils') {
   dependencies {
     compile project(':fdbench-api')
     compile 'com.amazonaws:aws-java-sdk-dynamodb'
+    compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+    compile "org.apache.kafka:kafka-tools:$kafkaVersion"
+    compile "org.apache.kafka:kafka_2.11:$kafkaVersion"
+    compile "com.101tec:zkclient:$zkClientVersion"
     compile "ch.qos.logback:logback-classic:$logbackVersion"
   }
 }
@@ -222,6 +244,7 @@ project(':fdbench-tools') {
 project(':fdbench-kafka') {
   dependencies {
     compile project(':fdbench-core')
+    compile project(':fdbench-utils')
     compile "ch.qos.logback:logback-classic:$logbackVersion"
     compile "org.apache.kafka:kafka-clients:$kafkaVersion"
     compile "org.apache.kafka:kafka_2.11:$kafkaVersion"

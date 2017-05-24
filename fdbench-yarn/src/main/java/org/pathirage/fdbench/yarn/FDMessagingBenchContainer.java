@@ -20,7 +20,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.pathirage.fdbench.FDBenchException;
-import org.pathirage.fdbench.Utils;
+import org.pathirage.fdbench.utils.Utils;
 import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.api.Constants;

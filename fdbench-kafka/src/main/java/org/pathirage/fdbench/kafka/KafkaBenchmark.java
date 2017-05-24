@@ -21,12 +21,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.pathirage.fdbench.FDBenchException;
 import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
-import org.pathirage.fdbench.aws.BenchmarkOnAWS;
 import org.pathirage.fdbench.config.BenchConfig;
+import org.pathirage.fdbench.utils.kafka.KafkaAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;

@@ -24,6 +24,8 @@ import org.apache.samza.task.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
+
 /**
  * StreamTask for generating different types of query workloads including constant service times,
  * and exponential service times. Support following workloads:
@@ -35,19 +37,20 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   private static Logger log = LoggerFactory.getLogger(OperatorWorkloadGenerationTask.class);
 
   private static final String SERVICE_TIME_DISTRIBUTION = "streaming.operator.workload.service.time.dist";
-  private static final String SERVICE_TIME_AVG = "streaming.operator.workload.service.time.avg";
+  private static final String SERVICE_TIME_SCALE = "streaming.operator.workload.service.time.scale";
   private static final String RESULT_TOPIC = "streaming.operator.workload.result.topic";
   private static final String RESULT_SYSTEM = "streaming.operator.workload.result.system";
 
   private ServiceTimeDist serviceTimeDist;
-  private int serviceTimeAvgMicroSeconds;
+  private int serviceTimeScale;
   private String resultTopic;
   private String resultSystem;
+  private final Random random = new Random(System.currentTimeMillis());
 
   @Override
   public void init(Config config, TaskContext context) throws Exception {
     serviceTimeDist = ServiceTimeDist.valueOf(config.get(SERVICE_TIME_DISTRIBUTION, "NOPROCESSING"));
-    serviceTimeAvgMicroSeconds = config.getInt(SERVICE_TIME_AVG, 100);
+    serviceTimeScale = config.getInt(SERVICE_TIME_SCALE, 100);
     resultTopic = config.get(RESULT_TOPIC, "e2elatency-topic");
     resultSystem = config.get(RESULT_SYSTEM, "kafka");
   }
@@ -55,8 +58,7 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   @Override
   public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
     if (serviceTimeDist == ServiceTimeDist.CONSTANT) {
-      log.info("Going to busy wait for " + serviceTimeAvgMicroSeconds + " microseconds.");
-      busyWaitMicros(serviceTimeAvgMicroSeconds);
+      busyWait(serviceTimeScale);
     } else if (serviceTimeDist == ServiceTimeDist.NOPROCESSING) {
       // No processing
     } else {
@@ -66,11 +68,14 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
     collector.send(new OutgoingMessageEnvelope(new SystemStream(resultSystem, resultTopic), envelope.getKey(), envelope.getMessage()));
   }
 
-  private static void busyWaitMicros(long micros){
-    long waitUntil = System.nanoTime() + (micros * 1_000);
-    while(waitUntil > System.nanoTime()){
-      ;
+  private void busyWait(int scale){
+    double iterations = Math.pow(2, scale);
+    int result = 0;
+    for (double i = 0; i < iterations; i++) {
+      result = random.nextInt(2000) * random.nextInt(500);
     }
+
+    log.info("Result: " + result);
   }
 
   public static enum ServiceTimeDist {

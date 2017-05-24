@@ -60,7 +60,7 @@ public abstract class AbstractMetricsSnapshotReporter implements MetricsReporter
 
   @Override
   public void start() {
-    log.info("Starting " + getClass().getName() + " instance with name " + name);
+    log.info("Starting " + getClass().getName() + " instance with name " + name + " and interval " + interval);
     executor.scheduleWithFixedDelay(this, 0, interval, TimeUnit.SECONDS);
   }
 
