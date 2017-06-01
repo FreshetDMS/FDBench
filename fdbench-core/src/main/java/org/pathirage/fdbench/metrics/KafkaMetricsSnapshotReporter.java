@@ -69,26 +69,34 @@ public class KafkaMetricsSnapshotReporter extends AbstractMetricsSnapshotReporte
   public void run() {
     for (Pair<String, MetricsRegistry> registry : registries) {
       log.info("Flushing metrics of " + registry.getValue());
-      long start = System.currentTimeMillis();
-      Map<String, Map<String, Object>> metricsEvent = metricRegistryToMap(registry.getValue());
-
-      long recordingTime = System.currentTimeMillis();
-      HashMap<String, Object> header = new HashMap<>();
-      header.put("bench-name", jobName);
-      header.put("container", containerName);
-      header.put("host", Util.getLocalHost().getHostName());
-      header.put("time", recordingTime);
-
       HashMap<String, Object> metricsSnapshot = new HashMap<>();
-      metricsSnapshot.put("header", header);
-      metricsSnapshot.put("body", metricsEvent);
+      long start = System.currentTimeMillis();
+      log.info("This is the test - 1");
+      try {
+        Map<String, Map<String, Object>> metricsEvent = metricRegistryToMap(registry.getValue());
+
+        long recordingTime = System.currentTimeMillis();
+        HashMap<String, Object> header = new HashMap<>();
+        header.put("bench-name", jobName);
+        header.put("container", containerName);
+        header.put("host", Util.getLocalHost().getHostName());
+        header.put("time", recordingTime);
+
+        metricsSnapshot.put("header", header);
+        metricsSnapshot.put("body", metricsEvent);
+      } catch (Exception e) {
+        log.error("Error populating metrics event.", e);
+        throw  e;
+      }
 
       Gson gson = new Gson();
+      log.info("Sending metrics event to Kafka topic: " + metricsSnapshotTopic);
       Future<RecordMetadata> future = producer.send(
           new ProducerRecord<byte[], String>(metricsSnapshotTopic, gson.toJson(metricsSnapshot)),
           new Callback() {
             @Override
             public void onCompletion(RecordMetadata metadata, Exception exception) {
+              log.info("Metrics send completed.");
               if (exception != null) {
                 producerException.compareAndSet(null, new SamzaException(exception));
                 log.error("Unable to send metrics to Kafka.");

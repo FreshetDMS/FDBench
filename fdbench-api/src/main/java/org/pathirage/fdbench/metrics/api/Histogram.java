@@ -20,7 +20,7 @@ import org.HdrHistogram.AbstractHistogram;
 import org.apache.samza.metrics.Metric;
 import org.apache.samza.metrics.MetricsVisitor;
 
-public class Histogram extends org.HdrHistogram.Histogram implements Metric {
+public class Histogram extends org.HdrHistogram.ConcurrentHistogram implements Metric {
   public static final double[] LOGARITHMIC_PERCENTILES = {
       0.0f,
       10.0f,

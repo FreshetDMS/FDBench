@@ -13,36 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.pathirage.fdbench.metrics;
+package org.pathirage.fdbench.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.PathNotFoundException;
+import net.minidev.json.JSONArray;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.connect.json.JsonDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import scala.Int;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-public class KafkaMetricsSnapshotConsumerCLI {
+public class MetricsSnapshotConsumerCLI {
+  private static final Logger log = LoggerFactory.getLogger(MetricsSnapshotConsumerCLI.class);
+
+  @Parameter(description = "Snapshot type")
+  private String type;
+
   @Parameter(names = {"-b", "--brokers"})
   private String brokers = "localhost:9092";
 
-  @Parameter(names = {"-zk", "--zkconstr"})
-  private String zkConnectionString = "localhost:2181";
+  @Parameter(names = {"-ft", "--fdbench-topic"}, required = true)
+  private String fdbenchMetricsTopic;
 
-  @Parameter(names = {"-t", "--topic"}, required = true)
-  private String topic;
-
-  @Parameter(names = {"-m", "--metrics"}, required = true)
-  private String metrics;
+  @Parameter(names = {"-st", "--samza-topic"}, required = true)
+  private String samzaMetricsTopic;
 
   private KafkaConsumer<byte[], JsonNode> metricsSnapshotConsumer;
 
-  public static void main(String[] args) {
-    KafkaMetricsSnapshotConsumerCLI cli = new KafkaMetricsSnapshotConsumerCLI();
+  public static void main(String[] args) throws IOException {
+    exec(args);
+  }
+
+  public static void exec(String[] args) {
+    MetricsSnapshotConsumerCLI cli = new MetricsSnapshotConsumerCLI();
     JCommander.newBuilder()
         .addObject(cli)
         .build()
@@ -59,33 +76,35 @@ public class KafkaMetricsSnapshotConsumerCLI {
   }
 
   public void run() {
-    List<String> metricsToExtract = Arrays.asList(metrics.split("\\s*,\\s*"));
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+
+      @Override
+      public void run() {
+        metricsSnapshotConsumer.close();
+      }
+    });
+
+    List<String> topics = new ArrayList<>();
+    topics.add(fdbenchMetricsTopic);
+    topics.add(samzaMetricsTopic);
+
+    metricsSnapshotConsumer.subscribe(topics);
 
     while (true) {
       ConsumerRecords<byte[], JsonNode> records = metricsSnapshotConsumer.poll(30000);
 
       for (ConsumerRecord<byte[], JsonNode> record : records) {
-        JsonNode root = record.value();
-        System.out.println("Received a metrics snapshot..");
-        for (String metricPath : metricsToExtract) {
-          List<String> pathComponents = Arrays.asList(metricPath.split("\\s*.\\s*"));
-          JsonNode field = root;
+        if (record.topic().equals(fdbenchMetricsTopic)) {
+          Double e2eLatency = (Double) JsonPath.<JSONArray>read(record.value().toString(), "$.body..e2e-latency").get(0);
+          log.info("[FDBench] mean e2e latency: " + e2eLatency + " milliseconds");
+        } else {
+          try {
+            double processNs = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].process-ns");
+            BigDecimal util = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].event-loop-utilization");
+            log.info("[Samza] process-ns: " + processNs + " nanoseconds");
+            log.info("[Samza] event-loop-utilization: " + util + " %");
+          } catch (PathNotFoundException e){}
 
-          for (String pathComponent : pathComponents) {
-            if (!field.isMissingNode()) {
-              field = field.path(pathComponent);
-            }
-          }
-
-          if (!field.isMissingNode()) {
-            if (field.isDouble()) {
-              System.out.println(String.format("%s: %s", metricPath, field.doubleValue()));
-            } else if (field.isFloat()) {
-              System.out.println(String.format("%s: %s", metricPath, field.floatValue()));
-            } else if (field.isInt()) {
-              System.out.println(String.format("%s: %s", metricPath, field.intValue()));
-            }
-          }
         }
       }
     }

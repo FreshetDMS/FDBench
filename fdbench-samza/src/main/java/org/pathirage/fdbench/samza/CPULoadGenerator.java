@@ -18,12 +18,14 @@ package org.pathirage.fdbench.samza;
 import java.util.Random;
 
 public class CPULoadGenerator {
+  static Random random = new Random(System.currentTimeMillis());
+
   public static void main(String[] args) {
     int multiplications = 1000;
     Random random = new Random(System.currentTimeMillis());
     long result = 0;
     long start = System.currentTimeMillis();
-    for (int j = 0; j < 1000000; j++) {
+    for (int j = 0; j < 1000; j++) {
       for (int i = 0; i < multiplications; i++) {
         result = random.nextInt(1000) * random.nextInt(200);
       }
@@ -33,5 +35,22 @@ public class CPULoadGenerator {
 //    System.out.println(result);
     System.out.println("Time: " + new Float(end - start)/1000 + " microseconds");
 
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+    System.out.println(randomExp());
+
+  }
+
+  private static int randomExp() {
+    float u = random.nextFloat();
+    return new Double(Math.log(1 - u)/-0.00001).intValue();
   }
 }

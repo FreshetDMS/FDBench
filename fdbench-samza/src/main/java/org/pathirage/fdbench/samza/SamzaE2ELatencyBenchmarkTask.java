@@ -32,16 +32,13 @@ import org.apache.samza.metrics.Counter;
 import org.apache.samza.metrics.Gauge;
 import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.config.BenchConfig;
-import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
-import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.kafka.KafkaConfig;
 import org.pathirage.fdbench.metrics.api.Histogram;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Int;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -60,12 +57,21 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
   private final KafkaProducer<String, JsonNode> producer;
   private final KafkaConsumer<String, JsonNode> consumer;
   private final Histogram latency;
+  private final org.apache.samza.metrics.Timer e2eLatency;
   private final Gauge<Long> elapsedTime;
   private final Counter messagesSent;
   private final Counter messagesConsumed;
   private final Counter errorCount;
   private final Integer benchmarkDuration;
-  private final ExecutorService executor = Executors.newFixedThreadPool(2);
+  private final ExecutorService executor = Executors.newFixedThreadPool(2, new ThreadFactory() {
+    @Override
+    public Thread newThread(Runnable r) {
+      Thread thread = new Thread(r);
+      thread.setDaemon(true);
+      thread.setName("FDBench-SamzaE2ELatencyBenchmarkTask");
+      return thread;
+    }
+  });
   private final CountDownLatch latch = new CountDownLatch(2);
 
   public SamzaE2ELatencyBenchmarkTask(String benchmarkName, String taskId, String containerId, Config config, MetricsRegistry metricsRegistry) {
@@ -80,6 +86,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
     this.producer = new KafkaProducer<String, JsonNode>(getProducerProperties());
     this.consumer = new KafkaConsumer<String, JsonNode>(getConsumerProperties());
     this.elapsedTime = metricsRegistry.<Long>newGauge(getGroup(), "elapsed-time", 0L);
+    this.e2eLatency = metricsRegistry.newTimer(getGroup(), "e2e-latency");
     this.latency = metricsRegistry.newHistogram(getGroup(), "produce-latency", KafkaBenchmarkConstants.MAX_RECORDABLE_LATENCY, KafkaBenchmarkConstants.SIGNIFICANT_VALUE_DIGITS);
     this.messagesSent = metricsRegistry.newCounter(getGroup(), "messages-sent");
     this.messagesConsumed = metricsRegistry.newCounter(getGroup(), "messages-consumed");
@@ -167,6 +174,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
       topics.add(System.getenv(SamzaE2ELatencyBenchmarkConstants.RESULT_TOPIC));
 
       consumer.subscribe(topics);
+      Thread.yield();
       long startedAt = System.currentTimeMillis();
       while (true) {
         ConsumerRecords<String, JsonNode> records = consumer.poll(30000);
@@ -179,10 +187,14 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
         for (ConsumerRecord<String, JsonNode> record : records) {
           JsonNode root = record.value();
           long createdAt = root.get("created-at").asLong();
-          latency.recordValue((receivedAt - createdAt) * 1000000);
+          long lat = (receivedAt - createdAt) ;
+          latency.recordValue(lat * 1000000);
+          e2eLatency.update(lat);
           messagesConsumed.inc();
         }
       }
+
+      log.info("Done consuming messages.");
 
       latch.countDown();
     });

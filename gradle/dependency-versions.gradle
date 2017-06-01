@@ -13,7 +13,8 @@ ext {
   scalaLibVersion = "2.11.8"
   zkClientVersion = "0.8"
   commonsCLIVersion = "1.3.1"
-  hdrHistogramVersion = "2.1.8"
+  hdrHistogramVersion = "2.1.9"
+  jsonPathVersion = "2.2.0"
   samzaVersion = "0.12.0"
   yarnVersion = "2.7.3"
 }
