@@ -21,19 +21,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import net.minidev.json.JSONArray;
-import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.connect.json.JsonDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Int;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -76,14 +74,6 @@ public class MetricsSnapshotConsumerCLI {
   }
 
   public void run() {
-    Runtime.getRuntime().addShutdownHook(new Thread(){
-
-      @Override
-      public void run() {
-        metricsSnapshotConsumer.close();
-      }
-    });
-
     List<String> topics = new ArrayList<>();
     topics.add(fdbenchMetricsTopic);
     topics.add(samzaMetricsTopic);
@@ -100,10 +90,11 @@ public class MetricsSnapshotConsumerCLI {
         } else {
           try {
             double processNs = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].process-ns");
-            BigDecimal util = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].event-loop-utilization");
+            Object util = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].event-loop-utilization");
             log.info("[Samza] process-ns: " + processNs + " nanoseconds");
             log.info("[Samza] event-loop-utilization: " + util + " %");
-          } catch (PathNotFoundException e){}
+          } catch (PathNotFoundException e) {
+          }
 
         }
       }
