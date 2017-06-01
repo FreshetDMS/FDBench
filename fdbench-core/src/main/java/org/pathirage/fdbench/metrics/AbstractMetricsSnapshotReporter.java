@@ -109,13 +109,14 @@ public abstract class AbstractMetricsSnapshotReporter implements MetricsReporter
               histogramEvent.put(Double.toString(percentile), valueToMilliseconds);
             }
 
-            HashMap<String, Object> summary = new HashMap<>();
-            summary.put("mean", histogram.getMean());
-            summary.put("max", histogram.getMaxValue());
-            summary.put("min", histogram.getMinValue());
-            summary.put("std", histogram.getStdDeviation());
-
-            histogramEvent.put("summary", summary);
+            // Commenting out because this causes concurrent modification exception
+//            HashMap<String, Object> summary = new HashMap<>();
+//            summary.put("mean", histogram.getMean());
+//            summary.put("max", histogram.getMaxValue());
+//            summary.put("min", histogram.getMinValue());
+//            summary.put("std", histogram.getStdDeviation());
+//
+//            histogramEvent.put("summary", summary);
 
             if (log.isDebugEnabled()) {
               log.debug("Histogram " + name + " content \n" + histogramEvent);

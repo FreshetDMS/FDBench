@@ -60,6 +60,15 @@ install_all() {
   $DIR/localcluster install kafka
 }
 
+install_fdbenchtools() {
+  cd $FDBENCH_ROOT_DIR
+  FDBENCH_VERSION="$(./gradlew -q printVersion)"
+  ./gradlew -q :fdbench-tools:distTar
+  mkdir -p $DEPLOY_ROOT_DIR/fdbench-tools
+  tar -xf fdbench-tools/build/distributions/fdbench-tools-$FDBENCH_VERSION-dist.tar.gz -C $DEPLOY_ROOT_DIR/fdbench-tools
+
+}
+
 install_fdbench() {
   # We need to build fdbench and setup libs, scripts, and etc. neccessary to run benchmark jobs
   cd $FDBENCH_ROOT_DIR

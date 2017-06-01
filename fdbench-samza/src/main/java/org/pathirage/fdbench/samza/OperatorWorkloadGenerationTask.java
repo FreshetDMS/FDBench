@@ -42,7 +42,7 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   private static final String RESULT_SYSTEM = "streaming.operator.workload.result.system";
 
   private ServiceTimeDist serviceTimeDist;
-  private int serviceTimeScale;
+  private String serviceTimeScale;
   private String resultTopic;
   private String resultSystem;
   private final Random random = new Random(System.currentTimeMillis());
@@ -50,7 +50,7 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   @Override
   public void init(Config config, TaskContext context) throws Exception {
     serviceTimeDist = ServiceTimeDist.valueOf(config.get(SERVICE_TIME_DISTRIBUTION, "NOPROCESSING"));
-    serviceTimeScale = config.getInt(SERVICE_TIME_SCALE, 100);
+    serviceTimeScale = config.get(SERVICE_TIME_SCALE, "14");
     resultTopic = config.get(RESULT_TOPIC, "e2elatency-topic");
     resultSystem = config.get(RESULT_SYSTEM, "kafka");
   }
@@ -58,18 +58,25 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
   @Override
   public void process(IncomingMessageEnvelope envelope, MessageCollector collector, TaskCoordinator coordinator) throws Exception {
     if (serviceTimeDist == ServiceTimeDist.CONSTANT) {
-      busyWait(serviceTimeScale);
+      constantTimeWorkload(Integer.valueOf(serviceTimeScale));
     } else if (serviceTimeDist == ServiceTimeDist.NOPROCESSING) {
       // No processing
     } else {
-      throw new RuntimeException("Not supported yet.");
+      exponentialTimeWorkload(Float.valueOf(serviceTimeScale));
     }
 
     collector.send(new OutgoingMessageEnvelope(new SystemStream(resultSystem, resultTopic), envelope.getKey(), envelope.getMessage()));
   }
 
-  private void busyWait(int scale){
-    double iterations = Math.pow(2, scale);
+  private void constantTimeWorkload(int scale) {
+    busyWait((int) Math.pow(2, scale));
+  }
+
+  private void exponentialTimeWorkload(float lambda) {
+    busyWait(new Double(Math.log(1 - random.nextFloat())/-lambda).intValue());
+  }
+
+  private void busyWait(int iterations){
     int result = 0;
     for (double i = 0; i < iterations; i++) {
       result = random.nextInt(2000) * random.nextInt(500);
