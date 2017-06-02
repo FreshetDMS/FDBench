@@ -24,7 +24,7 @@ public class SamzaE2ELatencyBenchmarkConfig extends KafkaConfig {
 
   private static final String SOURCE_TOPIC = "samza.e2elatency.source.topic";
   private static final String RESULT_TOPIC = "samza.e2elatency.result.topic";
-  private static final String MESSAGE_RATE = "samza.e2elatency.message.rate";
+  private static final String MESSAGE_RATE = "samza.e2elatency.base.message.rate";
   private static final String PAYLOAD_SIZE = "samza.e2elatency.payload.size";
 
   public SamzaE2ELatencyBenchmarkConfig(Config rawConfig) {

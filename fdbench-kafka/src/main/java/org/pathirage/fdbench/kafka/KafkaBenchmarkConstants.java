@@ -22,6 +22,6 @@ public class KafkaBenchmarkConstants {
   public static final String ENV_KAFKA_BENCH_BROKERS = "KAFKA_BENCH_BROKERS";
   public static final String ENV_KAFKA_BENCH_ZK = "KAFKA_BENCH_ZK";
 
-  public static final long MAX_RECORDABLE_LATENCY = 300000000000L;
+  public static final long MAX_RECORDABLE_LATENCY = 100000000000L;
   public static final int SIGNIFICANT_VALUE_DIGITS = 5;
 }

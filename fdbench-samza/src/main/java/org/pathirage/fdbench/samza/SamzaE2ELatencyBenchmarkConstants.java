@@ -19,6 +19,6 @@ package org.pathirage.fdbench.samza;
 public class SamzaE2ELatencyBenchmarkConstants {
   public static final String SOURCE_TOPIC = "SAMZA_E2E_SOURCE_TOPIC";
   public static final String RESULT_TOPIC = "SAMZA_E2E_RESULT_TOPIC";
-  public static final String MESSAGE_RATE = "SAMZA_E2E_MESSAGE_RATE";
+  public static final String MESSAGE_BASE_RATE = "SAMZA_E2E_MESSAGE_BASE_RATE";
   public static final String MESSAGE_SIZE = "SAMZA_E2E_MESSAGE_SIZE";
 }

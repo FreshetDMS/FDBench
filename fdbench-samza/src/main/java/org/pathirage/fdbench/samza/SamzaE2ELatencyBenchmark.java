@@ -67,7 +67,7 @@ public class SamzaE2ELatencyBenchmark implements Benchmark {
     env.put(KafkaBenchmarkConstants.ENV_KAFKA_BENCH_ZK, config.getZKConnectionString());
     env.put(SamzaE2ELatencyBenchmarkConstants.SOURCE_TOPIC, config.getSource().getName());
     env.put(SamzaE2ELatencyBenchmarkConstants.RESULT_TOPIC, config.getResult().getName());
-    env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_RATE, Integer.toString(config.getMessageRate()));
+    env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_BASE_RATE, Integer.toString(config.getMessageRate()));
     env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_SIZE, Integer.toString(config.getPayloadSize()));
 
     return env;

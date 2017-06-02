@@ -105,7 +105,7 @@ public abstract class AbstractMetricsSnapshotReporter implements MetricsReporter
             HashMap<String, Object> histogramEvent = new HashMap<String, Object>();
             for (double percentile : Histogram.LOGARITHMIC_PERCENTILES) {
               long value = histogram.getValueAtPercentile(percentile);
-              double valueToMilliseconds = (double) value / 1000000;
+              double valueToMilliseconds = (double) value;
               histogramEvent.put(Double.toString(percentile), valueToMilliseconds);
             }
 
