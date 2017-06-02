@@ -86,13 +86,15 @@ public class MetricsSnapshotConsumerCLI {
       for (ConsumerRecord<byte[], JsonNode> record : records) {
         if (record.topic().equals(fdbenchMetricsTopic)) {
           Double e2eLatency = (Double) JsonPath.<JSONArray>read(record.value().toString(), "$.body..e2e-latency").get(0);
-          log.info("[FDBench] mean e2e latency: " + e2eLatency + " milliseconds");
+          Object messageRate = JsonPath.<JSONArray>read(record.value().toString(), "$.body..current-message-rate").get(0);
+          Object messagesConsumed = JsonPath.<JSONArray>read(record.value().toString(), "$.body..messages-consumed").get(0);
+          Object messagesSent = JsonPath.<JSONArray>read(record.value().toString(), "$.body..messages-sent").get(0);
+          log.info("[FDBench] mean e2e latency: " + e2eLatency + " milliseconds, message rate: " + messageRate + ", messages consumed: " + messagesConsumed + " messages sent: " + messagesSent);
         } else {
           try {
             double processNs = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].process-ns");
             Object util = JsonPath.read(record.value().toString(), "$.metrics.['org.apache.samza.container.SamzaContainerMetrics'].event-loop-utilization");
-            log.info("[Samza] process-ns: " + processNs + " nanoseconds");
-            log.info("[Samza] event-loop-utilization: " + util + " %");
+            log.info("[Samza] process-ns: " + processNs + " nanoseconds, event-loop-utilization: " + util + " %");
           } catch (PathNotFoundException e) {
           }
 

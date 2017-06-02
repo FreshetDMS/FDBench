@@ -59,6 +59,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
   private final Histogram latency;
   private final org.apache.samza.metrics.Timer e2eLatency;
   private final Gauge<Long> elapsedTime;
+  private final Gauge<Long> messageRateGuage;
   private final Counter messagesSent;
   private final Counter messagesConsumed;
   private final Counter errorCount;
@@ -91,6 +92,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
     this.messagesSent = metricsRegistry.newCounter(getGroup(), "messages-sent");
     this.messagesConsumed = metricsRegistry.newCounter(getGroup(), "messages-consumed");
     this.errorCount = metricsRegistry.newCounter(getGroup(), "errors");
+    this.messageRateGuage = metricsRegistry.newGauge(getGroup(), "current-message-rate", 0L);
     this.benchmarkDuration = new BenchConfig(config).getBenchmarkDuration();
   }
 
@@ -141,8 +143,9 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
     long currentTime = System.currentTimeMillis();
     executor.execute(() -> {
       long stopAfter = System.currentTimeMillis() + benchmarkDuration * 1000;
-
-      ThroughputThrottler throughputThrottler = new ThroughputThrottler(Long.valueOf(System.getenv(SamzaE2ELatencyBenchmarkConstants.MESSAGE_RATE)), System.currentTimeMillis());
+      long messageRate = Long.valueOf(System.getenv(SamzaE2ELatencyBenchmarkConstants.MESSAGE_BASE_RATE));
+      messageRateGuage.set(messageRate);
+      ThroughputThrottler throughputThrottler = new ThroughputThrottler(messageRate, System.currentTimeMillis());
 
       long i = 0;
       while (true) {
@@ -166,6 +169,8 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
         }
       }
 
+      log.info("Overall message rate: " + (messagesSent.getCount() / (elapsedTime.getValue() / 1000)));
+
       latch.countDown();
     });
 
@@ -188,7 +193,7 @@ public class SamzaE2ELatencyBenchmarkTask implements BenchmarkTask {
           JsonNode root = record.value();
           long createdAt = root.get("created-at").asLong();
           long lat = (receivedAt - createdAt) ;
-          latency.recordValue(lat * 1000000);
+          latency.recordValue(lat);
           e2eLatency.update(lat);
           messagesConsumed.inc();
         }
