@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Milinda Pathirage
+ * Copyright 2017 Milinda Pathirage
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.pathirage.fdbench.samza;
 
 import com.typesafe.config.Config;
@@ -21,9 +20,9 @@ import org.pathirage.fdbench.api.BenchmarkTask;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
 import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 
-public class SamzaE2ELatencyBenchmarkTaskFactory implements BenchmarkTaskFactory {
+public class SamzaE2ELatencyConsumeTaskFactory implements BenchmarkTaskFactory {
   @Override
   public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config, MetricsRegistry metricsRegistry) {
-    return new SamzaE2ELatencyBenchmarkTask(benchmarkName, taskId, containerID, config, metricsRegistry);
+    return new SamzaE2ELatencyConsumeTask(benchmarkName, taskId, containerID, config, metricsRegistry);
   }
 }

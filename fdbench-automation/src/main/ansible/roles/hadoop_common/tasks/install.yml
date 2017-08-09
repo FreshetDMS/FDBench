@@ -1,4 +1,22 @@
 ---
+- name: Install ntp
+  apt:
+    name: ntp
+    update_cache: yes
+
+- name: Install ntpdate
+  apt:
+    name: ntpdate
+    update_cache: yes
+
+- name: Enable ntp
+  shell: timedatectl set-ntp true
+
+- name: Start ntpd
+  service:
+    name: ntp.service
+    state: started
+
 - name: Download Hadoop
   get_url: url=http://www-us.apache.org/dist/hadoop/common/hadoop-{{ hadoop.version }}/hadoop-{{ hadoop.version }}.tar.gz dest=/mnt/hadoop-{{ hadoop.version }}.tgz mode=0644 validate_certs=no
 

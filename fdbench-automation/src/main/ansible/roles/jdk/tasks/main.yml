@@ -21,5 +21,8 @@
 - name: Update APT cache
   apt: name=oracle-java8-installer update_cache=yes state=latest force=yes
 
+- name: Setup TSC timer
+  shell: echo tsc > /sys/devices/system/clocksource/clocksource0/current_clocksource
+
 
 

@@ -21,7 +21,7 @@ public class CPULoadGenerator {
   static Random random = new Random(System.currentTimeMillis());
 
   public static void main(String[] args) {
-    int multiplications = 1000;
+    int multiplications = 4096;
     Random random = new Random(System.currentTimeMillis());
     long result = 0;
     long start = System.currentTimeMillis();
@@ -35,18 +35,7 @@ public class CPULoadGenerator {
 //    System.out.println(result);
     System.out.println("Time: " + new Float(end - start)/1000 + " microseconds");
 
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-    System.out.println(randomExp());
-
+    // Single multiplication approximately takes 0.019 nanoseconds
   }
 
   private static int randomExp() {
