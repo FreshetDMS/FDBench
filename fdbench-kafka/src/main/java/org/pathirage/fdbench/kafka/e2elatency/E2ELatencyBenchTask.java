@@ -16,12 +16,19 @@
 
 package org.pathirage.fdbench.kafka.e2elatency;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.CreateBucketRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.typesafe.config.Config;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.samza.metrics.Counter;
+import org.pathirage.fdbench.aws.AWSConfiguration;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkTask;
 import org.pathirage.fdbench.metrics.api.Histogram;
@@ -29,6 +36,12 @@ import org.pathirage.fdbench.metrics.api.MetricsRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -48,10 +61,15 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
   private final Duration taskDuration;
   private final int requestRate;
   private final Duration expectedInterval;
+  private final String benchmarkName;
+  private final String taskId;
+  private final Config config;
 
   private KafkaConsumer<byte[], byte[]> consumer;
   private KafkaProducer<byte[], byte[]> producer;
 
+  private final PrintWriter latencyWriter;
+  private final Path latencyFile;
 
   public E2ELatencyBenchTask(String taskId, String benchmarkName, String containerId, Config rawConfig,
                              MetricsRegistry metricsRegistry) {
@@ -66,11 +84,57 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
     this.consumer = new KafkaConsumer<byte[], byte[]>(getConsumerProperties());
     this.taskDuration = Duration.ofSeconds(getBenchmarkDuration());
     this.requestRate = getMessageRate();
+    this.benchmarkName = benchmarkName;
+    this.taskId = taskId;
+    this.config = rawConfig;
 
     if (this.requestRate > 0) {
       this.expectedInterval = Duration.ofNanos(1000000000 / requestRate);
     } else {
       this.expectedInterval = Duration.ZERO;
+    }
+
+    this.latencyFile = getTempFile();
+    this.latencyWriter = getWriterForFile(this.latencyFile);
+  }
+
+  private Path getTempFile() {
+    try {
+      return Files.createTempFile(benchmarkName + "-" + taskId, ".csv");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  private AmazonS3 getS3Client() {
+    AWSConfiguration awsConfiguration = new AWSConfiguration(config);
+    AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+    builder.setRegion(awsConfiguration.getAWSRegion());
+    builder.setCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(awsConfiguration.getAWSAccessKeyId(), awsConfiguration.getAWSAccessKeySecret())));
+    return builder.build();
+  }
+
+  private void saveLatenciesToAmazonS3() {
+    log.info("Storing task " + taskId + "'s latencies to S3.....");
+    AmazonS3 s3Client = getS3Client();
+    if (!s3Client.doesBucketExist(benchmarkName + "-latencies")) {
+      try {
+        s3Client.createBucket(new CreateBucketRequest(benchmarkName + "-latencies"));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    latencyWriter.flush();
+    latencyWriter.close();
+
+    s3Client.putObject(new PutObjectRequest(benchmarkName + "-latencies", benchmarkName + "-" + taskId + "-latencies.csv", latencyFile.toFile()));
+  }
+
+  private PrintWriter getWriterForFile(Path filePath) {
+    try {
+      return new PrintWriter(new BufferedWriter(new FileWriter(filePath.toFile())));
+    } catch (IOException e) {
+      throw new RuntimeException("Cannot create write for temp file " + filePath.toString(), e);
     }
   }
 
@@ -84,6 +148,8 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
     if (consumer != null) {
       consumer.close();
     }
+
+    saveLatenciesToAmazonS3();
   }
 
   @Override
@@ -111,6 +177,7 @@ public class E2ELatencyBenchTask extends KafkaBenchmarkTask {
           throw new Exception(errMsg);
         }
         latency = System.nanoTime() - before;
+        latencyWriter.println(latency);
         successHistogram.recordValue(latency);
         successTotal.inc();
       } catch (Exception e) {

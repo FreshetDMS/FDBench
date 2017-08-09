@@ -18,9 +18,10 @@ package org.pathirage.fdbench.samza;
 
 import com.typesafe.config.Config;
 import org.pathirage.fdbench.config.AbstractConfig;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
 import org.pathirage.fdbench.kafka.KafkaConfig;
 
-public class SamzaE2ELatencyBenchmarkConfig extends KafkaConfig {
+public class SamzaE2ELatencyBenchmarkConfig extends KafkaBenchmarkConfig {
 
   private static final String SOURCE_TOPIC = "samza.e2elatency.source.topic";
   private static final String RESULT_TOPIC = "samza.e2elatency.result.topic";

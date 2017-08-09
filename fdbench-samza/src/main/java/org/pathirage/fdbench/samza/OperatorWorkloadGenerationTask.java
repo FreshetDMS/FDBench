@@ -81,8 +81,6 @@ public class OperatorWorkloadGenerationTask implements StreamTask, InitableTask{
     for (double i = 0; i < iterations; i++) {
       result = random.nextInt(2000) * random.nextInt(500);
     }
-
-    log.info("Result: " + result);
   }
 
   public static enum ServiceTimeDist {

@@ -3,9 +3,9 @@
 # ---------------------------
 ec2:
   hadoop_security_group: hadoopsg
-  key: bench-keypair
+  key: imac-keypair
   zookeeper_instance_type: c3.xlarge
-  kafka_instance_type: d2.2xlarge
+  kafka_instance_type: m4.xlarge
   hadoop_master_instance_type: c3.xlarge
   hadoop_slave_instance_type: c3.xlarge
   image: ami-7c803d1c
@@ -14,12 +14,16 @@ ec2:
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
   zookeeper_instance_count: 1
-  hadoop_slave_count: 5
+  hadoop_slave_count: 3
   zk_spot_price: 0.5
   kafka_spot_price: 0.5
   hadoop_spot_price: 0.5
-  key_file: "/Users/mpathira/Downloads/bench-keypair.pem.txt"
-  kafka_volumes: []
+  key_file: "/Users/mpathira/Documents/imac-keypair.pem"
+  kafka_volumes:
+    - device_name: /dev/xvdf
+      volume_type: st1
+      volume_size: 1000
+      delete_on_termination: true
 
 java_home_dir: "/usr/lib/jvm/java-8-oracle"
 
@@ -31,24 +35,11 @@ ssh_known_hosts_command: "ssh-keyscan -H -T 10"
 ssh_known_hosts_file: "/Users/mpathira/.ssh/known_hosts"
 
 # ---------------------------
-# Hadoop Configuration
+# Directories to persist cluster configurations
 # ---------------------------
-hadoop_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/hadoop_conf
-kafka_conf_path: /Users/mpathira/PhD/Code/FreshetDMS/Experiments/kafka_conf
+hadoop_conf_path: cluster_conf/hadoop
+kafka_conf_path: cluster_conf/kafka
 kafka_cluster_id: 1
-
-# ---------------------------
-# Monitoring
-# ---------------------------
-influxdb_host: mugo.cs.indiana.edu
-
-#----------------------------
-#  JAVA
-#----------------------------
-java_home: /usr/local/java/jdk
-jdk_archive_url: http://download.oracle.com/otn-pub/java/jdk/8u121-b13/jdk-8u121-linux-x64.tar.gz
-jdk_archive_filename: jdk-8u111-linux-x64.tar.gz
-jdk_version: jdk1.8.0_111
 
 # --------------------------------------
 # Common

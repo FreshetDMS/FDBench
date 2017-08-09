@@ -19,6 +19,7 @@ package org.pathirage.fdbench.samza;
 import org.pathirage.fdbench.api.Benchmark;
 import org.pathirage.fdbench.api.BenchmarkDeploymentState;
 import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.api.Constants;
 import org.pathirage.fdbench.config.BenchConfig;
 import org.pathirage.fdbench.utils.kafka.KafkaAdmin;
 import org.pathirage.fdbench.kafka.KafkaBenchmarkConstants;
@@ -56,7 +57,7 @@ public class SamzaE2ELatencyBenchmark implements Benchmark {
 
   @Override
   public Class<? extends BenchmarkTaskFactory> getTaskFactoryClass() {
-    return SamzaE2ELatencyBenchmarkTaskFactory.class;
+    return SamzaE2ELatencyProduceTaskFactory.class;
   }
 
   @Override
@@ -70,7 +71,16 @@ public class SamzaE2ELatencyBenchmark implements Benchmark {
     env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_BASE_RATE, Integer.toString(config.getMessageRate()));
     env.put(SamzaE2ELatencyBenchmarkConstants.MESSAGE_SIZE, Integer.toString(config.getPayloadSize()));
 
-    return env;
+    if (taskId == 0) {
+      env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, SamzaE2ELatencyProduceTaskFactory.class.getName());
+      return env;
+    } else if(taskId == 1) {
+      env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, SamzaE2ELatencyConsumeTaskFactory.class.getName());
+      return env;
+    } else {
+
+      throw new RuntimeException("Unexpected task id " + taskId);
+    }
   }
 
   private void deleteTopic(SamzaE2ELatencyBenchmarkConfig.TopicConfig topicConfig) {
@@ -87,8 +97,8 @@ public class SamzaE2ELatencyBenchmark implements Benchmark {
 
   private void validateTaskAllocation() {
     // In the initial prototype we only use a single task.
-    if (parallelism != 1) {
-      String errMsg = String.format("Configured parallelism %s does not match the required parallelism of 1",
+    if (parallelism != 2) {
+      String errMsg = String.format("Configured parallelism %s does not match the required parallelism of 2",
           parallelism);
       throw new RuntimeException(errMsg);
     }
