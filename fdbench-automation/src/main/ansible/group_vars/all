@@ -14,7 +14,7 @@ ec2:
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
   zookeeper_instance_count: 1
-  hadoop_slave_count: 3
+  hadoop_slave_count: 1
   zk_spot_price: 0.5
   kafka_spot_price: 0.5
   hadoop_spot_price: 0.5
