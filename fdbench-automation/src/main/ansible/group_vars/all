@@ -14,7 +14,7 @@ ec2:
   zookeeper_security_group: zookeeper
   kafka_instance_count: 1
   zookeeper_instance_count: 1
-  hadoop_slave_count: 3
+  hadoop_slave_count: 1
   zk_spot_price: 0.5
   kafka_spot_price: 0.5
   hadoop_spot_price: 0.5
@@ -83,7 +83,7 @@ hadoop:
   password: $6$rounds=656000$rwtkj/z6gExWauVP$cHQc7Un9.ZOdV3UA.keE4OncgT9Z4KSbCCm1q51D0dd1PBR4KXHOhN4pic773sWlZduzXSxw6Yzgm4HYhvbXU1
   nm_mem_mb: 6000
   nm_vcores: 3
-  version: 2.7.3
+  version: 2.7.4
 
 one_ephemeral:
   - { device_name: /dev/sdb, ephemeral: ephemeral0 }
