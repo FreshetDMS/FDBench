@@ -38,10 +38,7 @@ import org.pathirage.fdbench.metrics.api.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -64,7 +61,7 @@ public class SamzaE2ELatencyConsumeTask implements BenchmarkTask {
   private final Counter messagesConsumed;
   private final PrintWriter latencyWriter;
   private final Path latencyFile;
-
+  private final Integer benchmarkDuration;
 
   public SamzaE2ELatencyConsumeTask(String benchmarkName, String taskId, String containerID, Config config, MetricsRegistry metricsRegistry) {
     this.benchmarkName = benchmarkName;
@@ -77,6 +74,7 @@ public class SamzaE2ELatencyConsumeTask implements BenchmarkTask {
     this.e2eLatency = metricsRegistry.newTimer(getGroup(), "e2e-latency");
     this.latency = metricsRegistry.newHistogram(getGroup(), "produce-latency", KafkaBenchmarkConstants.MAX_RECORDABLE_LATENCY, KafkaBenchmarkConstants.SIGNIFICANT_VALUE_DIGITS);
     this.messagesConsumed = metricsRegistry.newCounter(getGroup(), "messages-consumed");
+    this.benchmarkDuration = new SamzaE2ELatencyBenchmarkConfig(config).getDurationSeconds();
     this.latencyFile = getTempFile();
     this.latencyWriter = getWriterForFile(this.latencyFile);
   }
@@ -92,6 +90,7 @@ public class SamzaE2ELatencyConsumeTask implements BenchmarkTask {
       throw new RuntimeException(e);
     }
   }
+
   private AmazonS3 getS3Client() {
     AWSConfiguration awsConfiguration = new AWSConfiguration(config);
     AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
@@ -107,6 +106,7 @@ public class SamzaE2ELatencyConsumeTask implements BenchmarkTask {
       try {
         s3Client.createBucket(new CreateBucketRequest(benchmarkName + "-latencies"));
       } catch (Exception e) {
+        log.error("An error occurred during S3 bucket creation.", e);
         throw new RuntimeException(e);
       }
     }
@@ -114,7 +114,9 @@ public class SamzaE2ELatencyConsumeTask implements BenchmarkTask {
     latencyWriter.flush();
     latencyWriter.close();
 
-    s3Client.putObject(new PutObjectRequest(benchmarkName + "-latencies", benchmarkName + "-" + taskId + "-latencies.csv", latencyFile.toFile()));
+    log.info("Latency file size: " + latencyFile.toFile().length());
+
+    s3Client.putObject(new PutObjectRequest(benchmarkName + "-latencies", benchmarkName + "-" + taskId + "-latencies.csv", new File(latencyFile.toString())));
   }
 
   private PrintWriter getWriterForFile(Path filePath) {
@@ -166,20 +168,26 @@ public class SamzaE2ELatencyConsumeTask implements BenchmarkTask {
     List<String> topics = new ArrayList<>();
     topics.add(System.getenv(SamzaE2ELatencyBenchmarkConstants.RESULT_TOPIC));
     consumer.subscribe(topics);
+    long stopAfter = System.currentTimeMillis() + (benchmarkDuration + 30) * 1000;
+    log.info("Current time: " + System.currentTimeMillis() + " bechmark end time: " + stopAfter);
     long startedAt = System.currentTimeMillis();
 
-    while(true) {
+    while (true) {
       ConsumerRecords<String, JsonNode> records = consumer.poll(30000);
       long receivedAt = System.currentTimeMillis();
-      if (records.isEmpty() && receivedAt - startedAt > 60000) {
-        log.warn("No messages for 60 seconds. Shutting down the consumer thread.");
+
+      if (System.currentTimeMillis() >= stopAfter) {
         break;
       }
 
       for (ConsumerRecord<String, JsonNode> record : records) {
         JsonNode root = record.value();
         long createdAt = root.get("created-at").asLong();
-        long lat = (receivedAt - createdAt) ;
+        long lat = (receivedAt - createdAt);
+        if (lat < 0) {
+          log.info("Created At: " + createdAt + " Received At: " + receivedAt);
+          lat = 0;
+        }
         latency.recordValue(lat);
         latencyWriter.println(lat);
         e2eLatency.update(lat);
