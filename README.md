@@ -24,3 +24,23 @@ Current implementation uses Apache YARN to implement the benchmark job abstracti
 Distributed data generator and performance measurement tool for messaging middleware such as Apache Kafka. 
 
 **Please note that this is still under development.**
+
+# Running Jobs
+
+## Building Packages
+
+```
+./bin/localcluster install <component>
+```
+
+## Executing a Samza Job
+
+```
+./deploy/fdbenchsamza/bin/run-job.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path=file:///Users/mpathira/Workspace/PhD/FreshetDMS/FDBench/deploy/fdbenchsamza/config/samza-op-workload-gen.properties
+```
+
+## Running a FDBench benchmark
+
+```
+./deploy/fdbench-yarn/bin/run-bench.sh -c deploy/fdbench-yarn/config/samzae2elatency-bench.conf
+```
