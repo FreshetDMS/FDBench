@@ -54,8 +54,8 @@ public class ProducerTask extends KafkaBenchmarkTask {
   private final Counter errors;
   private final int delay;
 
-  private KafkaProducer<byte[], byte[]> producer;
-  private List<Integer> partitionAssignment;
+  protected KafkaProducer<byte[], byte[]> producer;
+  protected List<Integer> partitionAssignment;
 
   public ProducerTask(String taskId, String benchmarkName, String containerId, MetricsRegistry metricsRegistry, KafkaBenchmarkConfig config) {
     super(taskId, PRODUCER_LOAD_GENERATOR, benchmarkName, containerId, metricsRegistry, config);
@@ -134,7 +134,7 @@ public class ProducerTask extends KafkaBenchmarkTask {
     }
   }
 
-  private byte[] msgToKey(byte[] msg) {
+  protected byte[] msgToKey(byte[] msg) {
     try {
       MessageDigest messageDigest = MessageDigest.getInstance("MD5");
       return messageDigest.digest(msg);
@@ -147,7 +147,7 @@ public class ProducerTask extends KafkaBenchmarkTask {
 
   }
 
-  private String getGroup() {
+  protected String getGroup() {
     return PRODUCER_LOAD_GENERATOR + "-" + System.getenv(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_TASK_GROUP);
   }
 

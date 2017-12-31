@@ -1,6 +1,6 @@
 ---
   - name: Download Kafka
-    get_url: url=http://www-us.apache.org/dist/kafka/{{ kafka.version }}/kafka_2.11-{{ kafka.version }}.tgz dest=/mnt/kafka_2.11-{{ kafka.version }}.tgz mode=0644 validate_certs=no
+    get_url: url=http://archive.apache.org/dist/kafka/{{ kafka.version }}/kafka_2.11-{{ kafka.version }}.tgz dest=/mnt/kafka_2.11-{{ kafka.version }}.tgz mode=0644 validate_certs=no
 
   - name: Copy and UnArchive the Package in Destination Server.
     unarchive: creates={{ common.install_base_path }}/kafka_2.11-{{ kafka.version }} copy=no src=/mnt/kafka_2.11-{{ kafka.version }}.tgz dest={{ common.install_base_path }} owner={{ kafka.user }} group={{ kafka.group }}

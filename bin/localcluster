@@ -36,9 +36,9 @@ DOWNLOAD_CACHE_DIR=$HOME/.fdbench/download
 COMMAND=$1
 SYSTEM=$2
 
-DOWNLOAD_KAFKA=http://www-us.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
-DOWNLOAD_YARN=http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
-DOWNLOAD_ZOOKEEPER=http://www-eu.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+DOWNLOAD_KAFKA=http://archive.apache.org/dist/kafka/0.10.1.1/kafka_2.11-0.10.1.1.tgz
+DOWNLOAD_YARN=http://www-us.apache.org/dist/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
+DOWNLOAD_ZOOKEEPER=http://www-eu.apache.org/dist/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz
 
 bootstrap() {
   echo "Bootstrapping the system..."
@@ -70,13 +70,13 @@ install_fdbench() {
 
 install_zookeeper() {
   mkdir -p "$DEPLOY_ROOT_DIR"
-  install zookeeper $DOWNLOAD_ZOOKEEPER zookeeper-3.4.6
+  install zookeeper $DOWNLOAD_ZOOKEEPER zookeeper-3.4.10
   cp "$DEPLOY_ROOT_DIR/zookeeper/conf/zoo_sample.cfg" "$DEPLOY_ROOT_DIR/zookeeper/conf/zoo.cfg"
 }
 
 install_yarn() {
   mkdir -p "$DEPLOY_ROOT_DIR"
-  install yarn $DOWNLOAD_YARN hadoop-2.7.3
+  install yarn $DOWNLOAD_YARN hadoop-2.7.4
   cp "$BASE_DIR/conf/yarn-site.xml" "$DEPLOY_ROOT_DIR/yarn/etc/hadoop/yarn-site.xml"
   cp "$BASE_DIR/conf/core-site.xml" "$DEPLOY_ROOT_DIR/yarn/etc/hadoop/core-site.xml"
   if [ ! -f "$HOME/.fdbench/conf/yarn-site.xml" ]; then

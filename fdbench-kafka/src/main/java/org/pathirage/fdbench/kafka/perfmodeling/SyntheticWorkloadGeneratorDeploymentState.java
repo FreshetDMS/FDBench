@@ -184,7 +184,13 @@ public class SyntheticWorkloadGeneratorDeploymentState implements BenchmarkDeplo
       switch (workerGroupConfig.getGroupType()) {
         case PRODUCE:
           env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_SIZE_MEAN, Integer.toString(config.getMessageSizeConfig().mean()));
-          env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, ProducerTaskFactory.class.getName());
+          if (workerGroupConfig.getMessageRates() == null || workerGroupConfig.getMessageRates().isEmpty()) {
+            env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, ProducerTaskFactory.class.getName());
+          } else {
+            env.put(Constants.FDBENCH_TASK_FACTORY_CLASS, MultiRateMultiSizeProducerTaskFactory.class.getName());
+            env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MESSAGE_RATES, Joiner.on(", ").join(workerGroupConfig.getMessageRates().toArray()));
+            env.put(SyntheticWorkloadGeneratorConstants.ENV_KAFKA_WORKLOAD_GENERATOR_MSG_SIZE_MEANS, Joiner.on(", ").join(config.getMessageSizes().toArray()));
+          }
           break;
         case CONSUME:
         case REPLAY:

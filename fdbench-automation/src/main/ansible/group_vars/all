@@ -63,13 +63,13 @@ common:
 #  Zookeeper
 #----------------------------
 zookeeper:
-  version: 3.4.6
+  version: 3.4.10
   user: zkadmin
   group: zkadmin
   password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
   data_store: /mnt/data/zookeeper
   logging: /mnt/data/zookeeper_logging
-  url: https://www.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
+  url: https://www.apache.org/dist/zookeeper/zookeeper-3.4.10/zookeeper-3.4.10.tar.gz
 
 #----------------------------
 #  Kafka
@@ -79,7 +79,7 @@ kafka:
   data_store: /mnt/data/kafka
   log4j_rootlogger: INFO
   topics: [ A ]
-  version: 0.10.1.0
+  version: 0.10.1.1
   user: kafkaadmin
   group: kafkaadmin
   password: $6$rounds=40000$1qjG/hovLZOkcerH$CK4Or3w8rR3KabccowciZZUeD.nIwR/VINUa2uPsmGK/2xnmOt80TjDwbof9rNvnYY6icCkdAR2qrFquirBtT1
@@ -92,7 +92,7 @@ hadoop:
   password: $6$rounds=656000$rwtkj/z6gExWauVP$cHQc7Un9.ZOdV3UA.keE4OncgT9Z4KSbCCm1q51D0dd1PBR4KXHOhN4pic773sWlZduzXSxw6Yzgm4HYhvbXU1
   nm_mem_mb: 6000
   nm_vcores: 3
-  version: 2.7.3
+  version: 2.7.4
 
 one_ephemeral:
   - { device_name: /dev/sdb, ephemeral: ephemeral0 }

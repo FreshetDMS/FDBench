@@ -110,6 +110,10 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
       return new MessageSizeConfig(getConfig("msg-size"));
     }
 
+    public List<Integer> getMessageSizes() {
+      return getRawConfig().getIntList("msg-sizes");
+    }
+
     public List<ConsumerGroupConfig> getConsumerGroups() {
       if (hasPath("consumers")) {
         List<ConsumerGroupConfig> consumerGroups = new ArrayList<>();
@@ -170,6 +174,10 @@ public class SyntheticWorkloadGeneratorConfig extends KafkaBenchmarkConfig {
 
     public int getMessageRate() {
       return getInt(CONFIG_RATE, 1000);
+    }
+
+    public List<Integer> getMessageRates() {
+      return getRawConfig().getIntList("rates");
     }
 
     public boolean isUseAllPartitions(){

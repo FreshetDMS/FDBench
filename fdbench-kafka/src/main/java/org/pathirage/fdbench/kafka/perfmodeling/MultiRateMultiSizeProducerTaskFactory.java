@@ -15,5 +15,15 @@
  */
 package org.pathirage.fdbench.kafka.perfmodeling;
 
-public class MultiRateMultiSizeProducerTaskFactory {
+import com.typesafe.config.Config;
+import org.pathirage.fdbench.api.BenchmarkTask;
+import org.pathirage.fdbench.api.BenchmarkTaskFactory;
+import org.pathirage.fdbench.kafka.KafkaBenchmarkConfig;
+import org.pathirage.fdbench.metrics.api.MetricsRegistry;
+
+public class MultiRateMultiSizeProducerTaskFactory implements BenchmarkTaskFactory {
+    @Override
+    public BenchmarkTask getTask(String benchmarkName, String taskId, String containerID, Config config, MetricsRegistry metricsRegistry) {
+        return new MultiRateMultiSizeProducerTask(taskId, benchmarkName, containerID, metricsRegistry, new SyntheticWorkloadGeneratorConfig(config));
+    }
 }
