@@ -2,25 +2,43 @@
 
 FDBench is a fast data management benchmark.
 
-# Fast Data
+# How To Use
 
-> Big data is often created by data that is generated at incredible speeds, such as click-stream data, financial ticker data, log aggregation, or sensor data. Often these events occur thousands to tens of thousands of times per second. No wonder this type of data is commonly referred to as a "fire hose."
+## Build and Install
 
-> When we talk about fire hoses in big data, we're not measuring volume in the typical gigabytes, terabytes, and petabytes familiar to data warehouses. We're measuring volume in terms of time: the number of megabytes per second, gigabytes per hour, or terabytes per day. We're talking about velocity as well as volume, which gets at the core of the difference between big data and the data warehouse. Big data isn't just big; it's also fast.
+Run following command while in FDBench root directory to setup the local environment for development and testing.
 
-*From [Fast data: The next step after big data](http://www.infoworld.com/article/2608040/big-data/fast-data--the-next-step-after-big-data.html)*
+```
+$ ./bin/localcluster install all
+```
 
-# Architecture
+## Start YARN and Kafka
 
-FDBench's architecture is similar to Apache Samza's architecture. Each benchmark is a collection of tasks that perform same or different tasks based on the benchmark. For example, *Kafka producer throughput benchmark's* tasks do the same thing -- publishing messages to different partitions in a Kafka topic where as benchmark which measures the Kafka's behavior in a real environment will be a collection of producer tasks and consumer tasks.
+```
+$ ./bin/localcluster start all
+```
 
-Current implementation uses Apache YARN to implement the benchmark job abstraction.
+After starting YARN and Kafka set the environment variable ```HADOOP_CONF_DIR``` to point to ```$FDBENCH_ROOT/deploy/yarn/etc/hadoop```. This tells FDBench job runner where it can find the YARN cluster configuration. 
+
+*If you want to use one of the existing YARN clusters, please make sure to point ```HADOOP_CONF_DIR```  environment variable to correct YARN configuration directory*
+
+## Executing Built-In Kafka Benchmark
+
+You can run built-in Kafka workload generator sample by executing following command:
+
+```
+$ ./deploy/fdbench/bin/run-bench.sh --config-file ./deploy/fdbench/examples/synthetic-workloadgen.conf
+```
 
 
-# Benchmarks
+Check whether the workload generator is running by going to http://localhost:8088.
 
-## Messaging Bench
+## Enabling Metrics Reporter
 
-Distributed data generator and performance measurement tool for messaging middleware such as Apache Kafka. 
+You can enable file system metrics reporter by adding following code block to your job configuration.
 
-**Please note that this is still under development.**
+```
+metrics.reporters="fs"
+metrics.reporter.fs.factory.class="org.pathirage.fdbench.metrics.FSMetricsSnapshotReporterFactory"
+metrics.reporter.fs.snapshots.directory=<directory-to-put-metrics>
+```
